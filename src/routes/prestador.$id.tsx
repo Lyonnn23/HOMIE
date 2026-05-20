@@ -127,17 +127,6 @@ function ProviderPage() {
 
         <section className="mt-6">
           <h2 className="section-title">Reseñas</h2>
-          <div className="mt-2 grid grid-cols-2 gap-2">
-            {p.gallery.map((src: string, i: number) => (
-              <div key={i} className="aspect-square rounded-2xl overflow-hidden bg-muted">
-                <img src={src} alt="" loading="lazy" className="size-full object-cover" />
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="mt-6">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Reseñas</h2>
           <div className="mt-2 space-y-2">
             {p.reviews.map((r) => (
               <div key={r.id} className="p-4 rounded-2xl bg-white border border-border">
