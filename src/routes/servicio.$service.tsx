@@ -99,38 +99,39 @@ function ServicePage() {
           </div>
         ) : (
           sorted.map((p) => (
-            <div key={p.id} className="p-4 rounded-3xl bg-white border border-border relative">
+            <div key={p.id} className="p-4 rounded-3xl bg-white border border-[#E5E7EB] relative shadow-[0_1px_2px_rgba(17,24,39,0.04)]">
               {p.disponibleAhora && (
                 <span
-                  className="absolute top-3 right-3 text-[11px] font-semibold px-2 py-1 rounded-full"
-                  style={{ backgroundColor: "#FAC77540", color: "#854F0B" }}
+                  className="absolute top-3 right-3 text-[11px] font-semibold px-2.5 py-1 rounded-full text-white"
+                  style={{ backgroundColor: "#00C288" }}
                 >
                   Disponible
                 </span>
               )}
               <div className="flex items-start gap-3">
                 <div
-                  className="rounded-full p-[2px] shrink-0"
-                  style={{ backgroundColor: catColor }}
+                  className="rounded-full shrink-0"
+                  style={{ padding: 2.5, backgroundColor: catColor }}
                 >
                   <div className="rounded-full bg-white p-[2px]">
-                    <ProviderAvatar url={p.avatarUrl} name={p.name} size={56} />
+                    <ProviderAvatar url={p.avatarUrl} name={p.name} size={64} />
                   </div>
                 </div>
                 <div className="flex-1 min-w-0 pr-16">
-                  <h3 className="font-bold truncate text-[#111827]">{p.name}</h3>
-                  <div className="text-xs text-gray-500">{service}</div>
+                  <h3 className="text-[15px] font-bold truncate text-[#111827]">{p.name}</h3>
+                  <div className="text-[13px] text-[#6B7280]">{service}</div>
                   <div className="flex items-center gap-1 mt-1 text-sm">
                     <Star className="size-4" style={{ fill: "#EF9F27", color: "#EF9F27" }} />
                     <span className="font-semibold text-[#111827]">{p.rating.toFixed(1)}</span>
-                    <span className="text-xs text-gray-500">({p.reviewsCount} reseñas)</span>
+                    <span className="text-xs text-[#6B7280]">({p.reviewsCount} reseñas)</span>
                   </div>
                   <div className="flex items-center justify-between mt-2">
-                    <div className="font-bold text-[#111827]">
-                      {formatCLP(p.pricePerHour)}<span className="text-xs font-normal text-gray-500">/h</span>
+                    <div className="text-[#111827]">
+                      <span className="text-lg font-bold">{formatCLP(p.pricePerHour)}</span>
+                      <span className="text-xs font-normal text-[#6B7280]">/hr</span>
                     </div>
-                    <span className="inline-flex items-center gap-1 text-xs text-gray-500">
-                      <MapPin className="size-3.5" />{p.distanceKm} km
+                    <span className="inline-flex items-center gap-1 text-xs text-[#9CA3AF]">
+                      <MapPin className="size-[14px]" />{p.distanceKm} km
                     </span>
                   </div>
                 </div>
@@ -139,11 +140,12 @@ function ServicePage() {
                 to="/prestador/$id"
                 params={{ id: p.id }}
                 search={{ service }}
-                className="mt-3 block text-center py-2.5 rounded-2xl text-sm font-semibold transition"
+                className="mt-3 block text-center py-2.5 text-sm font-semibold transition"
                 style={{
                   border: `1.5px solid ${catColor}`,
                   color: catColor,
                   backgroundColor: "transparent",
+                  borderRadius: 10,
                 }}
               >
                 Ver perfil
