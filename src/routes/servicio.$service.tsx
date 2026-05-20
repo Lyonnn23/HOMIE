@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { ArrowLeft, Star, MapPin, Clock } from "lucide-react";
+import { ArrowLeft, Star, MapPin } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { ProviderAvatar } from "@/components/Avatar";
 import { getCategoryByService, useProvidersForService, formatCLP, type ProviderListItem } from "@/data/services";
