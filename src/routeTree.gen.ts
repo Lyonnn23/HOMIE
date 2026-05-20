@@ -9,8 +9,10 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RegistroRouteImport } from './routes/registro'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as BuscarRouteImport } from './routes/buscar'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
@@ -21,6 +23,11 @@ import { Route as AuthenticatedReservasRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedOnboardingPrestadorRouteImport } from './routes/_authenticated.onboarding-prestador'
 import { Route as AuthenticatedCuentaRouteImport } from './routes/_authenticated.cuenta'
 
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RegistroRoute = RegistroRouteImport.update({
   id: '/registro',
   path: '/registro',
@@ -29,6 +36,11 @@ const RegistroRoute = RegistroRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BuscarRoute = BuscarRouteImport.update({
@@ -80,8 +92,10 @@ const AuthenticatedCuentaRoute = AuthenticatedCuentaRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/buscar': typeof BuscarRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/registro': typeof RegistroRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/cuenta': typeof AuthenticatedCuentaRoute
   '/onboarding-prestador': typeof AuthenticatedOnboardingPrestadorRoute
   '/reservas': typeof AuthenticatedReservasRoute
@@ -92,8 +106,10 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/buscar': typeof BuscarRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/registro': typeof RegistroRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/cuenta': typeof AuthenticatedCuentaRoute
   '/onboarding-prestador': typeof AuthenticatedOnboardingPrestadorRoute
   '/reservas': typeof AuthenticatedReservasRoute
@@ -106,8 +122,10 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/buscar': typeof BuscarRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/registro': typeof RegistroRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/cuenta': typeof AuthenticatedCuentaRoute
   '/_authenticated/onboarding-prestador': typeof AuthenticatedOnboardingPrestadorRoute
   '/_authenticated/reservas': typeof AuthenticatedReservasRoute
@@ -120,8 +138,10 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/buscar'
+    | '/forgot-password'
     | '/login'
     | '/registro'
+    | '/reset-password'
     | '/cuenta'
     | '/onboarding-prestador'
     | '/reservas'
@@ -132,8 +152,10 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/buscar'
+    | '/forgot-password'
     | '/login'
     | '/registro'
+    | '/reset-password'
     | '/cuenta'
     | '/onboarding-prestador'
     | '/reservas'
@@ -145,8 +167,10 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/buscar'
+    | '/forgot-password'
     | '/login'
     | '/registro'
+    | '/reset-password'
     | '/_authenticated/cuenta'
     | '/_authenticated/onboarding-prestador'
     | '/_authenticated/reservas'
@@ -159,8 +183,10 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   BuscarRoute: typeof BuscarRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   RegistroRoute: typeof RegistroRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   PrestadorIdRoute: typeof PrestadorIdRoute
   ReservarIdRoute: typeof ReservarIdRoute
   ServicioServiceRoute: typeof ServicioServiceRoute
@@ -168,6 +194,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/registro': {
       id: '/registro'
       path: '/registro'
@@ -180,6 +213,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/buscar': {
@@ -268,8 +308,10 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   BuscarRoute: BuscarRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   RegistroRoute: RegistroRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   PrestadorIdRoute: PrestadorIdRoute,
   ReservarIdRoute: ReservarIdRoute,
   ServicioServiceRoute: ServicioServiceRoute,
