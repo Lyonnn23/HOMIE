@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -6,7 +7,10 @@ export interface Booking {
   id: string;
   providerId: string;
   providerName: string;
+  clientId: string;
+  clientName: string;
   service: string;
+  serviceId: string | null;
   date: string;
   time: string;
   address: string;
@@ -14,7 +18,10 @@ export interface Booking {
   price: number;
   status: "pendiente" | "confirmada" | "en camino" | "completado" | "cancelada";
   createdAt: number;
+  hasReview?: boolean;
 }
+
+export type DbEstado = "pendiente" | "confirmada" | "en_camino" | "completada" | "cancelada";
 
 const DB_TO_UI: Record<string, Booking["status"]> = {
   pendiente: "pendiente",
@@ -24,47 +31,129 @@ const DB_TO_UI: Record<string, Booking["status"]> = {
   cancelada: "cancelada",
 };
 
+const SELECT = `
+  id, fecha, hora, direccion, estado, nota, total, created_at,
+  prestador_id, cliente_id, servicio_id,
+  prestadores ( id, usuarios ( nombre ) ),
+  cliente:usuarios!reservas_cliente_id_fkey ( nombre ),
+  servicios ( nombre ),
+  resenas ( id )
+`;
+
+type Row = {
+  id: string; fecha: string; hora: string; direccion: string;
+  estado: string; nota: string | null; total: number; created_at: string;
+  prestador_id: string; cliente_id: string; servicio_id: string | null;
+  prestadores: { id: string; usuarios: { nombre: string } | null } | null;
+  cliente: { nombre: string } | null;
+  servicios: { nombre: string } | null;
+  resenas: { id: string }[] | null;
+};
+
+function mapRow(r: Row): Booking {
+  return {
+    id: r.id,
+    providerId: r.prestador_id,
+    providerName: r.prestadores?.usuarios?.nombre ?? "Prestador",
+    clientId: r.cliente_id,
+    clientName: r.cliente?.nombre ?? "Cliente",
+    service: r.servicios?.nombre ?? "Servicio",
+    serviceId: r.servicio_id,
+    date: r.fecha,
+    time: r.hora?.slice(0, 5) ?? r.hora,
+    address: r.direccion,
+    note: r.nota,
+    price: r.total,
+    status: DB_TO_UI[r.estado] ?? "pendiente",
+    createdAt: new Date(r.created_at).getTime(),
+    hasReview: (r.resenas?.length ?? 0) > 0,
+  };
+}
+
+// Client-side: bookings as cliente
 export function useBookings() {
+  const qc = useQueryClient();
   const { usuario } = useAuth();
   const clienteId = usuario?.id;
+
   const q = useQuery({
-    queryKey: ["bookings", clienteId],
+    queryKey: ["bookings", "cliente", clienteId],
     enabled: !!clienteId,
     queryFn: async (): Promise<Booking[]> => {
       const { data, error } = await supabase
         .from("reservas")
-        .select(`
-          id, fecha, hora, direccion, estado, nota, total, created_at,
-          prestador_id,
-          prestadores ( id, usuarios ( nombre ) ),
-          servicios ( nombre )
-        `)
+        .select(SELECT)
         .eq("cliente_id", clienteId!)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      type Row = {
-        id: string; fecha: string; hora: string; direccion: string;
-        estado: string; nota: string | null; total: number; created_at: string;
-        prestador_id: string;
-        prestadores: { id: string; usuarios: { nombre: string } } | null;
-        servicios: { nombre: string } | null;
-      };
-      return ((data ?? []) as unknown as Row[]).map((r) => ({
-        id: r.id,
-        providerId: r.prestador_id,
-        providerName: r.prestadores?.usuarios?.nombre ?? "Prestador",
-        service: r.servicios?.nombre ?? "Servicio",
-        date: r.fecha,
-        time: r.hora?.slice(0, 5) ?? r.hora,
-        address: r.direccion,
-        note: r.nota,
-        price: r.total,
-        status: DB_TO_UI[r.estado] ?? "pendiente",
-        createdAt: new Date(r.created_at).getTime(),
-      }));
+      return ((data ?? []) as unknown as Row[]).map(mapRow);
     },
   });
+
+  useEffect(() => {
+    if (!clienteId) return;
+    const ch = supabase
+      .channel(`reservas-cliente-${clienteId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "reservas", filter: `cliente_id=eq.${clienteId}` },
+        () => qc.invalidateQueries({ queryKey: ["bookings", "cliente", clienteId] })
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [clienteId, qc]);
+
   return q.data ?? [];
+}
+
+// Provider-side: bookings received as prestador
+export function useProviderBookings() {
+  const qc = useQueryClient();
+  const { usuario } = useAuth();
+  const usuarioId = usuario?.tipo === "prestador" ? usuario.id : undefined;
+
+  const prestadorIdQ = useQuery({
+    queryKey: ["prestador-id", usuarioId],
+    enabled: !!usuarioId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("prestadores")
+        .select("id")
+        .eq("usuario_id", usuarioId!)
+        .maybeSingle();
+      return data?.id as string | undefined;
+    },
+  });
+  const prestadorId = prestadorIdQ.data;
+
+  const q = useQuery({
+    queryKey: ["bookings", "prestador", prestadorId],
+    enabled: !!prestadorId,
+    queryFn: async (): Promise<Booking[]> => {
+      const { data, error } = await supabase
+        .from("reservas")
+        .select(SELECT)
+        .eq("prestador_id", prestadorId!)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return ((data ?? []) as unknown as Row[]).map(mapRow);
+    },
+  });
+
+  useEffect(() => {
+    if (!prestadorId) return;
+    const ch = supabase
+      .channel(`reservas-prestador-${prestadorId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "reservas", filter: `prestador_id=eq.${prestadorId}` },
+        () => qc.invalidateQueries({ queryKey: ["bookings", "prestador", prestadorId] })
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [prestadorId, qc]);
+
+  return { bookings: q.data ?? [], isLoading: prestadorIdQ.isLoading || q.isLoading, hasPrestador: !!prestadorId };
 }
 
 export interface NewBookingInput {
@@ -104,6 +193,44 @@ export function useAddBooking() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["bookings"] });
+    },
+  });
+}
+
+export function useUpdateBookingStatus() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, estado }: { id: string; estado: DbEstado }) => {
+      const { error } = await supabase
+        .from("reservas")
+        .update({ estado })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["bookings"] });
+    },
+  });
+}
+
+export function useAddReview() {
+  const qc = useQueryClient();
+  const { usuario } = useAuth();
+  return useMutation({
+    mutationFn: async (input: { reservaId: string; prestadorId: string; calificacion: number; comentario: string }) => {
+      if (!usuario?.id) throw new Error("Debes iniciar sesión");
+      const { error } = await supabase.from("resenas").insert({
+        reserva_id: input.reservaId,
+        cliente_id: usuario.id,
+        prestador_id: input.prestadorId,
+        calificacion: input.calificacion,
+        comentario: input.comentario || null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["bookings"] });
+      qc.invalidateQueries({ queryKey: ["provider"] });
     },
   });
 }

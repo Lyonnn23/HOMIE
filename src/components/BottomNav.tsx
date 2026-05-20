@@ -1,15 +1,26 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Home, Search, CalendarCheck, User } from "lucide-react";
-
-const items = [
-  { to: "/", label: "Inicio", icon: Home },
-  { to: "/buscar", label: "Buscar", icon: Search },
-  { to: "/reservas", label: "Reservas", icon: CalendarCheck },
-  { to: "/cuenta", label: "Perfil", icon: User },
-] as const;
+import { Home, Search, CalendarCheck, User, Briefcase } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 
 export function BottomNav() {
+  const { usuario } = useAuth();
   const loc = useLocation();
+  const isPrestador = usuario?.tipo === "prestador";
+
+  const items = isPrestador
+    ? [
+        { to: "/", label: "Inicio", icon: Home },
+        { to: "/panel", label: "Panel", icon: Briefcase },
+        { to: "/reservas", label: "Reservas", icon: CalendarCheck },
+        { to: "/cuenta", label: "Perfil", icon: User },
+      ] as const
+    : [
+        { to: "/", label: "Inicio", icon: Home },
+        { to: "/buscar", label: "Buscar", icon: Search },
+        { to: "/reservas", label: "Reservas", icon: CalendarCheck },
+        { to: "/cuenta", label: "Perfil", icon: User },
+      ] as const;
+
   return (
     <nav className="fixed bottom-0 inset-x-0 z-40 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div className="mx-auto max-w-2xl grid grid-cols-4">
