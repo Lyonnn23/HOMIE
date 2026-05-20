@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { ArrowLeft, Star, MapPin, Clock } from "lucide-react";
+import { ArrowLeft, Star, MapPin, Clock, ShieldCheck } from "lucide-react";
 import { z } from "zod";
 import { AppShell } from "@/components/AppShell";
 import { ProviderAvatar } from "@/components/Avatar";
@@ -43,53 +43,90 @@ function ProviderPage() {
   return (
     <AppShell>
       <div className="relative">
-        <div className="h-48" style={{ backgroundColor: cat.bg }} />
+        <div
+          className="h-52"
+          style={{
+            background: `linear-gradient(180deg, ${cat.bg}33 0%, ${cat.bg}0D 100%)`,
+          }}
+        />
         <button
           onClick={() => router.history.back()}
-          className="absolute top-5 left-5 p-2 rounded-full bg-white/80 backdrop-blur hover:bg-white"
+          className="absolute top-5 left-5 p-2 rounded-full bg-white/90 backdrop-blur hover:bg-white shadow-sm"
         >
-          <ArrowLeft className="size-5" />
+          <ArrowLeft className="size-5 text-[#111827]" />
         </button>
-        <div className="absolute -bottom-10 left-5">
-          <div className="ring-4 ring-white rounded-full">
-            <ProviderAvatar url={p.avatarUrl} name={p.name} size={96} />
+        <div className="absolute -bottom-12 left-5">
+          <div className="rounded-full ring-[3px] ring-white shadow-md">
+            <ProviderAvatar url={p.avatarUrl} name={p.name} size={90} />
           </div>
         </div>
       </div>
 
-      <div className="px-5 pt-14">
-        <h1 className="text-2xl font-bold">{p.name}</h1>
-        <div className="flex items-center gap-3 mt-1 text-sm">
-          <span className="inline-flex items-center gap-1">
-            <Star className="size-4 fill-yellow-400 text-yellow-400" />
-            <span className="font-medium">{p.rating.toFixed(1)}</span>
-            <span className="text-muted-foreground">({p.reviewsCount} reseñas)</span>
+      <div className="px-5 pt-16">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-2xl font-bold text-[#111827] truncate">{p.name}</h1>
+            <div className="text-xs text-[#6B7280] mt-0.5">{cat.name}</div>
+          </div>
+          <span className="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#111827] text-white text-[11px] font-semibold">
+            <ShieldCheck className="size-3.5 text-[#EF9F27]" />
+            Verificado
           </span>
         </div>
-        <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-muted-foreground">
-          <span className="inline-flex items-center gap-1"><MapPin className="size-3.5" />{p.distanceKm} km</span>
-          <span className="inline-flex items-center gap-1"><Clock className="size-3.5" />{p.availability}</span>
+
+        <div className="mt-3 flex items-end gap-2">
+          <span className="text-[28px] font-bold leading-none text-[#111827]">{p.rating.toFixed(1)}</span>
+          <div className="flex items-center gap-0.5 pb-1">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Star key={i} className={`size-4 ${i < Math.round(p.rating) ? "fill-[#EF9F27] text-[#EF9F27]" : "text-[#E5E7EB]"}`} />
+            ))}
+          </div>
+          <span className="pb-1 text-xs text-[#6B7280]">({p.reviewsCount} reseñas)</span>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-[#9CA3AF]">
+          <span className="inline-flex items-center gap-1"><MapPin className="size-[14px]" />{p.distanceKm} km</span>
+          <span className="inline-flex items-center gap-1"><Clock className="size-[14px]" />{p.availability}</span>
         </div>
 
         <section className="mt-6">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Sobre mí</h2>
-          <p className="mt-2 text-sm leading-relaxed">{p.bio}</p>
+          <h2 className="section-title">Sobre mí</h2>
+          <p className="mt-2 text-sm leading-relaxed text-[#111827]/80">{p.bio}</p>
         </section>
 
         <section className="mt-6">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Servicios</h2>
-          <div className="mt-2 divide-y divide-border rounded-2xl bg-white border border-border">
+          <h2 className="section-title">Servicios</h2>
+          <div className="mt-3 flex flex-wrap gap-2">
             {p.services.map((s) => (
-              <div key={s.id} className="flex items-center justify-between px-4 py-3">
-                <span className="text-sm">{s.name}</span>
-                <span className="text-sm font-medium">{formatCLP(s.price)}</span>
+              <span
+                key={s.id}
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold"
+                style={{
+                  border: `1.5px solid ${cat.bg}`,
+                  backgroundColor: `${cat.bg}14`,
+                  color: cat.bg,
+                }}
+              >
+                {s.name}
+                <span className="text-[#111827] font-bold">{formatCLP(s.price)}</span>
+              </span>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-6">
+          <h2 className="section-title">Galería</h2>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            {p.gallery.map((src: string, i: number) => (
+              <div key={i} className="aspect-square rounded-2xl overflow-hidden bg-muted">
+                <img src={src} alt="" loading="lazy" className="size-full object-cover" />
               </div>
             ))}
           </div>
         </section>
 
         <section className="mt-6">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Galería</h2>
+          <h2 className="section-title">Reseñas</h2>
           <div className="mt-2 grid grid-cols-2 gap-2">
             {p.gallery.map((src: string, i: number) => (
               <div key={i} className="aspect-square rounded-2xl overflow-hidden bg-muted">
