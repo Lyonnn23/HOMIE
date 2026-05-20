@@ -22,7 +22,7 @@ export function BottomNav() {
       ] as const;
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-40 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+    <nav className="fixed bottom-0 inset-x-0 z-40 border-t border-border bg-white">
       <div className="mx-auto max-w-2xl grid grid-cols-4">
         {items.map(({ to, label, icon: Icon }) => {
           const active = to === "/" ? loc.pathname === "/" : loc.pathname.startsWith(to);
@@ -31,11 +31,11 @@ export function BottomNav() {
               key={to}
               to={to}
               className={`flex flex-col items-center gap-1 py-3 text-xs transition-colors ${
-                active ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                active ? "text-[#EF9F27]" : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              <Icon className={`size-5 ${active ? "stroke-[2.4]" : ""}`} />
-              <span className="text-[11px] font-medium">{label}</span>
+              <Icon className={`size-5 ${active ? "stroke-[2.6]" : ""}`} />
+              <span className="text-[11px] font-semibold">{label}</span>
             </Link>
           );
         })}
@@ -44,3 +44,4 @@ export function BottomNav() {
     </nav>
   );
 }
+

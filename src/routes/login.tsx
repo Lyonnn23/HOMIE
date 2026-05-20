@@ -5,7 +5,7 @@ import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/login")({
-  head: () => ({ meta: [{ title: "Ingresar — Manitos" }] }),
+  head: () => ({ meta: [{ title: "Ingresar — Homie" }] }),
   component: LoginPage,
 });
 

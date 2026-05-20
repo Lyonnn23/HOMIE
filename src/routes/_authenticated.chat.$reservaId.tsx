@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/chat/$reservaId")({
-  head: () => ({ meta: [{ title: "Chat — Manitos" }] }),
+  head: () => ({ meta: [{ title: "Chat — Homie" }] }),
   component: ChatPage,
 });
 

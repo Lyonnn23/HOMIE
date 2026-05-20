@@ -16,7 +16,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/panel")({
-  head: () => ({ meta: [{ title: "Panel del prestador — Manitos" }] }),
+  head: () => ({ meta: [{ title: "Panel del prestador — Homie" }] }),
   component: PanelPage,
 });
 

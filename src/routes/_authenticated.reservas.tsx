@@ -6,7 +6,7 @@ import { useBookings, useAddReview, useUpdateBookingStatus, type Booking } from 
 import { formatCLP } from "@/data/services";
 
 export const Route = createFileRoute("/_authenticated/reservas")({
-  head: () => ({ meta: [{ title: "Mis reservas — Manitos" }] }),
+  head: () => ({ meta: [{ title: "Mis reservas — Homie" }] }),
   component: Reservas,
 });
 

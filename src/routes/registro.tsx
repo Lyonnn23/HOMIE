@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 
 export const Route = createFileRoute("/registro")({
-  head: () => ({ meta: [{ title: "Crear cuenta — Manitos" }] }),
+  head: () => ({ meta: [{ title: "Crear cuenta — Homie" }] }),
   component: RegistroPage,
 });
 
@@ -54,7 +54,7 @@ function RegistroPage() {
       <div className="w-full max-w-sm">
         <h1 className="text-3xl font-bold tracking-tight text-center">Crear cuenta</h1>
         <p className="text-sm text-muted-foreground text-center mt-1">
-          Únete a Manitos en menos de un minuto
+          Únete a Homie en menos de un minuto
         </p>
 
         <div className="mt-6 p-1 rounded-2xl bg-white border border-border grid grid-cols-2 text-sm font-medium">
