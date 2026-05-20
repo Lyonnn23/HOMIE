@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { HomieLogo } from "@/components/Logo";
 
 export const Route = createFileRoute("/forgot-password")({
   head: () => ({ meta: [{ title: "Recuperar contraseña — Homie" }] }),
@@ -25,20 +27,33 @@ function ForgotPasswordPage() {
     else setSent(true);
   }
 
+  const fieldClass =
+    "w-full h-12 px-4 rounded-2xl bg-white border border-[#E5E7EB] outline-none transition focus:border-[#EF9F27] focus:ring-2 focus:ring-[#EF9F27]/20 text-[#111827]";
+
   return (
-    <div className="min-h-screen bg-[oklch(0.985_0.003_260)] flex flex-col items-center justify-center px-5">
+    <div className="min-h-screen bg-white flex flex-col items-center justify-center px-5 py-10">
       <div className="w-full max-w-sm">
-        <h1 className="text-3xl font-bold tracking-tight text-center">Recuperar contraseña</h1>
-        <p className="text-sm text-muted-foreground text-center mt-1">
-          Te enviaremos un link a tu correo para crear una nueva contraseña.
+        <div className="flex justify-center mb-8">
+          <HomieLogo size={48} inverted={false} />
+        </div>
+        <h1 className="text-2xl font-bold tracking-tight text-center text-[#111827]">
+          Recuperar contraseña
+        </h1>
+        <p className="text-sm text-gray-500 text-center mt-1">
+          Te enviaremos un link para crear una nueva contraseña.
         </p>
 
         {sent ? (
-          <div className="mt-8 p-5 rounded-2xl bg-white border border-border text-center">
-            <p className="text-sm">
-              Si <span className="font-semibold">{email}</span> está registrado, recibirás un email con instrucciones en unos minutos.
+          <div
+            className="mt-8 p-5 rounded-2xl border text-center"
+            style={{ borderColor: "#00C288", backgroundColor: "#00C28814", color: "#065F46" }}
+          >
+            <CheckCircle2 className="mx-auto size-7 mb-2" style={{ color: "#00C288" }} />
+            <p className="text-sm font-medium">
+              Si <span className="font-semibold">{email}</span> está registrado,
+              recibirás las instrucciones en unos minutos.
             </p>
-            <Link to="/login" className="block mt-4 text-sm font-medium underline">
+            <Link to="/login" className="block mt-4 text-sm font-semibold text-[#EF9F27]">
               Volver al login
             </Link>
           </div>
@@ -51,19 +66,19 @@ function ForgotPasswordPage() {
                 placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full h-12 px-4 rounded-2xl bg-white border border-border outline-none focus:border-foreground/30"
+                className={fieldClass}
               />
               {err && <p className="text-sm text-destructive">{err}</p>}
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full h-12 rounded-2xl bg-foreground text-background font-semibold disabled:opacity-60"
+                className="w-full h-12 rounded-2xl bg-[#111827] text-white font-semibold disabled:opacity-60"
               >
-                {submitting ? "Enviando..." : "Enviar link"}
+                {submitting ? "Enviando..." : "Enviar instrucciones"}
               </button>
             </form>
-            <p className="mt-6 text-center text-sm text-muted-foreground">
-              <Link to="/login" className="text-foreground font-medium underline">
+            <p className="mt-6 text-center text-sm text-gray-500">
+              <Link to="/login" className="font-semibold text-[#EF9F27]">
                 Volver al login
               </Link>
             </p>
