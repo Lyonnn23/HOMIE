@@ -21,11 +21,11 @@ export const Route = createFileRoute("/_authenticated/panel")({
 });
 
 const STATUS_STYLE: Record<string, string> = {
-  pendiente: "bg-yellow-100 text-yellow-800",
-  confirmada: "bg-emerald-100 text-emerald-800",
+  pendiente: "bg-[#FAC77540] text-[#854F0B]",
+  confirmada: "bg-[#00C28820] text-[#00754F]",
   "en camino": "bg-blue-100 text-blue-800",
-  completado: "bg-green-100 text-green-800",
-  cancelada: "bg-red-100 text-red-700",
+  completado: "bg-[#00C28820] text-[#00754F]",
+  cancelada: "bg-[#FF3B6B20] text-[#FF3B6B]",
 };
 
 type Tab = "resumen" | "pendientes" | "historial" | "perfil";
@@ -63,9 +63,9 @@ function PanelPage() {
 
   return (
     <AppShell>
-      <header className="px-5 pt-8 pb-3">
-        <h1 className="text-3xl font-bold tracking-tight">Panel</h1>
-        <p className="text-sm text-muted-foreground mt-1">Hola {usuario?.nombre?.split(" ")[0] ?? ""}, aquí gestionas tu negocio</p>
+      <header className="bg-[#111827] text-white px-5 pt-8 pb-6 -mt-px">
+        <h1 className="text-3xl font-bold tracking-tight">Mi panel</h1>
+        <p className="text-sm text-white/70 mt-1">Hola {usuario?.nombre?.split(" ")[0] ?? ""}, aquí gestionas tu negocio</p>
       </header>
 
       <Tabs tab={tab} setTab={setTab} pendingCount={bookings.filter((b) => b.status === "pendiente").length} />
@@ -139,28 +139,10 @@ function Resumen({ bookings }: { bookings: Booking[] }) {
       <AvailabilityToggle />
 
       <div className="grid grid-cols-2 gap-3">
-        <StatCard
-          icon={CalendarCheck}
-          label="Hoy"
-          value={String(reservasHoy.length)}
-          sub="reservas activas"
-          tint="bg-blue-50 text-blue-700"
-        />
+        <StatCard icon={CalendarCheck} label="Hoy" value={String(reservasHoy.length)} sub="reservas activas" />
         <RatingCard />
-        <StatCard
-          icon={DollarSign}
-          label="Mes"
-          value={formatCLP(ingresosMes)}
-          sub="ingresos"
-          tint="bg-emerald-50 text-emerald-700"
-        />
-        <StatCard
-          icon={CheckCircle2}
-          label="Total"
-          value={String(completadas)}
-          sub="trabajos completados"
-          tint="bg-violet-50 text-violet-700"
-        />
+        <StatCard icon={DollarSign} label="Mes" value={formatCLP(ingresosMes)} sub="ingresos" accent="dark" />
+        <StatCard icon={CheckCircle2} label="Completadas" value={String(completadas)} sub="trabajos del mes" />
       </div>
 
       <section>
@@ -180,15 +162,15 @@ function Resumen({ bookings }: { bookings: Booking[] }) {
 }
 
 function StatCard({
-  icon: Icon, label, value, sub, tint,
-}: { icon: typeof CalendarCheck; label: string; value: string; sub: string; tint: string }) {
+  icon: Icon, label, value, sub, accent = "amber",
+}: { icon: typeof CalendarCheck; label: string; value: string; sub: string; accent?: "amber" | "dark" }) {
   return (
-    <div className="p-4 rounded-2xl bg-white border border-border">
-      <div className={`inline-flex size-9 items-center justify-center rounded-xl ${tint}`}>
-        <Icon className="size-4" />
+    <div className="p-4 rounded-2xl bg-[#F5F5F0] border border-border">
+      <div className="inline-flex size-9 items-center justify-center rounded-xl bg-white">
+        <Icon className="size-4 text-[#EF9F27]" />
       </div>
       <div className="mt-3 text-xs text-muted-foreground uppercase tracking-wide">{label}</div>
-      <div className="text-xl font-bold mt-0.5 truncate">{value}</div>
+      <div className={`text-xl font-bold mt-0.5 truncate ${accent === "dark" ? "text-[#111827]" : "text-[#EF9F27]"}`}>{value}</div>
       <div className="text-xs text-muted-foreground">{sub}</div>
     </div>
   );
@@ -197,12 +179,12 @@ function StatCard({
 function RatingCard() {
   const data = usePrestadorRow();
   return (
-    <div className="p-4 rounded-2xl bg-white border border-border">
-      <div className="inline-flex size-9 items-center justify-center rounded-xl bg-yellow-50 text-yellow-700">
-        <Star className="size-4 fill-current" />
+    <div className="p-4 rounded-2xl bg-[#F5F5F0] border border-border">
+      <div className="inline-flex size-9 items-center justify-center rounded-xl bg-white">
+        <Star className="size-4 text-[#EF9F27] fill-[#EF9F27]" />
       </div>
       <div className="mt-3 text-xs text-muted-foreground uppercase tracking-wide">Calificación</div>
-      <div className="text-xl font-bold mt-0.5">
+      <div className="text-xl font-bold mt-0.5 text-[#EF9F27]">
         {data ? Number(data.calificacion_promedio).toFixed(1) : "—"}
       </div>
       <div className="text-xs text-muted-foreground">{data?.resenas_count ?? 0} reseñas</div>
@@ -286,11 +268,11 @@ function ProviderBookingCard({ b }: { b: Booking }) {
           {b.status === "pendiente" && (
             <>
               <button disabled={update.isPending} onClick={() => set("cancelada")}
-                className="inline-flex items-center gap-1 px-3 py-2 rounded-xl border border-border text-xs font-semibold hover:bg-muted disabled:opacity-50">
+                className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-[#FF3B6B] text-white text-xs font-semibold hover:opacity-90 disabled:opacity-50">
                 <X className="size-3.5" /> Rechazar
               </button>
               <button disabled={update.isPending} onClick={() => set("confirmada")}
-                className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-foreground text-background text-xs font-semibold disabled:opacity-50">
+                className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-[#00C288] text-white text-xs font-semibold hover:opacity-90 disabled:opacity-50">
                 <Check className="size-3.5" /> Aceptar
               </button>
             </>
@@ -351,9 +333,9 @@ function AvailabilityToggle() {
   });
   const on = !!row?.disponible_ahora;
   return (
-    <div className="p-4 rounded-2xl bg-white border border-border flex items-center justify-between gap-3">
+    <div className="p-4 rounded-2xl bg-[#F5F5F0] border border-border flex items-center justify-between gap-3">
       <div className="min-w-0">
-        <div className="font-semibold text-sm">Disponibilidad</div>
+        <div className="font-semibold text-sm">Disponible ahora</div>
         <div className="text-xs text-muted-foreground mt-0.5">
           {on ? "Estás aceptando reservas" : "No apareces en búsquedas"}
         </div>
@@ -363,7 +345,7 @@ function AvailabilityToggle() {
         disabled={m.isPending || !row}
         aria-pressed={on}
         className={`relative inline-flex h-7 w-12 items-center rounded-full transition disabled:opacity-50 ${
-          on ? "bg-green-500" : "bg-muted-foreground/30"
+          on ? "bg-[#EF9F27]" : "bg-[#E5E7EB]"
         }`}
       >
         <span className={`inline-block size-5 rounded-full bg-white shadow transition ${on ? "translate-x-6" : "translate-x-1"}`} />
