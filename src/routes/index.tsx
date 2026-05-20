@@ -114,9 +114,10 @@ function Home() {
           >
             <div className="flex items-start justify-between gap-4 mb-4">
               <div>
-                <div className="inline-block px-3 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: active.bg }}>
+                <div className="inline-block px-3 py-1 rounded-full text-xs font-semibold" style={{ backgroundColor: `${active.bg}26`, color: active.bg }}>
                   {active.services.length} servicios
                 </div>
+
                 <h3 className="mt-2 text-2xl font-bold">{active.name}</h3>
               </div>
               <button onClick={() => setOpenCat(null)} className="p-2 rounded-full hover:bg-muted">
@@ -130,7 +131,7 @@ function Home() {
                   to="/servicio/$service"
                   params={{ service: encodeURIComponent(s) }}
                   className="px-4 py-2.5 rounded-full text-sm font-medium border border-border hover:bg-muted transition"
-                  style={{ backgroundColor: active.bg + "80" }}
+                  style={{ backgroundColor: `${active.bg}1A`, color: "#111827" }}
                 >
                   {s}
                 </Link>
