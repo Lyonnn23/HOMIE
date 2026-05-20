@@ -1,0 +1,1 @@
+ALTER TABLE public.prestadores RENAME COLUMN "reseñas_count" TO resenas_count;

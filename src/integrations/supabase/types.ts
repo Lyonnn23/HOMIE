@@ -86,7 +86,7 @@ export type Database = {
           lng: number | null
           precio_desde: number
           precio_hasta: number
-          reseñas_count: number
+          resenas_count: number
           usuario_id: string
         }
         Insert: {
@@ -103,7 +103,7 @@ export type Database = {
           lng?: number | null
           precio_desde?: number
           precio_hasta?: number
-          reseñas_count?: number
+          resenas_count?: number
           usuario_id: string
         }
         Update: {
@@ -120,7 +120,7 @@ export type Database = {
           lng?: number | null
           precio_desde?: number
           precio_hasta?: number
-          reseñas_count?: number
+          resenas_count?: number
           usuario_id?: string
         }
         Relationships: [
