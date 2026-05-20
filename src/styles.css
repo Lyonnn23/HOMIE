@@ -139,6 +139,3 @@
   .no-scrollbar { scrollbar-width: none; }
   .no-scrollbar::-webkit-scrollbar { display: none; }
 }
-    50% { opacity: 0.55; }
-  }
-}
