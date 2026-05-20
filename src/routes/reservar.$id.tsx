@@ -1,11 +1,11 @@
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { ArrowLeft, Check } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import { AppShell } from "@/components/AppShell";
 import { ProviderAvatar } from "@/components/Avatar";
-import { getProvider, formatCLP } from "@/data/services";
-import { addBooking } from "@/store/bookings";
+import { useProvider, formatCLP } from "@/data/services";
+import { useAddBooking } from "@/store/bookings";
 
 export const Route = createFileRoute("/reservar/$id")({
   validateSearch: z.object({ service: z.string().optional() }),
@@ -36,29 +36,37 @@ function BookingPage() {
   const { service: incoming } = Route.useSearch();
   const navigate = useNavigate();
   const router = useRouter();
-  const p = getProvider(id);
+  const { data: p, isLoading } = useProvider(id);
+  const addBooking = useAddBooking();
 
   const days = useMemo(() => nextDays(10), []);
   const [date, setDate] = useState(days[0].value);
   const [time, setTime] = useState(TIMES[0]);
-  const [serviceName, setServiceName] = useState<string | undefined>(
-    incoming && p?.services.find((s) => s.name === incoming) ? incoming : p?.services[0]?.name,
-  );
+  const [serviceName, setServiceName] = useState<string | undefined>(incoming);
   const [address, setAddress] = useState("");
   const [note, setNote] = useState("");
   const [confirmed, setConfirmed] = useState(false);
 
+  // Inicializa el servicio elegido cuando los datos cargan.
+  useEffect(() => {
+    if (!p) return;
+    if (!serviceName || !p.services.some((s) => s.name === serviceName)) {
+      setServiceName(p.services[0]?.name);
+    }
+  }, [p, serviceName]);
+
+  if (isLoading) return <AppShell><div className="p-8 text-center text-muted-foreground">Cargando...</div></AppShell>;
   if (!p) return <AppShell><div className="p-8">Prestador no encontrado</div></AppShell>;
 
   const selected = p.services.find((s) => s.name === serviceName) ?? p.services[0];
   const fee = 1500;
-  const total = selected.price + fee;
+  const total = (selected?.price ?? 0) + fee;
 
-  function confirm() {
-    if (!address.trim()) return;
-    addBooking({
-      providerId: p!.id,
-      providerName: p!.name,
+  async function confirm() {
+    if (!address.trim() || !selected || !p) return;
+    await addBooking.mutateAsync({
+      providerId: p.id,
+      serviceId: selected.id,
       service: selected.name,
       date, time, address, note, price: total,
     });
@@ -77,7 +85,7 @@ function BookingPage() {
             {p.name} se contactará contigo para confirmar la visita.
           </p>
           <div className="mt-8 mx-auto max-w-sm p-4 rounded-2xl bg-white border border-border text-left text-sm space-y-2">
-            <Row label="Servicio" value={selected.name} />
+            <Row label="Servicio" value={selected?.name ?? ""} />
             <Row label="Fecha" value={`${date} · ${time}`} />
             <Row label="Dirección" value={address} />
             <Row label="Total" value={formatCLP(total)} bold />
@@ -106,10 +114,10 @@ function BookingPage() {
 
       <div className="px-5 mt-2">
         <div className="flex items-center gap-3 p-3 rounded-2xl bg-white border border-border">
-          <ProviderAvatar seed={p.avatarSeed} name={p.name} size={48} />
+          <ProviderAvatar url={p.avatarUrl} name={p.name} size={48} />
           <div>
             <div className="font-semibold text-sm">{p.name}</div>
-            <div className="text-xs text-muted-foreground">{selected.name}</div>
+            <div className="text-xs text-muted-foreground">{selected?.name}</div>
           </div>
         </div>
       </div>
@@ -118,7 +126,7 @@ function BookingPage() {
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Servicio</h2>
         <div className="mt-2 flex flex-wrap gap-2">
           {p.services.map((s) => (
-            <button key={s.name} onClick={() => setServiceName(s.name)}
+            <button key={s.id} onClick={() => setServiceName(s.name)}
               className={`px-3 py-2 rounded-full text-sm border transition ${
                 serviceName === s.name ? "bg-foreground text-background border-foreground" : "bg-white border-border"
               }`}>
@@ -171,7 +179,7 @@ function BookingPage() {
 
       <section className="px-5 mt-6">
         <div className="p-4 rounded-2xl bg-white border border-border space-y-2 text-sm">
-          <Row label={selected.name} value={formatCLP(selected.price)} />
+          <Row label={selected?.name ?? ""} value={formatCLP(selected?.price ?? 0)} />
           <Row label="Comisión de servicio" value={formatCLP(fee)} />
           <div className="h-px bg-border my-2" />
           <Row label="Total" value={formatCLP(total)} bold />
@@ -181,11 +189,11 @@ function BookingPage() {
       <div className="fixed bottom-0 inset-x-0 z-30 border-t border-border bg-background/95 backdrop-blur">
         <div className="mx-auto max-w-2xl px-5 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           <button
-            disabled={!address.trim()}
+            disabled={!address.trim() || addBooking.isPending}
             onClick={confirm}
             className="w-full py-3.5 rounded-2xl bg-foreground text-background font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            Confirmar reserva · {formatCLP(total)}
+            {addBooking.isPending ? "Confirmando..." : `Confirmar reserva · ${formatCLP(total)}`}
           </button>
         </div>
       </div>

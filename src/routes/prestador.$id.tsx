@@ -3,7 +3,7 @@ import { ArrowLeft, Star, MapPin, Clock } from "lucide-react";
 import { z } from "zod";
 import { AppShell } from "@/components/AppShell";
 import { ProviderAvatar } from "@/components/Avatar";
-import { getProvider, getCategory, formatCLP } from "@/data/services";
+import { getCategory, useProvider, formatCLP } from "@/data/services";
 
 export const Route = createFileRoute("/prestador/$id")({
   validateSearch: z.object({ service: z.string().optional() }),
@@ -14,7 +14,15 @@ function ProviderPage() {
   const { id } = Route.useParams();
   const { service } = Route.useSearch();
   const router = useRouter();
-  const p = getProvider(id);
+  const { data: p, isLoading } = useProvider(id);
+
+  if (isLoading) {
+    return (
+      <AppShell>
+        <div className="p-8 text-center text-muted-foreground">Cargando perfil...</div>
+      </AppShell>
+    );
+  }
 
   if (!p) {
     return (
@@ -27,7 +35,7 @@ function ProviderPage() {
     );
   }
 
-  const cat = getCategory(p.category)!;
+  const cat = getCategory(p.categoryId)!;
   const selectedService = service && p.services.some((s) => s.name === service)
     ? service
     : p.services[0]?.name;
@@ -44,7 +52,7 @@ function ProviderPage() {
         </button>
         <div className="absolute -bottom-10 left-5">
           <div className="ring-4 ring-white rounded-full">
-            <ProviderAvatar seed={p.avatarSeed} name={p.name} size={96} />
+            <ProviderAvatar url={p.avatarUrl} name={p.name} size={96} />
           </div>
         </div>
       </div>
@@ -72,7 +80,7 @@ function ProviderPage() {
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Servicios</h2>
           <div className="mt-2 divide-y divide-border rounded-2xl bg-white border border-border">
             {p.services.map((s) => (
-              <div key={s.name} className="flex items-center justify-between px-4 py-3">
+              <div key={s.id} className="flex items-center justify-between px-4 py-3">
                 <span className="text-sm">{s.name}</span>
                 <span className="text-sm font-medium">{formatCLP(s.price)}</span>
               </div>
@@ -83,7 +91,7 @@ function ProviderPage() {
         <section className="mt-6">
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Galería</h2>
           <div className="mt-2 grid grid-cols-2 gap-2">
-            {p.gallery.map((src, i) => (
+            {p.gallery.map((src: string, i: number) => (
               <div key={i} className="aspect-square rounded-2xl overflow-hidden bg-muted">
                 <img src={src} alt="" loading="lazy" className="size-full object-cover" />
               </div>
@@ -94,8 +102,8 @@ function ProviderPage() {
         <section className="mt-6">
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Reseñas</h2>
           <div className="mt-2 space-y-2">
-            {p.reviews.map((r, i) => (
-              <div key={i} className="p-4 rounded-2xl bg-white border border-border">
+            {p.reviews.map((r) => (
+              <div key={r.id} className="p-4 rounded-2xl bg-white border border-border">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">{r.author}</span>
                   <span className="text-xs text-muted-foreground">{r.date}</span>
