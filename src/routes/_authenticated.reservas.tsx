@@ -107,7 +107,7 @@ function BookingCard({ b }: { b: Booking }) {
           {b.status === "completado" && !b.hasReview && (
             <button
               onClick={() => setShowReview(true)}
-              className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-foreground text-background text-xs font-semibold"
+              className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-[#EF9F27] text-[#111827] text-xs font-semibold"
             >
               <Star className="size-3.5" /> Dejar reseña
             </button>
