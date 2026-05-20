@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { ArrowLeft, Star, MapPin, Clock } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { ProviderAvatar } from "@/components/Avatar";
-import { getCategoryByService, getProvidersForService, formatCLP } from "@/data/services";
+import { getCategoryByService, useProvidersForService, formatCLP, type ProviderListItem } from "@/data/services";
 
 export const Route = createFileRoute("/servicio/$service")({
   component: ServicePage,
@@ -16,16 +16,16 @@ function ServicePage() {
   const service = decodeURIComponent(raw);
   const navigate = useNavigate();
   const cat = getCategoryByService(service);
-  const providers = useMemo(() => getProvidersForService(service), [service]);
+  const { data: providers = [], isLoading } = useProvidersForService(service);
   const [sort, setSort] = useState<SortKey>("rating");
 
   const sorted = useMemo(() => {
-    const list = [...providers];
+    const list: ProviderListItem[] = [...providers];
     switch (sort) {
       case "rating": return list.sort((a, b) => b.rating - a.rating);
       case "price": return list.sort((a, b) => a.pricePerHour - b.pricePerHour);
       case "distance": return list.sort((a, b) => a.distanceKm - b.distanceKm);
-      case "availability": return list.sort((a, b) => a.availability.localeCompare(b.availability));
+      case "availability": return list.sort((a, b) => Number(b.disponibleAhora) - Number(a.disponibleAhora));
     }
   }, [providers, sort]);
 
@@ -49,7 +49,9 @@ function ServicePage() {
             </div>
           )}
           <h1 className="mt-2 text-2xl font-bold tracking-tight">{service}</h1>
-          <p className="text-sm text-muted-foreground mt-1">{providers.length} prestadores disponibles</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            {isLoading ? "Cargando prestadores..." : `${providers.length} prestadores disponibles`}
+          </p>
         </div>
       </header>
 
@@ -72,7 +74,13 @@ function ServicePage() {
       </div>
 
       <div className="px-5 mt-2 space-y-3">
-        {sorted.length === 0 ? (
+        {isLoading ? (
+          <div className="space-y-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="h-32 rounded-3xl bg-white border border-border animate-pulse" />
+            ))}
+          </div>
+        ) : sorted.length === 0 ? (
           <div className="text-center py-20 text-muted-foreground">
             <p>No hay prestadores para este servicio aún.</p>
           </div>
@@ -80,7 +88,7 @@ function ServicePage() {
           sorted.map((p) => (
             <div key={p.id} className="p-4 rounded-3xl bg-white border border-border">
               <div className="flex items-start gap-3">
-                <ProviderAvatar seed={p.avatarSeed} name={p.name} size={56} />
+                <ProviderAvatar url={p.avatarUrl} name={p.name} size={56} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
                     <h3 className="font-semibold truncate">{p.name}</h3>
