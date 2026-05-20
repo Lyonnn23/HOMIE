@@ -139,28 +139,10 @@ function Resumen({ bookings }: { bookings: Booking[] }) {
       <AvailabilityToggle />
 
       <div className="grid grid-cols-2 gap-3">
-        <StatCard
-          icon={CalendarCheck}
-          label="Hoy"
-          value={String(reservasHoy.length)}
-          sub="reservas activas"
-          tint="bg-blue-50 text-blue-700"
-        />
+        <StatCard icon={CalendarCheck} label="Hoy" value={String(reservasHoy.length)} sub="reservas activas" />
         <RatingCard />
-        <StatCard
-          icon={DollarSign}
-          label="Mes"
-          value={formatCLP(ingresosMes)}
-          sub="ingresos"
-          tint="bg-emerald-50 text-emerald-700"
-        />
-        <StatCard
-          icon={CheckCircle2}
-          label="Total"
-          value={String(completadas)}
-          sub="trabajos completados"
-          tint="bg-violet-50 text-violet-700"
-        />
+        <StatCard icon={DollarSign} label="Mes" value={formatCLP(ingresosMes)} sub="ingresos" accent="dark" />
+        <StatCard icon={CheckCircle2} label="Completadas" value={String(completadas)} sub="trabajos del mes" />
       </div>
 
       <section>
