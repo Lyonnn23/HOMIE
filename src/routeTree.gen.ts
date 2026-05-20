@@ -9,38 +9,141 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ReservasRouteImport } from './routes/reservas'
+import { Route as CuentaRouteImport } from './routes/cuenta'
+import { Route as BuscarRouteImport } from './routes/buscar'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ServicioServiceRouteImport } from './routes/servicio.$service'
+import { Route as ReservarIdRouteImport } from './routes/reservar.$id'
+import { Route as PrestadorIdRouteImport } from './routes/prestador.$id'
 
+const ReservasRoute = ReservasRouteImport.update({
+  id: '/reservas',
+  path: '/reservas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CuentaRoute = CuentaRouteImport.update({
+  id: '/cuenta',
+  path: '/cuenta',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BuscarRoute = BuscarRouteImport.update({
+  id: '/buscar',
+  path: '/buscar',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ServicioServiceRoute = ServicioServiceRouteImport.update({
+  id: '/servicio/$service',
+  path: '/servicio/$service',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReservarIdRoute = ReservarIdRouteImport.update({
+  id: '/reservar/$id',
+  path: '/reservar/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrestadorIdRoute = PrestadorIdRouteImport.update({
+  id: '/prestador/$id',
+  path: '/prestador/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/buscar': typeof BuscarRoute
+  '/cuenta': typeof CuentaRoute
+  '/reservas': typeof ReservasRoute
+  '/prestador/$id': typeof PrestadorIdRoute
+  '/reservar/$id': typeof ReservarIdRoute
+  '/servicio/$service': typeof ServicioServiceRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/buscar': typeof BuscarRoute
+  '/cuenta': typeof CuentaRoute
+  '/reservas': typeof ReservasRoute
+  '/prestador/$id': typeof PrestadorIdRoute
+  '/reservar/$id': typeof ReservarIdRoute
+  '/servicio/$service': typeof ServicioServiceRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/buscar': typeof BuscarRoute
+  '/cuenta': typeof CuentaRoute
+  '/reservas': typeof ReservasRoute
+  '/prestador/$id': typeof PrestadorIdRoute
+  '/reservar/$id': typeof ReservarIdRoute
+  '/servicio/$service': typeof ServicioServiceRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/buscar'
+    | '/cuenta'
+    | '/reservas'
+    | '/prestador/$id'
+    | '/reservar/$id'
+    | '/servicio/$service'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/buscar'
+    | '/cuenta'
+    | '/reservas'
+    | '/prestador/$id'
+    | '/reservar/$id'
+    | '/servicio/$service'
+  id:
+    | '__root__'
+    | '/'
+    | '/buscar'
+    | '/cuenta'
+    | '/reservas'
+    | '/prestador/$id'
+    | '/reservar/$id'
+    | '/servicio/$service'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BuscarRoute: typeof BuscarRoute
+  CuentaRoute: typeof CuentaRoute
+  ReservasRoute: typeof ReservasRoute
+  PrestadorIdRoute: typeof PrestadorIdRoute
+  ReservarIdRoute: typeof ReservarIdRoute
+  ServicioServiceRoute: typeof ServicioServiceRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/reservas': {
+      id: '/reservas'
+      path: '/reservas'
+      fullPath: '/reservas'
+      preLoaderRoute: typeof ReservasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cuenta': {
+      id: '/cuenta'
+      path: '/cuenta'
+      fullPath: '/cuenta'
+      preLoaderRoute: typeof CuentaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/buscar': {
+      id: '/buscar'
+      path: '/buscar'
+      fullPath: '/buscar'
+      preLoaderRoute: typeof BuscarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +151,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/servicio/$service': {
+      id: '/servicio/$service'
+      path: '/servicio/$service'
+      fullPath: '/servicio/$service'
+      preLoaderRoute: typeof ServicioServiceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reservar/$id': {
+      id: '/reservar/$id'
+      path: '/reservar/$id'
+      fullPath: '/reservar/$id'
+      preLoaderRoute: typeof ReservarIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prestador/$id': {
+      id: '/prestador/$id'
+      path: '/prestador/$id'
+      fullPath: '/prestador/$id'
+      preLoaderRoute: typeof PrestadorIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BuscarRoute: BuscarRoute,
+  CuentaRoute: CuentaRoute,
+  ReservasRoute: ReservasRoute,
+  PrestadorIdRoute: PrestadorIdRoute,
+  ReservarIdRoute: ReservarIdRoute,
+  ServicioServiceRoute: ServicioServiceRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
