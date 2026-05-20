@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { ArrowLeft, Star, MapPin, Clock } from "lucide-react";
 import { z } from "zod";
 import { AppShell } from "@/components/AppShell";
@@ -13,7 +13,7 @@ export const Route = createFileRoute("/prestador/$id")({
 function ProviderPage() {
   const { id } = Route.useParams();
   const { service } = Route.useSearch();
-  const navigate = useNavigate();
+  const router = useRouter();
   const p = getProvider(id);
 
   if (!p) {
@@ -37,7 +37,7 @@ function ProviderPage() {
       <div className="relative">
         <div className="h-48" style={{ backgroundColor: cat.bg }} />
         <button
-          onClick={() => navigate({ to: -1 as never } as never).catch(() => navigate({ to: "/" }))}
+          onClick={() => router.history.back()}
           className="absolute top-5 left-5 p-2 rounded-full bg-white/80 backdrop-blur hover:bg-white"
         >
           <ArrowLeft className="size-5" />

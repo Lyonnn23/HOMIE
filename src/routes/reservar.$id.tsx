@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { ArrowLeft, Check } from "lucide-react";
 import { useMemo, useState } from "react";
 import { z } from "zod";
@@ -35,6 +35,7 @@ function BookingPage() {
   const { id } = Route.useParams();
   const { service: incoming } = Route.useSearch();
   const navigate = useNavigate();
+  const router = useRouter();
   const p = getProvider(id);
 
   const days = useMemo(() => nextDays(10), []);
@@ -97,7 +98,7 @@ function BookingPage() {
   return (
     <AppShell>
       <header className="px-5 pt-6 pb-2">
-        <button onClick={() => navigate({ to: -1 as never } as never).catch(() => navigate({ to: "/" }))} className="p-2 -ml-2 rounded-full hover:bg-muted">
+        <button onClick={() => router.history.back()} className="p-2 -ml-2 rounded-full hover:bg-muted">
           <ArrowLeft className="size-5" />
         </button>
         <h1 className="mt-3 text-2xl font-bold tracking-tight">Reservar</h1>
