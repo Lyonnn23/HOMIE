@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CalendarCheck, MapPin, Star } from "lucide-react";
+import { CalendarCheck, MapPin, MessageCircle, Star } from "lucide-react";
 import { useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { useBookings, useAddReview, useUpdateBookingStatus, type Booking } from "@/store/bookings";
@@ -85,7 +85,16 @@ function BookingCard({ b }: { b: Booking }) {
       </div>
       <div className="mt-3 pt-3 border-t border-border flex items-center justify-between gap-3">
         <span className="font-semibold text-sm">{formatCLP(b.price)}</span>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          {(b.status === "confirmada" || b.status === "en camino" || b.status === "completado") && (
+            <Link
+              to="/chat/$reservaId"
+              params={{ reservaId: b.id }}
+              className="inline-flex items-center gap-1 px-3 py-2 rounded-xl border border-border text-xs font-semibold hover:bg-muted"
+            >
+              <MessageCircle className="size-3.5" /> Chat
+            </Link>
+          )}
           {b.status === "pendiente" && (
             <button
               disabled={cancel.isPending}
