@@ -21,11 +21,11 @@ export const Route = createFileRoute("/_authenticated/panel")({
 });
 
 const STATUS_STYLE: Record<string, string> = {
-  pendiente: "bg-yellow-100 text-yellow-800",
-  confirmada: "bg-emerald-100 text-emerald-800",
+  pendiente: "bg-[#FAC77540] text-[#854F0B]",
+  confirmada: "bg-[#00C28820] text-[#00754F]",
   "en camino": "bg-blue-100 text-blue-800",
-  completado: "bg-green-100 text-green-800",
-  cancelada: "bg-red-100 text-red-700",
+  completado: "bg-[#00C28820] text-[#00754F]",
+  cancelada: "bg-[#FF3B6B20] text-[#FF3B6B]",
 };
 
 type Tab = "resumen" | "pendientes" | "historial" | "perfil";
