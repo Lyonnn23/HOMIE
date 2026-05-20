@@ -35,6 +35,30 @@ export type Database = {
         }
         Relationships: []
       }
+      mensajes: {
+        Row: {
+          contenido: string
+          created_at: string
+          id: string
+          remitente_id: string
+          reserva_id: string
+        }
+        Insert: {
+          contenido: string
+          created_at?: string
+          id?: string
+          remitente_id: string
+          reserva_id: string
+        }
+        Update: {
+          contenido?: string
+          created_at?: string
+          id?: string
+          remitente_id?: string
+          reserva_id?: string
+        }
+        Relationships: []
+      }
       notificaciones: {
         Row: {
           created_at: string

@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import {
-  CalendarCheck, MapPin, Check, X, Truck, CheckCircle2, Star, DollarSign,
+  CalendarCheck, MapPin, Check, X, Truck, CheckCircle2, Star, DollarSign, MessageCircle,
   LayoutDashboard, ListTodo, History, UserCog, Loader2,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
@@ -273,7 +273,16 @@ function ProviderBookingCard({ b }: { b: Booking }) {
       {b.note && <p className="mt-2 text-xs text-muted-foreground italic">"{b.note}"</p>}
       <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
         <span className="font-semibold text-sm">{formatCLP(b.price)}</span>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          {(b.status === "confirmada" || b.status === "en camino") && (
+            <Link
+              to="/chat/$reservaId"
+              params={{ reservaId: b.id }}
+              className="inline-flex items-center gap-1 px-3 py-2 rounded-xl border border-border text-xs font-semibold hover:bg-muted"
+            >
+              <MessageCircle className="size-3.5" /> Chat
+            </Link>
+          )}
           {b.status === "pendiente" && (
             <>
               <button disabled={update.isPending} onClick={() => set("cancelada")}
