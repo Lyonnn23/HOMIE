@@ -293,6 +293,7 @@ export type Database = {
           id: string
           nombre: string
           tipo: Database["public"]["Enums"]["user_type"]
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -301,6 +302,7 @@ export type Database = {
           id?: string
           nombre: string
           tipo?: Database["public"]["Enums"]["user_type"]
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -309,6 +311,7 @@ export type Database = {
           id?: string
           nombre?: string
           tipo?: Database["public"]["Enums"]["user_type"]
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -317,7 +320,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      current_usuario_id: { Args: never; Returns: string }
     }
     Enums: {
       reserva_estado:
