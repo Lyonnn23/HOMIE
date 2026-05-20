@@ -21,23 +21,24 @@ export interface Category {
 // se sirve desde Supabase mediante useCategoryServices, pero estos arrays
 // permiten renderizar el grid de inicio y la búsqueda sin esperar la red.
 export const categories: Category[] = [
-  { id: "beauty", name: "Belleza y estética", bg: "#FBEAF0", tokenVar: "--cat-beauty", icon: Scissors,
+  { id: "beauty", name: "Belleza y estética", bg: "#FF3B6B", tokenVar: "--cat-beauty", icon: Scissors,
     services: ["Manicure y pedicure","Peluquería","Maquillaje","Extensiones de pestañas","Depilación","Spa y masajes","Tintes y tratamientos","Micropigmentación"] },
-  { id: "home", name: "Hogar y limpieza", bg: "#E6F1FB", tokenVar: "--cat-home", icon: Home,
+  { id: "home", name: "Hogar y limpieza", bg: "#00B4D8", tokenVar: "--cat-home", icon: Home,
     services: ["Aseo del hogar","Lavandería","Planchado","Lavado de ventanas","Limpieza de muebles","Limpieza post-obra","Jardinería","Retiro de escombros"] },
-  { id: "tech-fix", name: "Técnicos y gasfitería", bg: "#FAEEDA", tokenVar: "--cat-tech-fix", icon: Wrench,
+  { id: "tech-fix", name: "Técnicos y gasfitería", bg: "#FF6B00", tokenVar: "--cat-tech-fix", icon: Wrench,
     services: ["Electricista","Gasfíter","Climatización","Cerrajero","Pintor","Instalación de TV/Rack","Yeso y albañilería","Plomería"] },
-  { id: "health", name: "Salud y bienestar", bg: "#E1F5EE", tokenVar: "--cat-health", icon: HeartPulse,
+  { id: "health", name: "Salud y bienestar", bg: "#00C288", tokenVar: "--cat-health", icon: HeartPulse,
     services: ["Enfermería a domicilio","Entrenador personal","Kinesiólogo","Nutricionista","Psicólogo online","Terapeuta/Reiki","Enfermera pediátrica","Cuidador de adultos"] },
-  { id: "pets", name: "Mascotas", bg: "#EEEDFE", tokenVar: "--cat-pets", icon: PawPrint,
+  { id: "pets", name: "Mascotas", bg: "#A855F7", tokenVar: "--cat-pets", icon: PawPrint,
     services: ["Peluquería canina","Paseo de perros","Pet sitting","Vet a domicilio","Baño y aseo","Vacunación"] },
-  { id: "moving", name: "Muebles y mudanzas", bg: "#F1EFE8", tokenVar: "--cat-moving", icon: Truck,
+  { id: "moving", name: "Muebles y mudanzas", bg: "#64748B", tokenVar: "--cat-moving", icon: Truck,
     services: ["Mudanzas","Armado de muebles","Organización del hogar","Embalaje","Instalación de estanterías","Decoración de interiores"] },
-  { id: "tech", name: "Tecnología y digital", bg: "#FAECE7", tokenVar: "--cat-tech", icon: Laptop,
+  { id: "tech", name: "Tecnología y digital", bg: "#EF9F27", tokenVar: "--cat-tech", icon: Laptop,
     services: ["Reparación de PC","Instalación de red/WiFi","Instalación de cámaras","Soporte impresoras","Reparación celulares","Clases de computación"] },
-  { id: "events", name: "Eventos y fotografía", bg: "#EAF3DE", tokenVar: "--cat-events", icon: Camera,
+  { id: "events", name: "Eventos y fotografía", bg: "#EC4899", tokenVar: "--cat-events", icon: Camera,
     services: ["Fotógrafo","Videógrafo","Decorador de eventos","Chef a domicilio","DJ/sonido","Repostería"] },
 ];
+
 
 export function getCategory(id: string) { return categories.find((c) => c.id === id); }
 export function getCategoryByService(service: string) {
