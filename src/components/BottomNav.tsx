@@ -22,7 +22,7 @@ export function BottomNav() {
       ] as const;
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-40 border-t border-border bg-white">
+    <nav className="fixed bottom-0 inset-x-0 z-40 border-t border-[#E5E7EB] bg-white">
       <div className="mx-auto max-w-2xl grid grid-cols-4">
         {items.map(({ to, label, icon: Icon }) => {
           const active = to === "/" ? loc.pathname === "/" : loc.pathname.startsWith(to);
@@ -30,12 +30,17 @@ export function BottomNav() {
             <Link
               key={to}
               to={to}
-              className={`flex flex-col items-center gap-1 py-3 text-xs transition-colors ${
-                active ? "text-[#EF9F27]" : "text-muted-foreground hover:text-foreground"
+              className={`relative flex flex-col items-center gap-1 pt-2.5 pb-2 transition-colors ${
+                active ? "text-[#EF9F27]" : "text-[#9CA3AF] hover:text-[#111827]"
               }`}
             >
-              <Icon className={`size-5 ${active ? "stroke-[2.6]" : ""}`} />
-              <span className="text-[11px] font-semibold">{label}</span>
+              <Icon className={`size-[22px] ${active ? "stroke-[2.5]" : ""}`} />
+              <span className={`text-[10px] leading-none ${active ? "font-bold text-[#EF9F27]" : "font-medium text-[#9CA3AF]"}`}>
+                {label}
+              </span>
+              {active && (
+                <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 size-1 rounded-full bg-[#EF9F27]" />
+              )}
             </Link>
           );
         })}
