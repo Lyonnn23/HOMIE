@@ -36,16 +36,17 @@ function Home() {
       <header className="px-5 pt-8 pb-4">
         <p className="text-sm text-muted-foreground">Hola 👋</p>
         <h1 className="mt-1 text-3xl font-bold tracking-tight">¿Qué necesitas hoy?</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Tu hogar, en buenas manos.</p>
       </header>
 
       <div className="px-5">
         <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-muted-foreground" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-5" style={{ color: "#EF9F27" }} />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="¿Qué servicio necesitas?"
-            className="w-full h-14 pl-12 pr-4 rounded-2xl bg-white border border-border text-base outline-none focus:border-foreground/30 transition"
+            className="w-full h-14 pl-12 pr-4 rounded-2xl bg-[#F5F5F0] border border-transparent text-base outline-none focus:border-[#EF9F27]/60 transition"
           />
         </div>
         {matches.length > 0 && (
@@ -81,11 +82,17 @@ function Home() {
               <button
                 key={c.id}
                 onClick={() => setOpenCat(isOpen ? null : c.id)}
-                className={`relative text-left p-4 rounded-3xl transition-transform active:scale-[0.98] ${isOpen ? "ring-2 ring-foreground/20" : ""}`}
-                style={{ backgroundColor: c.bg }}
+                className={`relative text-left p-4 rounded-2xl bg-white border border-border transition-transform active:scale-[0.98] overflow-hidden ${isOpen ? "ring-2 ring-[#EF9F27]/40" : ""}`}
+                style={{
+                  backgroundColor: `${c.bg}26`,
+                  borderLeft: `3px solid ${c.bg}`,
+                }}
               >
-                <div className="size-10 rounded-2xl bg-white/70 flex items-center justify-center mb-6">
-                  <Icon className="size-5 text-foreground/80" />
+                <div
+                  className="size-10 rounded-xl flex items-center justify-center mb-6"
+                  style={{ backgroundColor: c.bg }}
+                >
+                  <Icon className="size-5 text-white" />
                 </div>
                 <div className="font-semibold text-sm leading-tight">{c.name}</div>
                 <div className="text-xs text-foreground/60 mt-1">{c.services.length} servicios</div>
@@ -94,6 +101,7 @@ function Home() {
           })}
         </div>
       </section>
+
 
       {active && (
         <div
