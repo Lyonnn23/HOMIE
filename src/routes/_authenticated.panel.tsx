@@ -268,11 +268,11 @@ function ProviderBookingCard({ b }: { b: Booking }) {
           {b.status === "pendiente" && (
             <>
               <button disabled={update.isPending} onClick={() => set("cancelada")}
-                className="inline-flex items-center gap-1 px-3 py-2 rounded-xl border border-border text-xs font-semibold hover:bg-muted disabled:opacity-50">
+                className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-[#FF3B6B] text-white text-xs font-semibold hover:opacity-90 disabled:opacity-50">
                 <X className="size-3.5" /> Rechazar
               </button>
               <button disabled={update.isPending} onClick={() => set("confirmada")}
-                className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-foreground text-background text-xs font-semibold disabled:opacity-50">
+                className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-[#00C288] text-white text-xs font-semibold hover:opacity-90 disabled:opacity-50">
                 <Check className="size-3.5" /> Aceptar
               </button>
             </>
@@ -333,9 +333,9 @@ function AvailabilityToggle() {
   });
   const on = !!row?.disponible_ahora;
   return (
-    <div className="p-4 rounded-2xl bg-white border border-border flex items-center justify-between gap-3">
+    <div className="p-4 rounded-2xl bg-[#F5F5F0] border border-border flex items-center justify-between gap-3">
       <div className="min-w-0">
-        <div className="font-semibold text-sm">Disponibilidad</div>
+        <div className="font-semibold text-sm">Disponible ahora</div>
         <div className="text-xs text-muted-foreground mt-0.5">
           {on ? "Estás aceptando reservas" : "No apareces en búsquedas"}
         </div>
@@ -345,7 +345,7 @@ function AvailabilityToggle() {
         disabled={m.isPending || !row}
         aria-pressed={on}
         className={`relative inline-flex h-7 w-12 items-center rounded-full transition disabled:opacity-50 ${
-          on ? "bg-green-500" : "bg-muted-foreground/30"
+          on ? "bg-[#EF9F27]" : "bg-[#E5E7EB]"
         }`}
       >
         <span className={`inline-block size-5 rounded-full bg-white shadow transition ${on ? "translate-x-6" : "translate-x-1"}`} />
