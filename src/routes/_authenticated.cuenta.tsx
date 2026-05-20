@@ -3,7 +3,7 @@ import { ChevronRight, Bell, CreditCard, HelpCircle, MapPin, Shield, LogOut } fr
 import { AppShell } from "@/components/AppShell";
 import { useBookings } from "@/store/bookings";
 
-export const Route = createFileRoute("/cuenta")({
+export const Route = createFileRoute("/_authenticated/cuenta")({
   head: () => ({ meta: [{ title: "Mi cuenta — Manitos" }] }),
   component: Cuenta,
 });
