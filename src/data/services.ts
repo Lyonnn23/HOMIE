@@ -2,6 +2,8 @@ import {
   Scissors, Home, Wrench, HeartPulse, PawPrint, Truck, Laptop, Camera,
   type LucideIcon,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 export type CategoryId =
   | "beauty" | "home" | "tech-fix" | "health" | "pets" | "moving" | "tech" | "events";
@@ -9,150 +11,182 @@ export type CategoryId =
 export interface Category {
   id: CategoryId;
   name: string;
-  bg: string;        // hex bg for cards
-  tokenVar: string;  // css var name
+  bg: string;
+  tokenVar: string;
   icon: LucideIcon;
   services: string[];
 }
 
+// Metadata visual (íconos, colores y orden) — el catálogo de servicios real
+// se sirve desde Supabase mediante useCategoryServices, pero estos arrays
+// permiten renderizar el grid de inicio y la búsqueda sin esperar la red.
 export const categories: Category[] = [
-  {
-    id: "beauty", name: "Belleza y estética", bg: "#FBEAF0", tokenVar: "--cat-beauty", icon: Scissors,
-    services: ["Manicure y pedicure","Peluquería","Maquillaje","Extensiones de pestañas","Depilación","Spa y masajes","Tintes y tratamientos","Micropigmentación"],
-  },
-  {
-    id: "home", name: "Hogar y limpieza", bg: "#E6F1FB", tokenVar: "--cat-home", icon: Home,
-    services: ["Aseo del hogar","Lavandería","Planchado","Lavado de ventanas","Limpieza de muebles","Limpieza post-obra","Jardinería","Retiro de escombros"],
-  },
-  {
-    id: "tech-fix", name: "Técnicos y gasfitería", bg: "#FAEEDA", tokenVar: "--cat-tech-fix", icon: Wrench,
-    services: ["Electricista","Gasfíter","Climatización","Cerrajero","Pintor","Instalación de TV/Rack","Yeso y albañilería","Plomería"],
-  },
-  {
-    id: "health", name: "Salud y bienestar", bg: "#E1F5EE", tokenVar: "--cat-health", icon: HeartPulse,
-    services: ["Enfermería a domicilio","Entrenador personal","Kinesiólogo","Nutricionista","Psicólogo online","Terapeuta/Reiki","Enfermera pediátrica","Cuidador de adultos"],
-  },
-  {
-    id: "pets", name: "Mascotas", bg: "#EEEDFE", tokenVar: "--cat-pets", icon: PawPrint,
-    services: ["Peluquería canina","Paseo de perros","Pet sitting","Vet a domicilio","Baño y aseo","Vacunación"],
-  },
-  {
-    id: "moving", name: "Muebles y mudanzas", bg: "#F1EFE8", tokenVar: "--cat-moving", icon: Truck,
-    services: ["Mudanzas","Armado de muebles","Organización del hogar","Embalaje","Instalación de estanterías","Decoración de interiores"],
-  },
-  {
-    id: "tech", name: "Tecnología y digital", bg: "#FAECE7", tokenVar: "--cat-tech", icon: Laptop,
-    services: ["Reparación de PC","Instalación de red/WiFi","Instalación de cámaras","Soporte impresoras","Reparación celulares","Clases de computación"],
-  },
-  {
-    id: "events", name: "Eventos y fotografía", bg: "#EAF3DE", tokenVar: "--cat-events", icon: Camera,
-    services: ["Fotógrafo","Videógrafo","Decorador de eventos","Chef a domicilio","DJ/sonido","Repostería"],
-  },
+  { id: "beauty", name: "Belleza y estética", bg: "#FBEAF0", tokenVar: "--cat-beauty", icon: Scissors,
+    services: ["Manicure y pedicure","Peluquería","Maquillaje","Extensiones de pestañas","Depilación","Spa y masajes","Tintes y tratamientos","Micropigmentación"] },
+  { id: "home", name: "Hogar y limpieza", bg: "#E6F1FB", tokenVar: "--cat-home", icon: Home,
+    services: ["Aseo del hogar","Lavandería","Planchado","Lavado de ventanas","Limpieza de muebles","Limpieza post-obra","Jardinería","Retiro de escombros"] },
+  { id: "tech-fix", name: "Técnicos y gasfitería", bg: "#FAEEDA", tokenVar: "--cat-tech-fix", icon: Wrench,
+    services: ["Electricista","Gasfíter","Climatización","Cerrajero","Pintor","Instalación de TV/Rack","Yeso y albañilería","Plomería"] },
+  { id: "health", name: "Salud y bienestar", bg: "#E1F5EE", tokenVar: "--cat-health", icon: HeartPulse,
+    services: ["Enfermería a domicilio","Entrenador personal","Kinesiólogo","Nutricionista","Psicólogo online","Terapeuta/Reiki","Enfermera pediátrica","Cuidador de adultos"] },
+  { id: "pets", name: "Mascotas", bg: "#EEEDFE", tokenVar: "--cat-pets", icon: PawPrint,
+    services: ["Peluquería canina","Paseo de perros","Pet sitting","Vet a domicilio","Baño y aseo","Vacunación"] },
+  { id: "moving", name: "Muebles y mudanzas", bg: "#F1EFE8", tokenVar: "--cat-moving", icon: Truck,
+    services: ["Mudanzas","Armado de muebles","Organización del hogar","Embalaje","Instalación de estanterías","Decoración de interiores"] },
+  { id: "tech", name: "Tecnología y digital", bg: "#FAECE7", tokenVar: "--cat-tech", icon: Laptop,
+    services: ["Reparación de PC","Instalación de red/WiFi","Instalación de cámaras","Soporte impresoras","Reparación celulares","Clases de computación"] },
+  { id: "events", name: "Eventos y fotografía", bg: "#EAF3DE", tokenVar: "--cat-events", icon: Camera,
+    services: ["Fotógrafo","Videógrafo","Decorador de eventos","Chef a domicilio","DJ/sonido","Repostería"] },
 ];
-
-export interface Review { author: string; rating: number; text: string; date: string; }
-
-export interface Provider {
-  id: string;
-  name: string;
-  avatarSeed: number;
-  category: CategoryId;
-  services: { name: string; price: number }[];
-  rating: number;
-  reviewsCount: number;
-  pricePerHour: number;
-  distanceKm: number;
-  availability: string;
-  bio: string;
-  gallery: string[];
-  reviews: Review[];
-}
-
-const firstNames = ["Camila","Javiera","Matías","Constanza","Felipe","Antonia","Diego","Valentina","Cristóbal","Fernanda","Ignacio","Sofía","Tomás","Martina","Benjamín","Isidora","Vicente","Catalina","Joaquín","Florencia","Sebastián","Maite","Andrés","Renata"];
-const lastNames = ["González","Muñoz","Rojas","Díaz","Pérez","Soto","Contreras","Silva","Martínez","Sepúlveda","Morales","Rodríguez","López","Fuentes","Hernández","Torres","Araya","Castro","Álvarez","Espinoza"];
-
-const sampleReviews = [
-  "Excelente trabajo, muy puntual y profesional.",
-  "Recomendado 100%, súper amable y prolijo.",
-  "Quedé encantada con el resultado, volveré a contratar.",
-  "Muy buena atención, dejó todo impecable.",
-  "Llegó a la hora exacta y trabajó muy rápido.",
-  "Cumplió con todo lo acordado, súper recomendado.",
-  "Trato muy cálido y resultado de calidad.",
-];
-
-const galleryPool = [
-  "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600",
-  "https://images.unsplash.com/photo-1522338242992-e1a54906a8da?w=600",
-  "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=600",
-  "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600",
-  "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600",
-  "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600",
-  "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=600",
-  "https://images.unsplash.com/photo-1542838132-92c53300491e?w=600",
-];
-
-const availabilityPool = ["Disponible ahora","Disponible hoy","Disponible mañana","Disponible esta semana"];
-
-function seededRand(seed: number) {
-  let s = seed;
-  return () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
-}
-
-function buildProviders(): Provider[] {
-  const out: Provider[] = [];
-  let avatar = 1;
-  let seed = 1;
-  for (const cat of categories) {
-    const rand = seededRand(seed++);
-    for (let i = 0; i < 4; i++) {
-      const fn = firstNames[Math.floor(rand() * firstNames.length)];
-      const ln = lastNames[Math.floor(rand() * lastNames.length)];
-      const rating = +(4 + rand()).toFixed(1) > 5 ? 5.0 : +(4 + rand()).toFixed(1);
-      const priceBase = 8000 + Math.floor(rand() * 35) * 1000;
-      const offered = cat.services
-        .slice()
-        .sort(() => rand() - 0.5)
-        .slice(0, 3 + Math.floor(rand() * 3))
-        .map((s) => ({ name: s, price: 8000 + Math.floor(rand() * 40) * 1000 }));
-      const reviewsCount = 12 + Math.floor(rand() * 220);
-      out.push({
-        id: `${cat.id}-${i + 1}`,
-        name: `${fn} ${ln}`,
-        avatarSeed: ((avatar++ - 1) % 70) + 1,
-        category: cat.id,
-        services: offered,
-        rating,
-        reviewsCount,
-        pricePerHour: priceBase,
-        distanceKm: +(0.3 + rand() * 8).toFixed(1),
-        availability: availabilityPool[Math.floor(rand() * availabilityPool.length)],
-        bio: `Profesional con más de ${2 + Math.floor(rand() * 12)} años de experiencia en ${cat.name.toLowerCase()}. Servicio puntual, prolijo y con todos los materiales incluidos. Atención en toda la región metropolitana.`,
-        gallery: galleryPool.slice().sort(() => rand() - 0.5).slice(0, 4),
-        reviews: Array.from({ length: 4 }).map(() => ({
-          author: `${firstNames[Math.floor(rand() * firstNames.length)]} ${lastNames[Math.floor(rand() * lastNames.length)][0]}.`,
-          rating: 4 + Math.round(rand()),
-          text: sampleReviews[Math.floor(rand() * sampleReviews.length)],
-          date: `${1 + Math.floor(rand() * 11)} sem atrás`,
-        })),
-      });
-    }
-  }
-  return out;
-}
-
-export const providers: Provider[] = buildProviders();
 
 export function getCategory(id: string) { return categories.find((c) => c.id === id); }
 export function getCategoryByService(service: string) {
   return categories.find((c) => c.services.includes(service));
 }
-export function getProvidersForService(service: string) {
-  const cat = getCategoryByService(service);
-  if (!cat) return [];
-  return providers.filter((p) => p.category === cat.id);
-}
-export function getProvider(id: string) { return providers.find((p) => p.id === id); }
 export function formatCLP(n: number) {
   return "$" + n.toLocaleString("es-CL");
+}
+
+// ---------- Tipos ----------
+export interface ProviderListItem {
+  id: string;
+  name: string;
+  avatarUrl: string | null;
+  categoryId: CategoryId;
+  rating: number;
+  reviewsCount: number;
+  pricePerHour: number;
+  distanceKm: number;
+  availability: string;
+  disponibleAhora: boolean;
+}
+
+export interface ProviderDetail extends ProviderListItem {
+  bio: string;
+  gallery: string[];
+  services: { id: string; name: string; price: number }[];
+  reviews: { id: string; author: string; rating: number; text: string; date: string }[];
+  direccion: string | null;
+}
+
+// ---------- Helpers ----------
+function timeAgoEs(iso: string) {
+  const diff = Date.now() - new Date(iso).getTime();
+  const weeks = Math.max(1, Math.floor(diff / (1000 * 60 * 60 * 24 * 7)));
+  return `${weeks} sem atrás`;
+}
+
+// ---------- Hooks ----------
+export function useProvidersForService(serviceName: string) {
+  const cat = getCategoryByService(serviceName);
+  return useQuery({
+    queryKey: ["providers-for-service", serviceName],
+    enabled: !!cat,
+    queryFn: async (): Promise<ProviderListItem[]> => {
+      if (!cat) return [];
+      const { data, error } = await supabase
+        .from("prestadores")
+        .select(`
+          id, categoria_id, calificacion_promedio, "reseñas_count",
+          precio_desde, disponible_ahora, disponibilidad_texto, distancia_km,
+          usuarios!inner ( nombre, foto_url ),
+          prestador_servicios!inner ( servicios!inner ( nombre ) )
+        `)
+        .eq("categoria_id", cat.id)
+        .eq("prestador_servicios.servicios.nombre", serviceName);
+      if (error) throw error;
+      type Row = {
+        id: string; categoria_id: string; calificacion_promedio: number;
+        "reseñas_count": number; precio_desde: number; disponible_ahora: boolean;
+        disponibilidad_texto: string | null; distancia_km: number | null;
+        usuarios: { nombre: string; foto_url: string | null };
+      };
+      const rows = (data ?? []) as unknown as Row[];
+      // Dedupe (un prestador puede aparecer dos veces por el inner join)
+      const seen = new Set<string>();
+      const out: ProviderListItem[] = [];
+      for (const r of rows) {
+        if (seen.has(r.id)) continue;
+        seen.add(r.id);
+        out.push({
+          id: r.id,
+          name: r.usuarios.nombre,
+          avatarUrl: r.usuarios.foto_url,
+          categoryId: r.categoria_id as CategoryId,
+          rating: Number(r.calificacion_promedio),
+          reviewsCount: r["reseñas_count"],
+          pricePerHour: r.precio_desde,
+          distanceKm: Number(r.distancia_km ?? 0),
+          availability: r.disponibilidad_texto ?? "Disponible",
+          disponibleAhora: r.disponible_ahora,
+        });
+      }
+      return out;
+    },
+  });
+}
+
+export function useProvider(id: string) {
+  return useQuery({
+    queryKey: ["provider", id],
+    queryFn: async (): Promise<ProviderDetail | null> => {
+      const { data, error } = await supabase
+        .from("prestadores")
+        .select(`
+          id, categoria_id, bio, calificacion_promedio, "reseñas_count",
+          precio_desde, disponible_ahora, disponibilidad_texto, distancia_km,
+          direccion, gallery_urls,
+          usuarios ( nombre, foto_url ),
+          prestador_servicios ( precio, servicios ( id, nombre ) ),
+          resenas ( id, calificacion, comentario, created_at, usuarios ( nombre ) )
+        `)
+        .eq("id", id)
+        .maybeSingle();
+      if (error) throw error;
+      if (!data) return null;
+      type Row = {
+        id: string; categoria_id: string; bio: string | null;
+        calificacion_promedio: number; "reseñas_count": number;
+        precio_desde: number; disponible_ahora: boolean;
+        disponibilidad_texto: string | null; distancia_km: number | null;
+        direccion: string | null; gallery_urls: string[];
+        usuarios: { nombre: string; foto_url: string | null };
+        prestador_servicios: { precio: number; servicios: { id: string; nombre: string } }[];
+        resenas: { id: string; calificacion: number; comentario: string | null; created_at: string; usuarios: { nombre: string } | null }[];
+      };
+      const r = data as unknown as Row;
+      return {
+        id: r.id,
+        name: r.usuarios.nombre,
+        avatarUrl: r.usuarios.foto_url,
+        categoryId: r.categoria_id as CategoryId,
+        bio: r.bio ?? "",
+        rating: Number(r.calificacion_promedio),
+        reviewsCount: r["reseñas_count"],
+        pricePerHour: r.precio_desde,
+        distanceKm: Number(r.distancia_km ?? 0),
+        availability: r.disponibilidad_texto ?? "Disponible",
+        disponibleAhora: r.disponible_ahora,
+        gallery: r.gallery_urls ?? [],
+        direccion: r.direccion,
+        services: (r.prestador_servicios ?? []).map((ps) => ({
+          id: ps.servicios.id,
+          name: ps.servicios.nombre,
+          price: ps.precio,
+        })),
+        reviews: (r.resenas ?? []).map((rv) => {
+          const author = rv.usuarios?.nombre ?? "Anónimo";
+          const parts = author.split(" ");
+          const initials = parts.length > 1 ? `${parts[0]} ${parts[1][0]}.` : author;
+          return {
+            id: rv.id,
+            author: initials,
+            rating: rv.calificacion,
+            text: rv.comentario ?? "",
+            date: timeAgoEs(rv.created_at),
+          };
+        }),
+      };
+    },
+  });
 }
