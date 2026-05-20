@@ -23,6 +23,7 @@ import { Route as AuthenticatedReservasRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated.panel'
 import { Route as AuthenticatedOnboardingPrestadorRouteImport } from './routes/_authenticated.onboarding-prestador'
 import { Route as AuthenticatedCuentaRouteImport } from './routes/_authenticated.cuenta'
+import { Route as AuthenticatedChatReservaIdRouteImport } from './routes/_authenticated.chat.$reservaId'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -94,6 +95,12 @@ const AuthenticatedCuentaRoute = AuthenticatedCuentaRouteImport.update({
   path: '/cuenta',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedChatReservaIdRoute =
+  AuthenticatedChatReservaIdRouteImport.update({
+    id: '/chat/$reservaId',
+    path: '/chat/$reservaId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -109,6 +116,7 @@ export interface FileRoutesByFullPath {
   '/prestador/$id': typeof PrestadorIdRoute
   '/reservar/$id': typeof ReservarIdRoute
   '/servicio/$service': typeof ServicioServiceRoute
+  '/chat/$reservaId': typeof AuthenticatedChatReservaIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -124,6 +132,7 @@ export interface FileRoutesByTo {
   '/prestador/$id': typeof PrestadorIdRoute
   '/reservar/$id': typeof ReservarIdRoute
   '/servicio/$service': typeof ServicioServiceRoute
+  '/chat/$reservaId': typeof AuthenticatedChatReservaIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -141,6 +150,7 @@ export interface FileRoutesById {
   '/prestador/$id': typeof PrestadorIdRoute
   '/reservar/$id': typeof ReservarIdRoute
   '/servicio/$service': typeof ServicioServiceRoute
+  '/_authenticated/chat/$reservaId': typeof AuthenticatedChatReservaIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -158,6 +168,7 @@ export interface FileRouteTypes {
     | '/prestador/$id'
     | '/reservar/$id'
     | '/servicio/$service'
+    | '/chat/$reservaId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -173,6 +184,7 @@ export interface FileRouteTypes {
     | '/prestador/$id'
     | '/reservar/$id'
     | '/servicio/$service'
+    | '/chat/$reservaId'
   id:
     | '__root__'
     | '/'
@@ -189,6 +201,7 @@ export interface FileRouteTypes {
     | '/prestador/$id'
     | '/reservar/$id'
     | '/servicio/$service'
+    | '/_authenticated/chat/$reservaId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -304,6 +317,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCuentaRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/chat/$reservaId': {
+      id: '/_authenticated/chat/$reservaId'
+      path: '/chat/$reservaId'
+      fullPath: '/chat/$reservaId'
+      preLoaderRoute: typeof AuthenticatedChatReservaIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
@@ -312,6 +332,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedOnboardingPrestadorRoute: typeof AuthenticatedOnboardingPrestadorRoute
   AuthenticatedPanelRoute: typeof AuthenticatedPanelRoute
   AuthenticatedReservasRoute: typeof AuthenticatedReservasRoute
+  AuthenticatedChatReservaIdRoute: typeof AuthenticatedChatReservaIdRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -319,6 +340,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedOnboardingPrestadorRoute: AuthenticatedOnboardingPrestadorRoute,
   AuthenticatedPanelRoute: AuthenticatedPanelRoute,
   AuthenticatedReservasRoute: AuthenticatedReservasRoute,
+  AuthenticatedChatReservaIdRoute: AuthenticatedChatReservaIdRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
@@ -340,3 +362,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
