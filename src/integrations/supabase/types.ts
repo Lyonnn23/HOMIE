@@ -14,7 +14,304 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      categorias: {
+        Row: {
+          color_fondo: string
+          icono: string
+          id: string
+          nombre: string
+        }
+        Insert: {
+          color_fondo: string
+          icono: string
+          id: string
+          nombre: string
+        }
+        Update: {
+          color_fondo?: string
+          icono?: string
+          id?: string
+          nombre?: string
+        }
+        Relationships: []
+      }
+      prestador_servicios: {
+        Row: {
+          id: string
+          precio: number
+          prestador_id: string
+          servicio_id: string
+        }
+        Insert: {
+          id?: string
+          precio: number
+          prestador_id: string
+          servicio_id: string
+        }
+        Update: {
+          id?: string
+          precio?: number
+          prestador_id?: string
+          servicio_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prestador_servicios_prestador_id_fkey"
+            columns: ["prestador_id"]
+            isOneToOne: false
+            referencedRelation: "prestadores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prestador_servicios_servicio_id_fkey"
+            columns: ["servicio_id"]
+            isOneToOne: false
+            referencedRelation: "servicios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prestadores: {
+        Row: {
+          bio: string | null
+          calificacion_promedio: number
+          categoria_id: string
+          direccion: string | null
+          disponibilidad_texto: string | null
+          disponible_ahora: boolean
+          distancia_km: number | null
+          gallery_urls: string[]
+          id: string
+          lat: number | null
+          lng: number | null
+          precio_desde: number
+          precio_hasta: number
+          reseñas_count: number
+          usuario_id: string
+        }
+        Insert: {
+          bio?: string | null
+          calificacion_promedio?: number
+          categoria_id: string
+          direccion?: string | null
+          disponibilidad_texto?: string | null
+          disponible_ahora?: boolean
+          distancia_km?: number | null
+          gallery_urls?: string[]
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          precio_desde?: number
+          precio_hasta?: number
+          reseñas_count?: number
+          usuario_id: string
+        }
+        Update: {
+          bio?: string | null
+          calificacion_promedio?: number
+          categoria_id?: string
+          direccion?: string | null
+          disponibilidad_texto?: string | null
+          disponible_ahora?: boolean
+          distancia_km?: number | null
+          gallery_urls?: string[]
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          precio_desde?: number
+          precio_hasta?: number
+          reseñas_count?: number
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prestadores_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "categorias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prestadores_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      resenas: {
+        Row: {
+          calificacion: number
+          cliente_id: string
+          comentario: string | null
+          created_at: string
+          id: string
+          prestador_id: string
+          reserva_id: string | null
+        }
+        Insert: {
+          calificacion: number
+          cliente_id: string
+          comentario?: string | null
+          created_at?: string
+          id?: string
+          prestador_id: string
+          reserva_id?: string | null
+        }
+        Update: {
+          calificacion?: number
+          cliente_id?: string
+          comentario?: string | null
+          created_at?: string
+          id?: string
+          prestador_id?: string
+          reserva_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resenas_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "resenas_prestador_id_fkey"
+            columns: ["prestador_id"]
+            isOneToOne: false
+            referencedRelation: "prestadores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "resenas_reserva_id_fkey"
+            columns: ["reserva_id"]
+            isOneToOne: false
+            referencedRelation: "reservas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reservas: {
+        Row: {
+          cliente_id: string
+          created_at: string
+          direccion: string
+          estado: Database["public"]["Enums"]["reserva_estado"]
+          fecha: string
+          hora: string
+          id: string
+          nota: string | null
+          prestador_id: string
+          servicio_id: string | null
+          total: number
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          direccion: string
+          estado?: Database["public"]["Enums"]["reserva_estado"]
+          fecha: string
+          hora: string
+          id?: string
+          nota?: string | null
+          prestador_id: string
+          servicio_id?: string | null
+          total: number
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          direccion?: string
+          estado?: Database["public"]["Enums"]["reserva_estado"]
+          fecha?: string
+          hora?: string
+          id?: string
+          nota?: string | null
+          prestador_id?: string
+          servicio_id?: string | null
+          total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservas_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservas_prestador_id_fkey"
+            columns: ["prestador_id"]
+            isOneToOne: false
+            referencedRelation: "prestadores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservas_servicio_id_fkey"
+            columns: ["servicio_id"]
+            isOneToOne: false
+            referencedRelation: "servicios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      servicios: {
+        Row: {
+          categoria_id: string
+          descripcion: string | null
+          id: string
+          nombre: string
+        }
+        Insert: {
+          categoria_id: string
+          descripcion?: string | null
+          id?: string
+          nombre: string
+        }
+        Update: {
+          categoria_id?: string
+          descripcion?: string | null
+          id?: string
+          nombre?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "servicios_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "categorias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      usuarios: {
+        Row: {
+          created_at: string
+          email: string | null
+          foto_url: string | null
+          id: string
+          nombre: string
+          tipo: Database["public"]["Enums"]["user_type"]
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          foto_url?: string | null
+          id?: string
+          nombre: string
+          tipo?: Database["public"]["Enums"]["user_type"]
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          foto_url?: string | null
+          id?: string
+          nombre?: string
+          tipo?: Database["public"]["Enums"]["user_type"]
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +320,13 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      reserva_estado:
+        | "pendiente"
+        | "confirmada"
+        | "en_camino"
+        | "completada"
+        | "cancelada"
+      user_type: "cliente" | "prestador"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +453,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      reserva_estado: [
+        "pendiente",
+        "confirmada",
+        "en_camino",
+        "completada",
+        "cancelada",
+      ],
+      user_type: ["cliente", "prestador"],
+    },
   },
 } as const
