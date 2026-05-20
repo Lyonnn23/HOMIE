@@ -139,7 +139,7 @@ function Buscar() {
   useEffect(() => { setLocalQ(q); }, [q]);
   useEffect(() => {
     const t = setTimeout(() => {
-      if (localQ !== q) navigate({ search: (prev: typeof Route.types.fullSearchSchema) => ({ ...prev, q: localQ }) });
+      if (localQ !== q) navigate({ search: (prev) => ({ ...prev, q: localQ }) });
     }, 250);
     return () => clearTimeout(t);
   }, [localQ, q, navigate]);
@@ -203,7 +203,7 @@ function Buscar() {
             )}
           </button>
           <button
-            onClick={() => navigate({ search: (p: typeof Route.types.fullSearchSchema) => ({ ...p, now: !p.now }) })}
+            onClick={() => navigate({ search: (p) => ({ ...p, now: !p.now }) })}
             className={`shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm border transition ${
               now ? "bg-emerald-600 text-white border-emerald-600" : "bg-white border-border"
             }`}
@@ -213,7 +213,7 @@ function Buscar() {
           {[4.5, 4.0, 3.5].map((r) => (
             <button
               key={r}
-              onClick={() => navigate({ search: (p: typeof Route.types.fullSearchSchema) => ({ ...p, rating: p.rating === r ? 0 : r }) })}
+              onClick={() => navigate({ search: (p) => ({ ...p, rating: p.rating === r ? 0 : r }) })}
               className={`shrink-0 inline-flex items-center gap-1 px-3.5 py-2 rounded-full text-sm border transition ${
                 rating === r ? "bg-foreground text-background border-foreground" : "bg-white border-border"
               }`}
@@ -234,7 +234,7 @@ function Buscar() {
               <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Categoría</label>
               <div className="flex flex-wrap gap-2">
                 <button
-                  onClick={() => navigate({ search: (p: typeof Route.types.fullSearchSchema) => ({ ...p, cat: "" }) })}
+                  onClick={() => navigate({ search: (p) => ({ ...p, cat: "" }) })}
                   className={`px-3 py-1.5 rounded-full text-xs border ${
                     !cat ? "bg-foreground text-background border-foreground" : "bg-white border-border"
                   }`}
@@ -242,7 +242,7 @@ function Buscar() {
                 {categories.map((c) => (
                   <button
                     key={c.id}
-                    onClick={() => navigate({ search: (p: typeof Route.types.fullSearchSchema) => ({ ...p, cat: p.cat === c.id ? "" : c.id }) })}
+                    onClick={() => navigate({ search: (p) => ({ ...p, cat: p.cat === c.id ? "" : c.id }) })}
                     className={`px-3 py-1.5 rounded-full text-xs border ${
                       cat === c.id ? "bg-foreground text-background border-foreground" : "bg-white border-border"
                     }`}
@@ -258,7 +258,7 @@ function Buscar() {
                   type="number" min={0} step={1000}
                   value={min || ""}
                   placeholder="$0"
-                  onChange={(e) => navigate({ search: (p: typeof Route.types.fullSearchSchema) => ({ ...p, min: Number(e.target.value) || 0 }) })}
+                  onChange={(e) => navigate({ search: (p) => ({ ...p, min: Number(e.target.value) || 0 }) })}
                   className="w-full h-10 px-3 rounded-xl bg-muted/50 border border-border outline-none focus:border-foreground/30 text-sm"
                 />
               </div>
@@ -268,7 +268,7 @@ function Buscar() {
                   type="number" min={0} step={1000}
                   value={max || ""}
                   placeholder="Sin límite"
-                  onChange={(e) => navigate({ search: (p: typeof Route.types.fullSearchSchema) => ({ ...p, max: Number(e.target.value) || 0 }) })}
+                  onChange={(e) => navigate({ search: (p) => ({ ...p, max: Number(e.target.value) || 0 }) })}
                   className="w-full h-10 px-3 rounded-xl bg-muted/50 border border-border outline-none focus:border-foreground/30 text-sm"
                 />
               </div>
