@@ -1,9 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-
-// Cliente demo (seed). Como la app no tiene login, todas las reservas se
-// crean asociadas a este usuario.
-export const DEMO_CLIENT_ID = "00000000-0000-0000-0000-000000000001";
+import { useAuth } from "@/hooks/use-auth";
 
 export interface Booking {
   id: string;
@@ -28,8 +25,11 @@ const DB_TO_UI: Record<string, Booking["status"]> = {
 };
 
 export function useBookings() {
+  const { usuario } = useAuth();
+  const clienteId = usuario?.id;
   const q = useQuery({
-    queryKey: ["bookings", DEMO_CLIENT_ID],
+    queryKey: ["bookings", clienteId],
+    enabled: !!clienteId,
     queryFn: async (): Promise<Booking[]> => {
       const { data, error } = await supabase
         .from("reservas")
@@ -39,7 +39,7 @@ export function useBookings() {
           prestadores ( id, usuarios ( nombre ) ),
           servicios ( nombre )
         `)
-        .eq("cliente_id", DEMO_CLIENT_ID)
+        .eq("cliente_id", clienteId!)
         .order("created_at", { ascending: false });
       if (error) throw error;
       type Row = {
@@ -80,12 +80,14 @@ export interface NewBookingInput {
 
 export function useAddBooking() {
   const qc = useQueryClient();
+  const { usuario } = useAuth();
   return useMutation({
     mutationFn: async (b: NewBookingInput) => {
+      if (!usuario?.id) throw new Error("Debes iniciar sesión para reservar");
       const { data, error } = await supabase
         .from("reservas")
         .insert({
-          cliente_id: DEMO_CLIENT_ID,
+          cliente_id: usuario.id,
           prestador_id: b.providerId,
           servicio_id: b.serviceId,
           fecha: b.date,
@@ -101,7 +103,7 @@ export function useAddBooking() {
       return data;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["bookings", DEMO_CLIENT_ID] });
+      qc.invalidateQueries({ queryKey: ["bookings"] });
     },
   });
 }

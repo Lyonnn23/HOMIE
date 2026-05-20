@@ -4,7 +4,7 @@ import { AppShell } from "@/components/AppShell";
 import { useBookings } from "@/store/bookings";
 import { formatCLP } from "@/data/services";
 
-export const Route = createFileRoute("/reservas")({
+export const Route = createFileRoute("/_authenticated/reservas")({
   head: () => ({ meta: [{ title: "Mis reservas — Manitos" }] }),
   component: Reservas,
 });

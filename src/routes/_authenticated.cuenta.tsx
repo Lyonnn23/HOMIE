@@ -1,16 +1,25 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ChevronRight, Bell, CreditCard, HelpCircle, MapPin, Shield, LogOut } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { useBookings } from "@/store/bookings";
+import { useAuth } from "@/hooks/use-auth";
 
-export const Route = createFileRoute("/cuenta")({
+export const Route = createFileRoute("/_authenticated/cuenta")({
   head: () => ({ meta: [{ title: "Mi cuenta — Manitos" }] }),
   component: Cuenta,
 });
 
 function Cuenta() {
   const bookings = useBookings();
+  const { usuario, signOut } = useAuth();
+  const navigate = useNavigate();
   const completed = bookings.filter((b) => b.status === "completado").length;
+  const initials = (usuario?.nombre ?? "U")
+    .split(" ")
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 
   const items = [
     { icon: MapPin, label: "Direcciones guardadas" },
@@ -28,14 +37,20 @@ function Cuenta() {
 
       <section className="px-5">
         <div className="p-5 rounded-3xl bg-white border border-border flex items-center gap-4">
-          <div className="size-16 rounded-full bg-foreground text-background flex items-center justify-center text-xl font-bold">
-            MR
+          {usuario?.foto_url ? (
+            <img src={usuario.foto_url} alt="" className="size-16 rounded-full object-cover" />
+          ) : (
+            <div className="size-16 rounded-full bg-foreground text-background flex items-center justify-center text-xl font-bold">
+              {initials}
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <div className="font-semibold truncate">{usuario?.nombre ?? "Mi perfil"}</div>
+            <div className="text-sm text-muted-foreground truncate">{usuario?.email}</div>
+            <div className="mt-1 inline-block text-[10px] uppercase tracking-wide px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+              {usuario?.tipo === "prestador" ? "Prestador" : "Cliente"}
+            </div>
           </div>
-          <div className="flex-1">
-            <div className="font-semibold">María Rodríguez</div>
-            <div className="text-sm text-muted-foreground">maria@email.cl</div>
-          </div>
-          <button className="text-sm font-medium underline underline-offset-4">Editar</button>
         </div>
       </section>
 
@@ -73,7 +88,10 @@ function Cuenta() {
       </section>
 
       <section className="px-5 mt-6">
-        <button className="flex items-center justify-center gap-2 w-full p-4 rounded-2xl bg-white border border-border text-sm text-destructive font-medium">
+        <button
+          onClick={async () => { await signOut(); navigate({ to: "/login" }); }}
+          className="flex items-center justify-center gap-2 w-full p-4 rounded-2xl bg-white border border-border text-sm text-destructive font-medium"
+        >
           <LogOut className="size-4" /> Cerrar sesión
         </button>
       </section>

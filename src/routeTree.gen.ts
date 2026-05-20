@@ -9,27 +9,35 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ReservasRouteImport } from './routes/reservas'
-import { Route as CuentaRouteImport } from './routes/cuenta'
+import { Route as RegistroRouteImport } from './routes/registro'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as BuscarRouteImport } from './routes/buscar'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ServicioServiceRouteImport } from './routes/servicio.$service'
 import { Route as ReservarIdRouteImport } from './routes/reservar.$id'
 import { Route as PrestadorIdRouteImport } from './routes/prestador.$id'
+import { Route as AuthenticatedReservasRouteImport } from './routes/_authenticated.reservas'
+import { Route as AuthenticatedOnboardingPrestadorRouteImport } from './routes/_authenticated.onboarding-prestador'
+import { Route as AuthenticatedCuentaRouteImport } from './routes/_authenticated.cuenta'
 
-const ReservasRoute = ReservasRouteImport.update({
-  id: '/reservas',
-  path: '/reservas',
+const RegistroRoute = RegistroRouteImport.update({
+  id: '/registro',
+  path: '/registro',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CuentaRoute = CuentaRouteImport.update({
-  id: '/cuenta',
-  path: '/cuenta',
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BuscarRoute = BuscarRouteImport.update({
   id: '/buscar',
   path: '/buscar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -52,12 +60,31 @@ const PrestadorIdRoute = PrestadorIdRouteImport.update({
   path: '/prestador/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedReservasRoute = AuthenticatedReservasRouteImport.update({
+  id: '/reservas',
+  path: '/reservas',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedOnboardingPrestadorRoute =
+  AuthenticatedOnboardingPrestadorRouteImport.update({
+    id: '/onboarding-prestador',
+    path: '/onboarding-prestador',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedCuentaRoute = AuthenticatedCuentaRouteImport.update({
+  id: '/cuenta',
+  path: '/cuenta',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/buscar': typeof BuscarRoute
-  '/cuenta': typeof CuentaRoute
-  '/reservas': typeof ReservasRoute
+  '/login': typeof LoginRoute
+  '/registro': typeof RegistroRoute
+  '/cuenta': typeof AuthenticatedCuentaRoute
+  '/onboarding-prestador': typeof AuthenticatedOnboardingPrestadorRoute
+  '/reservas': typeof AuthenticatedReservasRoute
   '/prestador/$id': typeof PrestadorIdRoute
   '/reservar/$id': typeof ReservarIdRoute
   '/servicio/$service': typeof ServicioServiceRoute
@@ -65,8 +92,11 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/buscar': typeof BuscarRoute
-  '/cuenta': typeof CuentaRoute
-  '/reservas': typeof ReservasRoute
+  '/login': typeof LoginRoute
+  '/registro': typeof RegistroRoute
+  '/cuenta': typeof AuthenticatedCuentaRoute
+  '/onboarding-prestador': typeof AuthenticatedOnboardingPrestadorRoute
+  '/reservas': typeof AuthenticatedReservasRoute
   '/prestador/$id': typeof PrestadorIdRoute
   '/reservar/$id': typeof ReservarIdRoute
   '/servicio/$service': typeof ServicioServiceRoute
@@ -74,9 +104,13 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/buscar': typeof BuscarRoute
-  '/cuenta': typeof CuentaRoute
-  '/reservas': typeof ReservasRoute
+  '/login': typeof LoginRoute
+  '/registro': typeof RegistroRoute
+  '/_authenticated/cuenta': typeof AuthenticatedCuentaRoute
+  '/_authenticated/onboarding-prestador': typeof AuthenticatedOnboardingPrestadorRoute
+  '/_authenticated/reservas': typeof AuthenticatedReservasRoute
   '/prestador/$id': typeof PrestadorIdRoute
   '/reservar/$id': typeof ReservarIdRoute
   '/servicio/$service': typeof ServicioServiceRoute
@@ -86,7 +120,10 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/buscar'
+    | '/login'
+    | '/registro'
     | '/cuenta'
+    | '/onboarding-prestador'
     | '/reservas'
     | '/prestador/$id'
     | '/reservar/$id'
@@ -95,7 +132,10 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/buscar'
+    | '/login'
+    | '/registro'
     | '/cuenta'
+    | '/onboarding-prestador'
     | '/reservas'
     | '/prestador/$id'
     | '/reservar/$id'
@@ -103,9 +143,13 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/_authenticated'
     | '/buscar'
-    | '/cuenta'
-    | '/reservas'
+    | '/login'
+    | '/registro'
+    | '/_authenticated/cuenta'
+    | '/_authenticated/onboarding-prestador'
+    | '/_authenticated/reservas'
     | '/prestador/$id'
     | '/reservar/$id'
     | '/servicio/$service'
@@ -113,9 +157,10 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   BuscarRoute: typeof BuscarRoute
-  CuentaRoute: typeof CuentaRoute
-  ReservasRoute: typeof ReservasRoute
+  LoginRoute: typeof LoginRoute
+  RegistroRoute: typeof RegistroRoute
   PrestadorIdRoute: typeof PrestadorIdRoute
   ReservarIdRoute: typeof ReservarIdRoute
   ServicioServiceRoute: typeof ServicioServiceRoute
@@ -123,18 +168,18 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/reservas': {
-      id: '/reservas'
-      path: '/reservas'
-      fullPath: '/reservas'
-      preLoaderRoute: typeof ReservasRouteImport
+    '/registro': {
+      id: '/registro'
+      path: '/registro'
+      fullPath: '/registro'
+      preLoaderRoute: typeof RegistroRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/cuenta': {
-      id: '/cuenta'
-      path: '/cuenta'
-      fullPath: '/cuenta'
-      preLoaderRoute: typeof CuentaRouteImport
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/buscar': {
@@ -142,6 +187,13 @@ declare module '@tanstack/react-router' {
       path: '/buscar'
       fullPath: '/buscar'
       preLoaderRoute: typeof BuscarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -172,14 +224,52 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrestadorIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/reservas': {
+      id: '/_authenticated/reservas'
+      path: '/reservas'
+      fullPath: '/reservas'
+      preLoaderRoute: typeof AuthenticatedReservasRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/onboarding-prestador': {
+      id: '/_authenticated/onboarding-prestador'
+      path: '/onboarding-prestador'
+      fullPath: '/onboarding-prestador'
+      preLoaderRoute: typeof AuthenticatedOnboardingPrestadorRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/cuenta': {
+      id: '/_authenticated/cuenta'
+      path: '/cuenta'
+      fullPath: '/cuenta'
+      preLoaderRoute: typeof AuthenticatedCuentaRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
+interface AuthenticatedRouteChildren {
+  AuthenticatedCuentaRoute: typeof AuthenticatedCuentaRoute
+  AuthenticatedOnboardingPrestadorRoute: typeof AuthenticatedOnboardingPrestadorRoute
+  AuthenticatedReservasRoute: typeof AuthenticatedReservasRoute
+}
+
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedCuentaRoute: AuthenticatedCuentaRoute,
+  AuthenticatedOnboardingPrestadorRoute: AuthenticatedOnboardingPrestadorRoute,
+  AuthenticatedReservasRoute: AuthenticatedReservasRoute,
+}
+
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
   BuscarRoute: BuscarRoute,
-  CuentaRoute: CuentaRoute,
-  ReservasRoute: ReservasRoute,
+  LoginRoute: LoginRoute,
+  RegistroRoute: RegistroRoute,
   PrestadorIdRoute: PrestadorIdRoute,
   ReservarIdRoute: ReservarIdRoute,
   ServicioServiceRoute: ServicioServiceRoute,
