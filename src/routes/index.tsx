@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Search, ChevronRight, X } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 import { AppShell } from "@/components/AppShell";
 import { categories, type CategoryId } from "@/data/services";
 
@@ -18,6 +19,7 @@ export const Route = createFileRoute("/")({
 
 function Home() {
   const navigate = useNavigate();
+  const { usuario } = useAuth();
   const [query, setQuery] = useState("");
   const [openCat, setOpenCat] = useState<CategoryId | null>(null);
 
@@ -30,27 +32,28 @@ function Home() {
     : [];
 
   const active = openCat ? categories.find((c) => c.id === openCat) : null;
+  const firstName = usuario?.nombre?.split(" ")[0];
 
   return (
     <AppShell>
-      <header className="px-5 pt-8 pb-4">
-        <p className="text-sm text-muted-foreground">Hola 👋</p>
-        <h1 className="mt-1 text-3xl font-bold tracking-tight">¿Qué necesitas hoy?</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Tu hogar, en buenas manos.</p>
-      </header>
+      <section className="bg-[#111827] text-white px-5 pt-8 pb-10 -mt-px">
+        <p className="text-sm text-white/70">
+          {firstName ? `¡Hola, ${firstName}!` : "¡Hola!"}
+        </p>
+        <h1 className="mt-1 text-3xl font-bold tracking-tight text-white">¿Qué necesitas hoy?</h1>
+        <p className="mt-1 text-sm text-[#EF9F27]">Tu hogar, en buenas manos.</p>
 
-      <div className="px-5">
-        <div className="relative">
+        <div className="relative mt-6">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-5" style={{ color: "#EF9F27" }} />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="¿Qué servicio necesitas?"
-            className="w-full h-14 pl-12 pr-4 rounded-2xl bg-[#F5F5F0] border border-transparent text-base outline-none focus:border-[#EF9F27]/60 transition"
+            className="w-full h-14 pl-12 pr-4 rounded-2xl bg-white text-[#111827] placeholder:text-gray-400 border border-transparent text-base outline-none focus:border-[#EF9F27] transition"
           />
         </div>
         {matches.length > 0 && (
-          <div className="mt-2 rounded-2xl bg-white border border-border overflow-hidden">
+          <div className="mt-2 rounded-2xl bg-white border border-border overflow-hidden text-[#111827]">
             {matches.map((m) => (
               <button
                 key={m.service}
@@ -61,12 +64,12 @@ function Home() {
                   <div className="text-sm font-medium">{m.service}</div>
                   <div className="text-xs text-muted-foreground">{m.cat.name}</div>
                 </div>
-                <ChevronRight className="size-4 text-muted-foreground" />
+                <ChevronRight className="size-4" style={{ color: m.cat.bg }} />
               </button>
             ))}
           </div>
         )}
-      </div>
+      </section>
 
       <section className="px-5 mt-8">
         <div className="flex items-center justify-between mb-4">
@@ -74,7 +77,7 @@ function Home() {
           <span className="text-xs text-muted-foreground">{categories.length} disponibles</span>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {categories.map((c) => {
             const Icon = c.icon;
             const isOpen = openCat === c.id;
@@ -82,20 +85,23 @@ function Home() {
               <button
                 key={c.id}
                 onClick={() => setOpenCat(isOpen ? null : c.id)}
-                className={`relative text-left p-4 rounded-2xl bg-white border border-border transition-transform active:scale-[0.98] overflow-hidden ${isOpen ? "ring-2 ring-[#EF9F27]/40" : ""}`}
+                className={`relative text-left p-4 rounded-2xl border border-border transition-transform active:scale-[0.98] overflow-hidden ${isOpen ? "ring-2 ring-[#EF9F27]/40" : ""}`}
                 style={{
-                  backgroundColor: `${c.bg}26`,
+                  backgroundColor: `${c.bg}1F`,
                   borderLeft: `3px solid ${c.bg}`,
                 }}
               >
-                <div
-                  className="size-10 rounded-xl flex items-center justify-center mb-6"
-                  style={{ backgroundColor: c.bg }}
-                >
-                  <Icon className="size-5 text-white" />
+                <div className="flex items-start justify-between gap-2">
+                  <div
+                    className="size-10 rounded-xl flex items-center justify-center"
+                    style={{ backgroundColor: c.bg }}
+                  >
+                    <Icon className="size-5 text-white" />
+                  </div>
+                  <ChevronRight className="size-5" style={{ color: c.bg }} />
                 </div>
-                <div className="font-semibold text-sm leading-tight">{c.name}</div>
-                <div className="text-xs text-foreground/60 mt-1">{c.services.length} servicios</div>
+                <div className="font-bold text-sm leading-tight mt-4 text-[#111827]">{c.name}</div>
+                <div className="text-xs text-gray-500 mt-1">{c.services.length} servicios</div>
               </button>
             );
           })}
