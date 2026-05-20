@@ -87,7 +87,7 @@ export function useProvidersForService(serviceName: string) {
       const { data, error } = await supabase
         .from("prestadores")
         .select(`
-          id, categoria_id, calificacion_promedio, "reseñas_count",
+          id, categoria_id, calificacion_promedio, resenas_count,
           precio_desde, disponible_ahora, disponibilidad_texto, distancia_km,
           usuarios!inner ( nombre, foto_url ),
           prestador_servicios!inner ( servicios!inner ( nombre ) )
@@ -97,7 +97,7 @@ export function useProvidersForService(serviceName: string) {
       if (error) throw error;
       type Row = {
         id: string; categoria_id: string; calificacion_promedio: number;
-        "reseñas_count": number; precio_desde: number; disponible_ahora: boolean;
+        resenas_count: number; precio_desde: number; disponible_ahora: boolean;
         disponibilidad_texto: string | null; distancia_km: number | null;
         usuarios: { nombre: string; foto_url: string | null };
       };
@@ -114,7 +114,7 @@ export function useProvidersForService(serviceName: string) {
           avatarUrl: r.usuarios.foto_url,
           categoryId: r.categoria_id as CategoryId,
           rating: Number(r.calificacion_promedio),
-          reviewsCount: r["reseñas_count"],
+          reviewsCount: r[resenas_count],
           pricePerHour: r.precio_desde,
           distanceKm: Number(r.distancia_km ?? 0),
           availability: r.disponibilidad_texto ?? "Disponible",
@@ -133,7 +133,7 @@ export function useProvider(id: string) {
       const { data, error } = await supabase
         .from("prestadores")
         .select(`
-          id, categoria_id, bio, calificacion_promedio, "reseñas_count",
+          id, categoria_id, bio, calificacion_promedio, resenas_count,
           precio_desde, disponible_ahora, disponibilidad_texto, distancia_km,
           direccion, gallery_urls,
           usuarios ( nombre, foto_url ),
@@ -146,7 +146,7 @@ export function useProvider(id: string) {
       if (!data) return null;
       type Row = {
         id: string; categoria_id: string; bio: string | null;
-        calificacion_promedio: number; "reseñas_count": number;
+        calificacion_promedio: number; resenas_count: number;
         precio_desde: number; disponible_ahora: boolean;
         disponibilidad_texto: string | null; distancia_km: number | null;
         direccion: string | null; gallery_urls: string[];
@@ -162,7 +162,7 @@ export function useProvider(id: string) {
         categoryId: r.categoria_id as CategoryId,
         bio: r.bio ?? "",
         rating: Number(r.calificacion_promedio),
-        reviewsCount: r["reseñas_count"],
+        reviewsCount: r[resenas_count],
         pricePerHour: r.precio_desde,
         distanceKm: Number(r.distancia_km ?? 0),
         availability: r.disponibilidad_texto ?? "Disponible",
