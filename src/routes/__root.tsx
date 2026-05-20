@@ -10,6 +10,7 @@ import {
 
 import appCss from "../styles.css?url";
 import OnboardingGate from "../components/OnboardingGate";
+import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
   return (
@@ -121,6 +122,7 @@ function RootComponent() {
       <OnboardingGate>
         <Outlet />
       </OnboardingGate>
+      <Toaster />
     </QueryClientProvider>
   );
 }

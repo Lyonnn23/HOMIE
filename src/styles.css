@@ -100,3 +100,42 @@
   }
   h1, h2, h3, h4, h5, h6 { font-weight: 700; letter-spacing: -0.01em; }
 }
+
+@layer utilities {
+  /* Patrón sutil de puntos blancos al ~3% para el hero oscuro */
+  .bg-dots-soft {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+    background-size: 18px 18px;
+  }
+  /* Encabezado de sección con barrita ámbar a la izquierda */
+  .section-title {
+    position: relative;
+    padding-left: 14px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #111827;
+    letter-spacing: -0.01em;
+  }
+  .section-title::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 4px;
+    bottom: 4px;
+    width: 3px;
+    border-radius: 999px;
+    background: #EF9F27;
+  }
+  /* Skeleton pulse suave sobre #F5F5F0 */
+  .skeleton {
+    background-color: #F5F5F0;
+    animation: skeleton-pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes skeleton-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
+  }
+  /* Ocultar scrollbar para rieles horizontales del hero */
+  .no-scrollbar { scrollbar-width: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+}
