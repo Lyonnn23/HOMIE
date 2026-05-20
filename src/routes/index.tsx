@@ -7,9 +7,9 @@ import { categories, type CategoryId } from "@/data/services";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Manitos — Servicios a domicilio" },
+      { title: "Homie — Servicios a domicilio" },
       { name: "description", content: "Encuentra prestadores de servicios a domicilio: belleza, limpieza, técnicos, salud, mascotas y más." },
-      { property: "og:title", content: "Manitos — Servicios a domicilio" },
+      { property: "og:title", content: "Homie — Servicios a domicilio" },
       { property: "og:description", content: "Encuentra prestadores a domicilio en minutos." },
     ],
   }),

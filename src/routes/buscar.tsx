@@ -20,7 +20,7 @@ const searchSchema = z.object({
 
 export const Route = createFileRoute("/buscar")({
   validateSearch: zodValidator(searchSchema),
-  head: () => ({ meta: [{ title: "Buscar servicios — Manitos" }] }),
+  head: () => ({ meta: [{ title: "Buscar servicios — Homie" }] }),
   component: Buscar,
 });
 

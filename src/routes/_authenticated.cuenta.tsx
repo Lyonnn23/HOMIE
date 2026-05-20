@@ -5,7 +5,7 @@ import { useBookings } from "@/store/bookings";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/_authenticated/cuenta")({
-  head: () => ({ meta: [{ title: "Mi cuenta — Manitos" }] }),
+  head: () => ({ meta: [{ title: "Mi cuenta — Homie" }] }),
   component: Cuenta,
 });
 

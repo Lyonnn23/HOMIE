@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { categories } from "@/data/services";
 
 export const Route = createFileRoute("/_authenticated/onboarding-prestador")({
-  head: () => ({ meta: [{ title: "Completa tu perfil — Manitos" }] }),
+  head: () => ({ meta: [{ title: "Completa tu perfil — Homie" }] }),
   component: OnboardingPrestador,
 });
 
