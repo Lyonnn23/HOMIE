@@ -20,6 +20,7 @@ import { Route as ServicioServiceRouteImport } from './routes/servicio.$service'
 import { Route as ReservarIdRouteImport } from './routes/reservar.$id'
 import { Route as PrestadorIdRouteImport } from './routes/prestador.$id'
 import { Route as AuthenticatedReservasRouteImport } from './routes/_authenticated.reservas'
+import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated.panel'
 import { Route as AuthenticatedOnboardingPrestadorRouteImport } from './routes/_authenticated.onboarding-prestador'
 import { Route as AuthenticatedCuentaRouteImport } from './routes/_authenticated.cuenta'
 
@@ -77,6 +78,11 @@ const AuthenticatedReservasRoute = AuthenticatedReservasRouteImport.update({
   path: '/reservas',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedPanelRoute = AuthenticatedPanelRouteImport.update({
+  id: '/panel',
+  path: '/panel',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedOnboardingPrestadorRoute =
   AuthenticatedOnboardingPrestadorRouteImport.update({
     id: '/onboarding-prestador',
@@ -98,6 +104,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/cuenta': typeof AuthenticatedCuentaRoute
   '/onboarding-prestador': typeof AuthenticatedOnboardingPrestadorRoute
+  '/panel': typeof AuthenticatedPanelRoute
   '/reservas': typeof AuthenticatedReservasRoute
   '/prestador/$id': typeof PrestadorIdRoute
   '/reservar/$id': typeof ReservarIdRoute
@@ -112,6 +119,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/cuenta': typeof AuthenticatedCuentaRoute
   '/onboarding-prestador': typeof AuthenticatedOnboardingPrestadorRoute
+  '/panel': typeof AuthenticatedPanelRoute
   '/reservas': typeof AuthenticatedReservasRoute
   '/prestador/$id': typeof PrestadorIdRoute
   '/reservar/$id': typeof ReservarIdRoute
@@ -128,6 +136,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/cuenta': typeof AuthenticatedCuentaRoute
   '/_authenticated/onboarding-prestador': typeof AuthenticatedOnboardingPrestadorRoute
+  '/_authenticated/panel': typeof AuthenticatedPanelRoute
   '/_authenticated/reservas': typeof AuthenticatedReservasRoute
   '/prestador/$id': typeof PrestadorIdRoute
   '/reservar/$id': typeof ReservarIdRoute
@@ -144,6 +153,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/cuenta'
     | '/onboarding-prestador'
+    | '/panel'
     | '/reservas'
     | '/prestador/$id'
     | '/reservar/$id'
@@ -158,6 +168,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/cuenta'
     | '/onboarding-prestador'
+    | '/panel'
     | '/reservas'
     | '/prestador/$id'
     | '/reservar/$id'
@@ -173,6 +184,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/_authenticated/cuenta'
     | '/_authenticated/onboarding-prestador'
+    | '/_authenticated/panel'
     | '/_authenticated/reservas'
     | '/prestador/$id'
     | '/reservar/$id'
@@ -271,6 +283,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedReservasRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/panel': {
+      id: '/_authenticated/panel'
+      path: '/panel'
+      fullPath: '/panel'
+      preLoaderRoute: typeof AuthenticatedPanelRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/onboarding-prestador': {
       id: '/_authenticated/onboarding-prestador'
       path: '/onboarding-prestador'
@@ -291,12 +310,14 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteChildren {
   AuthenticatedCuentaRoute: typeof AuthenticatedCuentaRoute
   AuthenticatedOnboardingPrestadorRoute: typeof AuthenticatedOnboardingPrestadorRoute
+  AuthenticatedPanelRoute: typeof AuthenticatedPanelRoute
   AuthenticatedReservasRoute: typeof AuthenticatedReservasRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedCuentaRoute: AuthenticatedCuentaRoute,
   AuthenticatedOnboardingPrestadorRoute: AuthenticatedOnboardingPrestadorRoute,
+  AuthenticatedPanelRoute: AuthenticatedPanelRoute,
   AuthenticatedReservasRoute: AuthenticatedReservasRoute,
 }
 
@@ -319,3 +340,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
