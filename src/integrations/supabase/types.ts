@@ -92,6 +92,50 @@ export type Database = {
         }
         Relationships: []
       }
+      pagos: {
+        Row: {
+          comision: number
+          created_at: string
+          estado: string
+          id: string
+          moneda: string
+          monto_prestador: number
+          monto_total: number
+          reserva_id: string
+          stripe_session_id: string | null
+        }
+        Insert: {
+          comision: number
+          created_at?: string
+          estado?: string
+          id?: string
+          moneda?: string
+          monto_prestador: number
+          monto_total: number
+          reserva_id: string
+          stripe_session_id?: string | null
+        }
+        Update: {
+          comision?: number
+          created_at?: string
+          estado?: string
+          id?: string
+          moneda?: string
+          monto_prestador?: number
+          monto_total?: number
+          reserva_id?: string
+          stripe_session_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pagos_reserva_id_fkey"
+            columns: ["reserva_id"]
+            isOneToOne: false
+            referencedRelation: "reservas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       prestador_servicios: {
         Row: {
           id: string
@@ -145,6 +189,7 @@ export type Database = {
           precio_hasta: number
           resenas_count: number
           usuario_id: string
+          verificado: boolean
         }
         Insert: {
           bio?: string | null
@@ -162,6 +207,7 @@ export type Database = {
           precio_hasta?: number
           resenas_count?: number
           usuario_id: string
+          verificado?: boolean
         }
         Update: {
           bio?: string | null
@@ -179,6 +225,7 @@ export type Database = {
           precio_hasta?: number
           resenas_count?: number
           usuario_id?: string
+          verificado?: boolean
         }
         Relationships: [
           {
