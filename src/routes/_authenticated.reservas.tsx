@@ -11,11 +11,11 @@ export const Route = createFileRoute("/_authenticated/reservas")({
 });
 
 const STATUS_STYLE: Record<string, string> = {
-  pendiente: "bg-yellow-100 text-yellow-800",
-  confirmada: "bg-emerald-100 text-emerald-800",
+  pendiente: "bg-[#FAC77540] text-[#854F0B]",
+  confirmada: "bg-[#00C28820] text-[#00754F]",
   "en camino": "bg-blue-100 text-blue-800",
-  completado: "bg-green-100 text-green-800",
-  cancelada: "bg-red-100 text-red-700",
+  completado: "bg-[#00C28820] text-[#00754F]",
+  cancelada: "bg-[#FF3B6B20] text-[#FF3B6B]",
 };
 
 function Reservas() {
@@ -147,8 +147,8 @@ function ReviewModal({ b, onClose }: { b: Booking; onClose: () => void }) {
         </div>
         <div className="flex justify-center gap-1">
           {[1,2,3,4,5].map((n) => (
-            <button key={n} onClick={() => setRating(n)} className="p-1">
-              <Star className={`size-9 ${n <= rating ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground/30"}`} />
+            <button key={n} onClick={() => setRating(n)} className="p-1 transition-transform hover:scale-110">
+              <Star className={`size-12 ${n <= rating ? "fill-[#EF9F27] text-[#EF9F27]" : "text-[#E5E7EB]"}`} />
             </button>
           ))}
         </div>
