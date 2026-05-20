@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CalendarCheck, MapPin } from "lucide-react";
+import { CalendarCheck, MapPin, Star } from "lucide-react";
+import { useState } from "react";
 import { AppShell } from "@/components/AppShell";
-import { useBookings } from "@/store/bookings";
+import { useBookings, useAddReview, useUpdateBookingStatus, type Booking } from "@/store/bookings";
 import { formatCLP } from "@/data/services";
 
 export const Route = createFileRoute("/_authenticated/reservas")({
@@ -10,15 +11,17 @@ export const Route = createFileRoute("/_authenticated/reservas")({
 });
 
 const STATUS_STYLE: Record<string, string> = {
-  "pendiente": "bg-yellow-100 text-yellow-800",
+  pendiente: "bg-yellow-100 text-yellow-800",
+  confirmada: "bg-emerald-100 text-emerald-800",
   "en camino": "bg-blue-100 text-blue-800",
-  "completado": "bg-green-100 text-green-800",
+  completado: "bg-green-100 text-green-800",
+  cancelada: "bg-red-100 text-red-700",
 };
 
 function Reservas() {
   const bookings = useBookings();
-  const active = bookings.filter((b) => b.status !== "completado");
-  const past = bookings.filter((b) => b.status === "completado");
+  const active = bookings.filter((b) => b.status !== "completado" && b.status !== "cancelada");
+  const past = bookings.filter((b) => b.status === "completado" || b.status === "cancelada");
 
   return (
     <AppShell>
@@ -61,7 +64,10 @@ function Reservas() {
   );
 }
 
-function BookingCard({ b }: { b: ReturnType<typeof useBookings>[number] }) {
+function BookingCard({ b }: { b: Booking }) {
+  const [showReview, setShowReview] = useState(false);
+  const cancel = useUpdateBookingStatus();
+
   return (
     <div className="p-4 rounded-2xl bg-white border border-border">
       <div className="flex items-start justify-between gap-3">
@@ -77,9 +83,85 @@ function BookingCard({ b }: { b: ReturnType<typeof useBookings>[number] }) {
         <span>{b.date} · {b.time}</span>
         <span className="inline-flex items-center gap-1"><MapPin className="size-3.5" />{b.address}</span>
       </div>
-      <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
-        <span className="text-xs text-muted-foreground">Total</span>
+      <div className="mt-3 pt-3 border-t border-border flex items-center justify-between gap-3">
         <span className="font-semibold text-sm">{formatCLP(b.price)}</span>
+        <div className="flex gap-2">
+          {b.status === "pendiente" && (
+            <button
+              disabled={cancel.isPending}
+              onClick={() => cancel.mutate({ id: b.id, estado: "cancelada" })}
+              className="px-3 py-2 rounded-xl border border-border text-xs font-semibold hover:bg-muted disabled:opacity-50"
+            >
+              Cancelar
+            </button>
+          )}
+          {b.status === "completado" && !b.hasReview && (
+            <button
+              onClick={() => setShowReview(true)}
+              className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-foreground text-background text-xs font-semibold"
+            >
+              <Star className="size-3.5" /> Dejar reseña
+            </button>
+          )}
+          {b.status === "completado" && b.hasReview && (
+            <span className="text-xs text-muted-foreground">✓ Reseña enviada</span>
+          )}
+        </div>
+      </div>
+
+      {showReview && <ReviewModal b={b} onClose={() => setShowReview(false)} />}
+    </div>
+  );
+}
+
+function ReviewModal({ b, onClose }: { b: Booking; onClose: () => void }) {
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState("");
+  const addReview = useAddReview();
+
+  async function submit() {
+    await addReview.mutateAsync({
+      reservaId: b.id,
+      prestadorId: b.providerId,
+      calificacion: rating,
+      comentario: comment,
+    });
+    onClose();
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-4" onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-background rounded-3xl p-6 space-y-4">
+        <div>
+          <h3 className="text-lg font-bold">Califica a {b.providerName}</h3>
+          <p className="text-sm text-muted-foreground">{b.service}</p>
+        </div>
+        <div className="flex justify-center gap-1">
+          {[1,2,3,4,5].map((n) => (
+            <button key={n} onClick={() => setRating(n)} className="p-1">
+              <Star className={`size-9 ${n <= rating ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground/30"}`} />
+            </button>
+          ))}
+        </div>
+        <textarea
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          rows={4}
+          placeholder="Cuéntanos cómo fue tu experiencia..."
+          className="w-full px-4 py-3 rounded-2xl bg-white border border-border outline-none focus:border-foreground/30 resize-none text-sm"
+        />
+        <div className="flex gap-2">
+          <button onClick={onClose} className="flex-1 py-3 rounded-2xl border border-border font-semibold text-sm">
+            Cancelar
+          </button>
+          <button
+            disabled={addReview.isPending}
+            onClick={submit}
+            className="flex-1 py-3 rounded-2xl bg-foreground text-background font-semibold text-sm disabled:opacity-50"
+          >
+            {addReview.isPending ? "Enviando..." : "Enviar reseña"}
+          </button>
+        </div>
       </div>
     </div>
   );
