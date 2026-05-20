@@ -72,6 +72,11 @@ function LoginPage() {
           >
             {submitting ? "Ingresando..." : "Ingresar"}
           </button>
+          <div className="text-right">
+            <Link to="/forgot-password" className="text-xs text-muted-foreground underline">
+              ¿Olvidaste tu contraseña?
+            </Link>
+          </div>
         </form>
 
         <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
