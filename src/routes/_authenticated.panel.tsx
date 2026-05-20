@@ -63,9 +63,9 @@ function PanelPage() {
 
   return (
     <AppShell>
-      <header className="px-5 pt-8 pb-3">
-        <h1 className="text-3xl font-bold tracking-tight">Panel</h1>
-        <p className="text-sm text-muted-foreground mt-1">Hola {usuario?.nombre?.split(" ")[0] ?? ""}, aquí gestionas tu negocio</p>
+      <header className="bg-[#111827] text-white px-5 pt-8 pb-6 -mt-px">
+        <h1 className="text-3xl font-bold tracking-tight">Mi panel</h1>
+        <p className="text-sm text-white/70 mt-1">Hola {usuario?.nombre?.split(" ")[0] ?? ""}, aquí gestionas tu negocio</p>
       </header>
 
       <Tabs tab={tab} setTab={setTab} pendingCount={bookings.filter((b) => b.status === "pendiente").length} />
@@ -180,15 +180,15 @@ function Resumen({ bookings }: { bookings: Booking[] }) {
 }
 
 function StatCard({
-  icon: Icon, label, value, sub, tint,
-}: { icon: typeof CalendarCheck; label: string; value: string; sub: string; tint: string }) {
+  icon: Icon, label, value, sub, accent = "amber",
+}: { icon: typeof CalendarCheck; label: string; value: string; sub: string; accent?: "amber" | "dark" }) {
   return (
-    <div className="p-4 rounded-2xl bg-white border border-border">
-      <div className={`inline-flex size-9 items-center justify-center rounded-xl ${tint}`}>
-        <Icon className="size-4" />
+    <div className="p-4 rounded-2xl bg-[#F5F5F0] border border-border">
+      <div className="inline-flex size-9 items-center justify-center rounded-xl bg-white">
+        <Icon className="size-4 text-[#EF9F27]" />
       </div>
       <div className="mt-3 text-xs text-muted-foreground uppercase tracking-wide">{label}</div>
-      <div className="text-xl font-bold mt-0.5 truncate">{value}</div>
+      <div className={`text-xl font-bold mt-0.5 truncate ${accent === "dark" ? "text-[#111827]" : "text-[#EF9F27]"}`}>{value}</div>
       <div className="text-xs text-muted-foreground">{sub}</div>
     </div>
   );
@@ -197,12 +197,12 @@ function StatCard({
 function RatingCard() {
   const data = usePrestadorRow();
   return (
-    <div className="p-4 rounded-2xl bg-white border border-border">
-      <div className="inline-flex size-9 items-center justify-center rounded-xl bg-yellow-50 text-yellow-700">
-        <Star className="size-4 fill-current" />
+    <div className="p-4 rounded-2xl bg-[#F5F5F0] border border-border">
+      <div className="inline-flex size-9 items-center justify-center rounded-xl bg-white">
+        <Star className="size-4 text-[#EF9F27] fill-[#EF9F27]" />
       </div>
       <div className="mt-3 text-xs text-muted-foreground uppercase tracking-wide">Calificación</div>
-      <div className="text-xl font-bold mt-0.5">
+      <div className="text-xl font-bold mt-0.5 text-[#EF9F27]">
         {data ? Number(data.calificacion_promedio).toFixed(1) : "—"}
       </div>
       <div className="text-xs text-muted-foreground">{data?.resenas_count ?? 0} reseñas</div>
