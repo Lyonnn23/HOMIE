@@ -127,36 +127,36 @@ function ProviderPage() {
 
         <section className="mt-6">
           <h2 className="section-title">Reseñas</h2>
-          <div className="mt-2 space-y-2">
+          <div className="mt-3 space-y-2">
             {p.reviews.map((r) => (
-              <div key={r.id} className="p-4 rounded-2xl bg-white border border-border">
+              <div key={r.id} className="p-4 rounded-2xl bg-white border border-[#E5E7EB]">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">{r.author}</span>
-                  <span className="text-xs text-muted-foreground">{r.date}</span>
+                  <span className="text-sm font-semibold text-[#111827]">{r.author}</span>
+                  <span className="text-xs text-[#9CA3AF]">{r.date}</span>
                 </div>
                 <div className="flex items-center gap-0.5 mt-1">
                   {Array.from({ length: 5 }).map((_, j) => (
-                    <Star key={j} className={`size-3.5 ${j < r.rating ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground/40"}`} />
+                    <Star key={j} className={`size-3.5 ${j < r.rating ? "fill-[#EF9F27] text-[#EF9F27]" : "text-[#E5E7EB]"}`} />
                   ))}
                 </div>
-                <p className="text-sm mt-2 text-foreground/80">{r.text}</p>
+                <p className="text-sm mt-2 text-[#111827]/80">{r.text}</p>
               </div>
             ))}
           </div>
         </section>
       </div>
 
-      <div className="fixed bottom-0 inset-x-0 z-30 border-t border-border bg-background/95 backdrop-blur">
+      <div className="fixed bottom-0 inset-x-0 z-30 border-t border-[#E5E7EB] bg-white/95 backdrop-blur">
         <div className="mx-auto max-w-2xl px-5 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex items-center gap-3">
           <div className="flex-1">
-            <div className="text-xs text-muted-foreground">Desde</div>
-            <div className="font-semibold">{formatCLP(p.pricePerHour)}/h</div>
+            <div className="text-xs text-[#9CA3AF]">Desde</div>
+            <div className="text-lg font-bold text-[#111827]">{formatCLP(p.pricePerHour)}<span className="text-xs font-medium text-[#6B7280]">/hr</span></div>
           </div>
           <Link
             to="/reservar/$id"
             params={{ id: p.id }}
             search={{ service: selectedService }}
-            className="px-6 py-3 rounded-2xl bg-foreground text-background font-semibold text-sm"
+            className="px-6 py-3 rounded-2xl bg-[#111827] text-white font-semibold text-sm"
           >
             Contratar
           </Link>
