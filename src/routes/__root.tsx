@@ -9,7 +9,6 @@ import {
 } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
-import { AuthProvider } from "@/hooks/use-auth";
 
 function NotFoundComponent() {
   return (
@@ -73,25 +72,26 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { name: "theme-color", content: "#111827" },
-      { title: "Homie — Tu hogar, en buenas manos" },
-      { name: "description", content: "Homie conecta tu hogar con prestadores de confianza: belleza, limpieza, técnicos, salud, mascotas y más." },
-      { name: "author", content: "Homie" },
-      { property: "og:title", content: "Homie — Tu hogar, en buenas manos" },
-      { property: "og:description", content: "Encuentra prestadores a domicilio en minutos." },
+      { title: "Lovable App" },
+      { name: "description", content: "Home Help Hub connects users with local service providers for home assistance." },
+      { name: "author", content: "Lovable" },
+      { property: "og:title", content: "Lovable App" },
+      { property: "og:description", content: "Home Help Hub connects users with local service providers for home assistance." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Lovable App" },
+      { name: "twitter:description", content: "Home Help Hub connects users with local service providers for home assistance." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2ebba536-45b4-4c5f-b4e8-33133e67a0ac/id-preview-13c42ebe--6d3e7bae-deb6-447c-bb46-930305e8cbef.lovable.app-1779261669939.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2ebba536-45b4-4c5f-b4e8-33133e67a0ac/id-preview-13c42ebe--6d3e7bae-deb6-447c-bb46-930305e8cbef.lovable.app-1779261669939.png" },
     ],
     links: [
-      { rel: "stylesheet", href: appCss },
       {
-        rel: "icon",
-        type: "image/svg+xml",
-        href: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%231A1A2E'/><g fill='none' stroke='%23EF9F27' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><path d='M6 15 16 7l10 8'/><path d='M8 14v12h16V14'/><path d='M13 26v-6h6v6'/></g></svg>",
+        rel: "stylesheet",
+        href: appCss,
       },
     ],
   }),
-
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
@@ -117,9 +117,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Outlet />
-      </AuthProvider>
+      <Outlet />
     </QueryClientProvider>
   );
 }
