@@ -90,7 +90,7 @@ function ServicePage() {
         {isLoading ? (
           <div className="space-y-3">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-32 rounded-3xl bg-white border border-border animate-pulse" />
+              <div key={i} className="h-32 rounded-3xl skeleton border border-[#E5E7EB]" />
             ))}
           </div>
         ) : sorted.length === 0 ? (
