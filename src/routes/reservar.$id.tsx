@@ -59,8 +59,9 @@ function BookingPage() {
   if (!p) return <AppShell><div className="p-8">Prestador no encontrado</div></AppShell>;
 
   const selected = p.services.find((s) => s.name === serviceName) ?? p.services[0];
-  const fee = 1500;
-  const total = (selected?.price ?? 0) + fee;
+  const base = selected?.price ?? 0;
+  const fee = Math.round(base * 0.15);
+  const total = base + fee;
 
   async function confirm() {
     if (!address.trim() || !selected || !p) return;
@@ -178,11 +179,14 @@ function BookingPage() {
       </section>
 
       <section className="px-5 mt-6">
-        <div className="p-4 rounded-2xl bg-white border border-border space-y-2 text-sm">
-          <Row label={selected?.name ?? ""} value={formatCLP(selected?.price ?? 0)} />
-          <Row label="Comisión de servicio" value={formatCLP(fee)} />
+        <div className="p-4 rounded-2xl bg-[#F5F5F0] border border-border space-y-2 text-sm">
+          <Row label={selected?.name ?? ""} value={formatCLP(base)} />
+          <Row label="Comisión de servicio (15%)" value={formatCLP(fee)} />
           <div className="h-px bg-border my-2" />
-          <Row label="Total" value={formatCLP(total)} bold />
+          <div className="flex items-center justify-between gap-3">
+            <span className="font-bold">Total</span>
+            <span className="font-bold text-lg text-[#EF9F27]">{formatCLP(total)}</span>
+          </div>
         </div>
       </section>
 
