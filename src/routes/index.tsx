@@ -17,6 +17,18 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
+// Servicios más solicitados (chips horizontales del hero)
+const TOP_REQUESTED: { service: string; catId: CategoryId }[] = [
+  { service: "Aseo del hogar", catId: "home" },
+  { service: "Gasfíter", catId: "tech-fix" },
+  { service: "Manicure y pedicure", catId: "beauty" },
+  { service: "Paseo de perros", catId: "pets" },
+  { service: "Electricista", catId: "tech-fix" },
+  { service: "Peluquería", catId: "beauty" },
+  { service: "Kinesiólogo", catId: "health" },
+  { service: "Fotógrafo", catId: "events" },
+];
+
 function Home() {
   const navigate = useNavigate();
   const { usuario } = useAuth();
@@ -36,45 +48,79 @@ function Home() {
 
   return (
     <AppShell>
-      <section className="bg-[#111827] text-white px-5 pt-8 pb-10 -mt-px">
-        <p className="text-sm text-white/70">
-          {firstName ? `¡Hola, ${firstName}!` : "¡Hola!"}
-        </p>
-        <h1 className="mt-1 text-3xl font-bold tracking-tight text-white">¿Qué necesitas hoy?</h1>
-        <p className="mt-1 text-sm text-[#EF9F27]">Tu hogar, en buenas manos.</p>
+      {/* HERO */}
+      <section className="relative bg-[#111827] text-white px-5 pt-8 pb-8 -mt-px overflow-hidden">
+        <div className="absolute inset-0 bg-dots-soft pointer-events-none" />
+        <div className="relative">
+          <h1 className="text-3xl font-bold tracking-tight text-white">
+            {firstName ? `¡Hola, ${firstName}!` : "¡Hola!"} <span aria-hidden>👋</span>
+          </h1>
+          <p className="mt-1 text-sm font-medium text-[#FAC775]">¿Qué necesitas hoy?</p>
 
-        <div className="relative mt-6">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-5" style={{ color: "#EF9F27" }} />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="¿Qué servicio necesitas?"
-            className="w-full h-14 pl-12 pr-4 rounded-2xl bg-white text-[#111827] placeholder:text-gray-400 border border-transparent text-base outline-none focus:border-[#EF9F27] transition"
-          />
-        </div>
-        {matches.length > 0 && (
-          <div className="mt-2 rounded-2xl bg-white border border-border overflow-hidden text-[#111827]">
-            {matches.map((m) => (
-              <button
-                key={m.service}
-                onClick={() => navigate({ to: "/servicio/$service", params: { service: encodeURIComponent(m.service) } })}
-                className="flex items-center justify-between w-full px-4 py-3 hover:bg-muted/60 text-left"
-              >
-                <div>
-                  <div className="text-sm font-medium">{m.service}</div>
-                  <div className="text-xs text-muted-foreground">{m.cat.name}</div>
-                </div>
-                <ChevronRight className="size-4" style={{ color: m.cat.bg }} />
-              </button>
-            ))}
+          <div className="relative mt-5">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-5" style={{ color: "#EF9F27" }} />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Buscar servicio..."
+              className="w-full h-14 pl-12 pr-4 rounded-2xl bg-white text-[#111827] placeholder:text-[#9CA3AF] text-base outline-none shadow-[0_4px_18px_-6px_rgba(0,0,0,0.45)] border border-transparent focus:border-[#EF9F27] transition"
+              style={{ borderRadius: 16 }}
+            />
           </div>
-        )}
+
+          {matches.length > 0 && (
+            <div className="mt-2 rounded-2xl bg-white border border-border overflow-hidden text-[#111827]">
+              {matches.map((m) => (
+                <button
+                  key={m.service}
+                  onClick={() => navigate({ to: "/servicio/$service", params: { service: encodeURIComponent(m.service) } })}
+                  className="flex items-center justify-between w-full px-4 py-3 hover:bg-muted/60 text-left"
+                >
+                  <div>
+                    <div className="text-sm font-medium">{m.service}</div>
+                    <div className="text-xs text-muted-foreground">{m.cat.name}</div>
+                  </div>
+                  <ChevronRight className="size-4" style={{ color: m.cat.bg }} />
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Más solicitados — scroll horizontal de chips */}
+          {matches.length === 0 && (
+            <div className="mt-6 -mx-5 px-5 overflow-x-auto no-scrollbar">
+              <div className="flex items-center gap-2 w-max pb-1">
+                <span className="text-[11px] uppercase tracking-wider font-semibold text-white/60 pr-1">
+                  Más solicitados
+                </span>
+                {TOP_REQUESTED.map(({ service, catId }) => {
+                  const c = categories.find((x) => x.id === catId)!;
+                  const Icon = c.icon;
+                  return (
+                    <button
+                      key={service}
+                      onClick={() => navigate({ to: "/servicio/$service", params: { service: encodeURIComponent(service) } })}
+                      className="shrink-0 inline-flex items-center gap-1.5 pl-2 pr-3 py-1.5 rounded-full text-xs font-semibold text-white"
+                      style={{ backgroundColor: c.bg }}
+                    >
+                      <span className="size-5 rounded-full bg-white/20 flex items-center justify-center">
+                        <Icon className="size-3" />
+                      </span>
+                      {service}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
       </section>
 
+      {/* CATEGORÍAS */}
       <section className="px-5 mt-8">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Categorías</h2>
-          <span className="text-xs text-muted-foreground">{categories.length} disponibles</span>
+          <h2 className="section-title">Categorías</h2>
+          <span className="text-xs text-[#6B7280]">{categories.length} disponibles</span>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -85,33 +131,38 @@ function Home() {
               <button
                 key={c.id}
                 onClick={() => setOpenCat(isOpen ? null : c.id)}
-                className={`relative text-left p-4 rounded-2xl border border-border transition-transform active:scale-[0.98] overflow-hidden ${isOpen ? "ring-2 ring-[#EF9F27]/40" : ""}`}
-                style={{
-                  backgroundColor: `${c.bg}1F`,
-                  borderLeft: `3px solid ${c.bg}`,
-                }}
+                className={`group relative text-left rounded-2xl border border-[#E5E7EB] transition-transform active:scale-[0.98] overflow-hidden min-h-[160px] flex flex-col ${
+                  isOpen ? "ring-2 ring-[#EF9F27]/40" : ""
+                }`}
+                style={{ backgroundColor: `${c.bg}0F` }}
               >
-                <div className="flex items-start justify-between gap-2">
-                  <div
-                    className="size-10 rounded-xl flex items-center justify-center"
-                    style={{ backgroundColor: c.bg }}
-                  >
-                    <Icon className="size-5 text-white" />
+                {/* Franja superior sólida */}
+                <div className="h-2 w-full" style={{ backgroundColor: c.bg }} />
+                <div className="p-4 flex-1 flex flex-col">
+                  <div className="flex items-start justify-between gap-2">
+                    <div
+                      className="size-12 rounded-full flex items-center justify-center shrink-0"
+                      style={{ backgroundColor: c.bg }}
+                    >
+                      <Icon className="size-6 text-white" />
+                    </div>
+                    <ChevronRight className="size-5" style={{ color: c.bg }} />
                   </div>
-                  <ChevronRight className="size-5" style={{ color: c.bg }} />
+                  <div className="mt-auto pt-4">
+                    <div className="text-[15px] font-bold leading-tight text-[#111827]">{c.name}</div>
+                    <div className="text-xs text-[#6B7280] mt-0.5">{c.services.length} servicios</div>
+                  </div>
                 </div>
-                <div className="font-bold text-sm leading-tight mt-4 text-[#111827]">{c.name}</div>
-                <div className="text-xs text-gray-500 mt-1">{c.services.length} servicios</div>
               </button>
             );
           })}
         </div>
       </section>
 
-
+      {/* MODAL servicios */}
       {active && (
         <div
-          className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center p-0 sm:p-6"
+          className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center p-0 sm:p-6 animate-fade-in"
           onClick={() => setOpenCat(null)}
         >
           <div
@@ -120,10 +171,13 @@ function Home() {
           >
             <div className="flex items-start justify-between gap-4 mb-4">
               <div>
-                <div className="inline-block px-3 py-1 rounded-full text-xs font-semibold" style={{ backgroundColor: `${active.bg}26`, color: active.bg }}>
+                <div
+                  className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold"
+                  style={{ backgroundColor: `${active.bg}26`, color: active.bg }}
+                >
+                  <span className="size-1.5 rounded-full" style={{ backgroundColor: active.bg }} />
                   {active.services.length} servicios
                 </div>
-
                 <h3 className="mt-2 text-2xl font-bold">{active.name}</h3>
               </div>
               <button onClick={() => setOpenCat(null)} className="p-2 rounded-full hover:bg-muted">
@@ -136,8 +190,12 @@ function Home() {
                   key={s}
                   to="/servicio/$service"
                   params={{ service: encodeURIComponent(s) }}
-                  className="px-4 py-2.5 rounded-full text-sm font-medium border border-border hover:bg-muted transition"
-                  style={{ backgroundColor: `${active.bg}1A`, color: "#111827" }}
+                  className="px-4 py-2.5 rounded-full text-sm font-medium transition"
+                  style={{
+                    backgroundColor: `${active.bg}14`,
+                    color: active.bg,
+                    border: `1.5px solid ${active.bg}`,
+                  }}
                 >
                   {s}
                 </Link>
