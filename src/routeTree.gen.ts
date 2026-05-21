@@ -24,6 +24,9 @@ import { Route as AuthenticatedVerificarIdentidadRouteImport } from './routes/_a
 import { Route as AuthenticatedReservasRouteImport } from './routes/_authenticated.reservas'
 import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated.panel'
 import { Route as AuthenticatedOnboardingPrestadorRouteImport } from './routes/_authenticated.onboarding-prestador'
+import { Route as AuthenticatedNotificacionesRouteImport } from './routes/_authenticated.notificaciones'
+import { Route as AuthenticatedNotifConfigRouteImport } from './routes/_authenticated.notif-config'
+import { Route as AuthenticatedFavoritosRouteImport } from './routes/_authenticated.favoritos'
 import { Route as AuthenticatedCuentaRouteImport } from './routes/_authenticated.cuenta'
 import { Route as AuthenticatedChatReservaIdRouteImport } from './routes/_authenticated.chat.$reservaId'
 import { Route as AuthenticatedAdminVerificacionesRouteImport } from './routes/_authenticated.admin.verificaciones'
@@ -105,6 +108,23 @@ const AuthenticatedOnboardingPrestadorRoute =
     path: '/onboarding-prestador',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedNotificacionesRoute =
+  AuthenticatedNotificacionesRouteImport.update({
+    id: '/notificaciones',
+    path: '/notificaciones',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedNotifConfigRoute =
+  AuthenticatedNotifConfigRouteImport.update({
+    id: '/notif-config',
+    path: '/notif-config',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedFavoritosRoute = AuthenticatedFavoritosRouteImport.update({
+  id: '/favoritos',
+  path: '/favoritos',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedCuentaRoute = AuthenticatedCuentaRouteImport.update({
   id: '/cuenta',
   path: '/cuenta',
@@ -138,6 +158,9 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/seguridad': typeof SeguridadRoute
   '/cuenta': typeof AuthenticatedCuentaRoute
+  '/favoritos': typeof AuthenticatedFavoritosRoute
+  '/notif-config': typeof AuthenticatedNotifConfigRoute
+  '/notificaciones': typeof AuthenticatedNotificacionesRoute
   '/onboarding-prestador': typeof AuthenticatedOnboardingPrestadorRoute
   '/panel': typeof AuthenticatedPanelRoute
   '/reservas': typeof AuthenticatedReservasRoute
@@ -158,6 +181,9 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/seguridad': typeof SeguridadRoute
   '/cuenta': typeof AuthenticatedCuentaRoute
+  '/favoritos': typeof AuthenticatedFavoritosRoute
+  '/notif-config': typeof AuthenticatedNotifConfigRoute
+  '/notificaciones': typeof AuthenticatedNotificacionesRoute
   '/onboarding-prestador': typeof AuthenticatedOnboardingPrestadorRoute
   '/panel': typeof AuthenticatedPanelRoute
   '/reservas': typeof AuthenticatedReservasRoute
@@ -180,6 +206,9 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/seguridad': typeof SeguridadRoute
   '/_authenticated/cuenta': typeof AuthenticatedCuentaRoute
+  '/_authenticated/favoritos': typeof AuthenticatedFavoritosRoute
+  '/_authenticated/notif-config': typeof AuthenticatedNotifConfigRoute
+  '/_authenticated/notificaciones': typeof AuthenticatedNotificacionesRoute
   '/_authenticated/onboarding-prestador': typeof AuthenticatedOnboardingPrestadorRoute
   '/_authenticated/panel': typeof AuthenticatedPanelRoute
   '/_authenticated/reservas': typeof AuthenticatedReservasRoute
@@ -202,6 +231,9 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/seguridad'
     | '/cuenta'
+    | '/favoritos'
+    | '/notif-config'
+    | '/notificaciones'
     | '/onboarding-prestador'
     | '/panel'
     | '/reservas'
@@ -222,6 +254,9 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/seguridad'
     | '/cuenta'
+    | '/favoritos'
+    | '/notif-config'
+    | '/notificaciones'
     | '/onboarding-prestador'
     | '/panel'
     | '/reservas'
@@ -243,6 +278,9 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/seguridad'
     | '/_authenticated/cuenta'
+    | '/_authenticated/favoritos'
+    | '/_authenticated/notif-config'
+    | '/_authenticated/notificaciones'
     | '/_authenticated/onboarding-prestador'
     | '/_authenticated/panel'
     | '/_authenticated/reservas'
@@ -376,6 +414,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOnboardingPrestadorRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/notificaciones': {
+      id: '/_authenticated/notificaciones'
+      path: '/notificaciones'
+      fullPath: '/notificaciones'
+      preLoaderRoute: typeof AuthenticatedNotificacionesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/notif-config': {
+      id: '/_authenticated/notif-config'
+      path: '/notif-config'
+      fullPath: '/notif-config'
+      preLoaderRoute: typeof AuthenticatedNotifConfigRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/favoritos': {
+      id: '/_authenticated/favoritos'
+      path: '/favoritos'
+      fullPath: '/favoritos'
+      preLoaderRoute: typeof AuthenticatedFavoritosRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/cuenta': {
       id: '/_authenticated/cuenta'
       path: '/cuenta'
@@ -409,6 +468,9 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteChildren {
   AuthenticatedCuentaRoute: typeof AuthenticatedCuentaRoute
+  AuthenticatedFavoritosRoute: typeof AuthenticatedFavoritosRoute
+  AuthenticatedNotifConfigRoute: typeof AuthenticatedNotifConfigRoute
+  AuthenticatedNotificacionesRoute: typeof AuthenticatedNotificacionesRoute
   AuthenticatedOnboardingPrestadorRoute: typeof AuthenticatedOnboardingPrestadorRoute
   AuthenticatedPanelRoute: typeof AuthenticatedPanelRoute
   AuthenticatedReservasRoute: typeof AuthenticatedReservasRoute
@@ -420,6 +482,9 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedCuentaRoute: AuthenticatedCuentaRoute,
+  AuthenticatedFavoritosRoute: AuthenticatedFavoritosRoute,
+  AuthenticatedNotifConfigRoute: AuthenticatedNotifConfigRoute,
+  AuthenticatedNotificacionesRoute: AuthenticatedNotificacionesRoute,
   AuthenticatedOnboardingPrestadorRoute: AuthenticatedOnboardingPrestadorRoute,
   AuthenticatedPanelRoute: AuthenticatedPanelRoute,
   AuthenticatedReservasRoute: AuthenticatedReservasRoute,
@@ -449,13 +514,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

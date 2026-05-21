@@ -9,6 +9,7 @@ interface Usuario {
   email: string | null;
   foto_url: string | null;
   tipo: "cliente" | "prestador";
+  notif_config?: Record<string, boolean> | null;
 }
 
 interface AuthCtx {
@@ -51,7 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryFn: async (): Promise<Usuario | null> => {
       const { data } = await supabase
         .from("usuarios")
-        .select("id, nombre, email, foto_url, tipo")
+        .select("id, nombre, email, foto_url, tipo, notif_config")
         .eq("user_id", user!.id)
         .maybeSingle();
       return (data as Usuario) ?? null;
