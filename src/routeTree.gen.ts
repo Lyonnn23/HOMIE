@@ -19,11 +19,13 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ServicioServiceRouteImport } from './routes/servicio.$service'
 import { Route as ReservarIdRouteImport } from './routes/reservar.$id'
 import { Route as PrestadorIdRouteImport } from './routes/prestador.$id'
+import { Route as AuthenticatedVerificarIdentidadRouteImport } from './routes/_authenticated.verificar-identidad'
 import { Route as AuthenticatedReservasRouteImport } from './routes/_authenticated.reservas'
 import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated.panel'
 import { Route as AuthenticatedOnboardingPrestadorRouteImport } from './routes/_authenticated.onboarding-prestador'
 import { Route as AuthenticatedCuentaRouteImport } from './routes/_authenticated.cuenta'
 import { Route as AuthenticatedChatReservaIdRouteImport } from './routes/_authenticated.chat.$reservaId'
+import { Route as AuthenticatedAdminVerificacionesRouteImport } from './routes/_authenticated.admin.verificaciones'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -74,6 +76,12 @@ const PrestadorIdRoute = PrestadorIdRouteImport.update({
   path: '/prestador/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedVerificarIdentidadRoute =
+  AuthenticatedVerificarIdentidadRouteImport.update({
+    id: '/verificar-identidad',
+    path: '/verificar-identidad',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedReservasRoute = AuthenticatedReservasRouteImport.update({
   id: '/reservas',
   path: '/reservas',
@@ -101,6 +109,12 @@ const AuthenticatedChatReservaIdRoute =
     path: '/chat/$reservaId',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedAdminVerificacionesRoute =
+  AuthenticatedAdminVerificacionesRouteImport.update({
+    id: '/admin/verificaciones',
+    path: '/admin/verificaciones',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -113,9 +127,11 @@ export interface FileRoutesByFullPath {
   '/onboarding-prestador': typeof AuthenticatedOnboardingPrestadorRoute
   '/panel': typeof AuthenticatedPanelRoute
   '/reservas': typeof AuthenticatedReservasRoute
+  '/verificar-identidad': typeof AuthenticatedVerificarIdentidadRoute
   '/prestador/$id': typeof PrestadorIdRoute
   '/reservar/$id': typeof ReservarIdRoute
   '/servicio/$service': typeof ServicioServiceRoute
+  '/admin/verificaciones': typeof AuthenticatedAdminVerificacionesRoute
   '/chat/$reservaId': typeof AuthenticatedChatReservaIdRoute
 }
 export interface FileRoutesByTo {
@@ -129,9 +145,11 @@ export interface FileRoutesByTo {
   '/onboarding-prestador': typeof AuthenticatedOnboardingPrestadorRoute
   '/panel': typeof AuthenticatedPanelRoute
   '/reservas': typeof AuthenticatedReservasRoute
+  '/verificar-identidad': typeof AuthenticatedVerificarIdentidadRoute
   '/prestador/$id': typeof PrestadorIdRoute
   '/reservar/$id': typeof ReservarIdRoute
   '/servicio/$service': typeof ServicioServiceRoute
+  '/admin/verificaciones': typeof AuthenticatedAdminVerificacionesRoute
   '/chat/$reservaId': typeof AuthenticatedChatReservaIdRoute
 }
 export interface FileRoutesById {
@@ -147,9 +165,11 @@ export interface FileRoutesById {
   '/_authenticated/onboarding-prestador': typeof AuthenticatedOnboardingPrestadorRoute
   '/_authenticated/panel': typeof AuthenticatedPanelRoute
   '/_authenticated/reservas': typeof AuthenticatedReservasRoute
+  '/_authenticated/verificar-identidad': typeof AuthenticatedVerificarIdentidadRoute
   '/prestador/$id': typeof PrestadorIdRoute
   '/reservar/$id': typeof ReservarIdRoute
   '/servicio/$service': typeof ServicioServiceRoute
+  '/_authenticated/admin/verificaciones': typeof AuthenticatedAdminVerificacionesRoute
   '/_authenticated/chat/$reservaId': typeof AuthenticatedChatReservaIdRoute
 }
 export interface FileRouteTypes {
@@ -165,9 +185,11 @@ export interface FileRouteTypes {
     | '/onboarding-prestador'
     | '/panel'
     | '/reservas'
+    | '/verificar-identidad'
     | '/prestador/$id'
     | '/reservar/$id'
     | '/servicio/$service'
+    | '/admin/verificaciones'
     | '/chat/$reservaId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -181,9 +203,11 @@ export interface FileRouteTypes {
     | '/onboarding-prestador'
     | '/panel'
     | '/reservas'
+    | '/verificar-identidad'
     | '/prestador/$id'
     | '/reservar/$id'
     | '/servicio/$service'
+    | '/admin/verificaciones'
     | '/chat/$reservaId'
   id:
     | '__root__'
@@ -198,9 +222,11 @@ export interface FileRouteTypes {
     | '/_authenticated/onboarding-prestador'
     | '/_authenticated/panel'
     | '/_authenticated/reservas'
+    | '/_authenticated/verificar-identidad'
     | '/prestador/$id'
     | '/reservar/$id'
     | '/servicio/$service'
+    | '/_authenticated/admin/verificaciones'
     | '/_authenticated/chat/$reservaId'
   fileRoutesById: FileRoutesById
 }
@@ -289,6 +315,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrestadorIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/verificar-identidad': {
+      id: '/_authenticated/verificar-identidad'
+      path: '/verificar-identidad'
+      fullPath: '/verificar-identidad'
+      preLoaderRoute: typeof AuthenticatedVerificarIdentidadRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/reservas': {
       id: '/_authenticated/reservas'
       path: '/reservas'
@@ -324,6 +357,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedChatReservaIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin/verificaciones': {
+      id: '/_authenticated/admin/verificaciones'
+      path: '/admin/verificaciones'
+      fullPath: '/admin/verificaciones'
+      preLoaderRoute: typeof AuthenticatedAdminVerificacionesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
@@ -332,6 +372,8 @@ interface AuthenticatedRouteChildren {
   AuthenticatedOnboardingPrestadorRoute: typeof AuthenticatedOnboardingPrestadorRoute
   AuthenticatedPanelRoute: typeof AuthenticatedPanelRoute
   AuthenticatedReservasRoute: typeof AuthenticatedReservasRoute
+  AuthenticatedVerificarIdentidadRoute: typeof AuthenticatedVerificarIdentidadRoute
+  AuthenticatedAdminVerificacionesRoute: typeof AuthenticatedAdminVerificacionesRoute
   AuthenticatedChatReservaIdRoute: typeof AuthenticatedChatReservaIdRoute
 }
 
@@ -340,6 +382,8 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedOnboardingPrestadorRoute: AuthenticatedOnboardingPrestadorRoute,
   AuthenticatedPanelRoute: AuthenticatedPanelRoute,
   AuthenticatedReservasRoute: AuthenticatedReservasRoute,
+  AuthenticatedVerificarIdentidadRoute: AuthenticatedVerificarIdentidadRoute,
+  AuthenticatedAdminVerificacionesRoute: AuthenticatedAdminVerificacionesRoute,
   AuthenticatedChatReservaIdRoute: AuthenticatedChatReservaIdRoute,
 }
 
@@ -362,3 +406,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
