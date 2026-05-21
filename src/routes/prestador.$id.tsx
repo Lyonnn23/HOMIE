@@ -1,14 +1,18 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { ArrowLeft, Star, MapPin, Clock, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Star, MapPin, Clock, ShieldCheck, BadgeCheck } from "lucide-react";
+import { useState } from "react";
 import { z } from "zod";
 import { AppShell } from "@/components/AppShell";
 import { ProviderAvatar } from "@/components/Avatar";
-import { getCategory, useProvider, formatCLP } from "@/data/services";
+import { getCategory, useProvider, formatCLP, type ProviderReview } from "@/data/services";
+import { useAuth } from "@/hooks/use-auth";
+import { useReplyReview } from "@/store/bookings";
 
 export const Route = createFileRoute("/prestador/$id")({
   validateSearch: z.object({ service: z.string().optional() }),
   component: ProviderPage,
 });
+
 
 function ProviderPage() {
   const { id } = Route.useParams();
