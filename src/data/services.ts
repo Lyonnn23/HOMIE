@@ -152,24 +152,30 @@ export function useProvider(id: string) {
         .select(`
           id, categoria_id, bio, calificacion_promedio, resenas_count,
           precio_desde, disponible_ahora, disponibilidad_texto, distancia_km,
-          direccion, gallery_urls,
+          direccion, gallery_urls, usuario_id,
           usuarios ( nombre, foto_url ),
           prestador_servicios ( precio, servicios ( id, nombre ) ),
-          resenas ( id, calificacion, comentario, created_at, usuarios ( nombre ) )
+          resenas ( id, calificacion, comentario, created_at, foto_url, verificada, respuesta_prestador, respuesta_fecha, cliente_id, usuarios ( nombre ) )
         `)
         .eq("id", id)
         .maybeSingle();
       if (error) throw error;
       if (!data) return null;
       type Row = {
-        id: string; categoria_id: string; bio: string | null;
+        id: string; categoria_id: string; bio: string | null; usuario_id: string | null;
         calificacion_promedio: number; resenas_count: number;
         precio_desde: number; disponible_ahora: boolean;
         disponibilidad_texto: string | null; distancia_km: number | null;
         direccion: string | null; gallery_urls: string[];
         usuarios: { nombre: string; foto_url: string | null };
         prestador_servicios: { precio: number; servicios: { id: string; nombre: string } }[];
-        resenas: { id: string; calificacion: number; comentario: string | null; created_at: string; usuarios: { nombre: string } | null }[];
+        resenas: {
+          id: string; calificacion: number; comentario: string | null; created_at: string;
+          foto_url: string | null; verificada: boolean | null;
+          respuesta_prestador: string | null; respuesta_fecha: string | null;
+          cliente_id: string | null;
+          usuarios: { nombre: string } | null;
+        }[];
       };
       const r = data as unknown as Row;
       return {
@@ -178,6 +184,7 @@ export function useProvider(id: string) {
         avatarUrl: r.usuarios.foto_url,
         categoryId: r.categoria_id as CategoryId,
         bio: r.bio ?? "",
+        usuarioId: r.usuario_id,
         rating: Number(r.calificacion_promedio),
         reviewsCount: r.resenas_count,
         pricePerHour: r.precio_desde,
@@ -198,12 +205,19 @@ export function useProvider(id: string) {
           return {
             id: rv.id,
             author: initials,
+            authorId: rv.cliente_id,
             rating: rv.calificacion,
             text: rv.comentario ?? "",
             date: timeAgoEs(rv.created_at),
+            createdAt: rv.created_at,
+            fotoUrl: rv.foto_url,
+            verificada: rv.verificada !== false,
+            respuesta: rv.respuesta_prestador,
+            respuestaFecha: rv.respuesta_fecha,
           };
         }),
       };
     },
   });
 }
+
