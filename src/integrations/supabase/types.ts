@@ -248,6 +248,7 @@ export type Database = {
           precio_desde: number
           precio_hasta: number
           resenas_count: number
+          suspendido: boolean
           usuario_id: string
           verificado: boolean
           verificado_identidad: boolean
@@ -270,6 +271,7 @@ export type Database = {
           precio_desde?: number
           precio_hasta?: number
           resenas_count?: number
+          suspendido?: boolean
           usuario_id: string
           verificado?: boolean
           verificado_identidad?: boolean
@@ -292,6 +294,7 @@ export type Database = {
           precio_desde?: number
           precio_hasta?: number
           resenas_count?: number
+          suspendido?: boolean
           usuario_id?: string
           verificado?: boolean
           verificado_identidad?: boolean
@@ -309,6 +312,61 @@ export type Database = {
             columns: ["usuario_id"]
             isOneToOne: false
             referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reportes: {
+        Row: {
+          created_at: string
+          descripcion: string | null
+          estado: string
+          id: string
+          motivo: string
+          reportado_id: string
+          reportante_id: string
+          reserva_id: string
+        }
+        Insert: {
+          created_at?: string
+          descripcion?: string | null
+          estado?: string
+          id?: string
+          motivo: string
+          reportado_id: string
+          reportante_id: string
+          reserva_id: string
+        }
+        Update: {
+          created_at?: string
+          descripcion?: string | null
+          estado?: string
+          id?: string
+          motivo?: string
+          reportado_id?: string
+          reportante_id?: string
+          reserva_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reportes_reportado_id_fkey"
+            columns: ["reportado_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reportes_reportante_id_fkey"
+            columns: ["reportante_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reportes_reserva_id_fkey"
+            columns: ["reserva_id"]
+            isOneToOne: false
+            referencedRelation: "reservas"
             referencedColumns: ["id"]
           },
         ]
