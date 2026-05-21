@@ -236,6 +236,7 @@ export type Database = {
           calificacion_promedio: number
           categoria_id: string
           ciudad: string
+          compartir_ubicacion: boolean
           direccion: string | null
           disponibilidad_texto: string | null
           disponible_ahora: boolean
@@ -249,6 +250,7 @@ export type Database = {
           precio_hasta: number
           resenas_count: number
           suspendido: boolean
+          ubicacion_actualizada_at: string | null
           usuario_id: string
           verificado: boolean
           verificado_identidad: boolean
@@ -259,6 +261,7 @@ export type Database = {
           calificacion_promedio?: number
           categoria_id: string
           ciudad?: string
+          compartir_ubicacion?: boolean
           direccion?: string | null
           disponibilidad_texto?: string | null
           disponible_ahora?: boolean
@@ -272,6 +275,7 @@ export type Database = {
           precio_hasta?: number
           resenas_count?: number
           suspendido?: boolean
+          ubicacion_actualizada_at?: string | null
           usuario_id: string
           verificado?: boolean
           verificado_identidad?: boolean
@@ -282,6 +286,7 @@ export type Database = {
           calificacion_promedio?: number
           categoria_id?: string
           ciudad?: string
+          compartir_ubicacion?: boolean
           direccion?: string | null
           disponibilidad_texto?: string | null
           disponible_ahora?: boolean
@@ -295,6 +300,7 @@ export type Database = {
           precio_hasta?: number
           resenas_count?: number
           suspendido?: boolean
+          ubicacion_actualizada_at?: string | null
           usuario_id?: string
           verificado?: boolean
           verificado_identidad?: boolean
