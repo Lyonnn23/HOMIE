@@ -198,8 +198,9 @@ function ReviewsSummary({ reviews, rating, count }: { reviews: ProviderReview[];
 }
 
 function ReviewCard({ r, prestadorUsuarioId }: { r: ProviderReview; prestadorUsuarioId: string | null }) {
-  const { user } = useAuth();
-  const isOwner = !!user && !!prestadorUsuarioId && user.id === prestadorUsuarioId;
+  const { usuario } = useAuth();
+  const isOwner = !!usuario && !!prestadorUsuarioId && usuario.id === prestadorUsuarioId;
+
   const initial = (r.author || "?").trim().charAt(0).toUpperCase();
   const [replying, setReplying] = useState(false);
   const [text, setText] = useState(r.respuesta ?? "");
