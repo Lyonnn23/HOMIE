@@ -347,7 +347,29 @@ export type Database = {
           reportante_id?: string
           reserva_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "reportes_reportado_id_fkey"
+            columns: ["reportado_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reportes_reportante_id_fkey"
+            columns: ["reportante_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reportes_reserva_id_fkey"
+            columns: ["reserva_id"]
+            isOneToOne: false
+            referencedRelation: "reservas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       resenas: {
         Row: {
