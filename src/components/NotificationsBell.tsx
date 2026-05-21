@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Bell, Check } from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -26,6 +27,7 @@ export function NotificationsBell() {
   const { usuario } = useAuth();
   const usuarioId = usuario?.id;
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const popRef = useRef<HTMLDivElement | null>(null);
 
@@ -81,9 +83,13 @@ export function NotificationsBell() {
     qc.invalidateQueries({ queryKey: ["notificaciones", usuarioId] });
   }
 
-  async function markOneRead(id: string) {
-    await supabase.from("notificaciones").update({ leida: true }).eq("id", id);
-    qc.invalidateQueries({ queryKey: ["notificaciones", usuarioId] });
+  async function openNotif(n: Notif) {
+    if (!n.leida) {
+      await supabase.from("notificaciones").update({ leida: true }).eq("id", n.id);
+      qc.invalidateQueries({ queryKey: ["notificaciones", usuarioId] });
+    }
+    setOpen(false);
+    if (n.reserva_id) navigate({ to: "/reservas" });
   }
 
   if (!usuarioId) return null;
@@ -97,7 +103,7 @@ export function NotificationsBell() {
       >
         <Bell className="size-5" />
         {unread > 0 && (
-          <span className="absolute top-1 right-1 min-w-4 h-4 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
+          <span className="absolute top-1 right-1 min-w-4 h-4 px-1 rounded-full bg-[#FF3B6B] text-white text-[10px] font-bold flex items-center justify-center">
             {unread > 9 ? "9+" : unread}
           </span>
         )}
@@ -119,13 +125,13 @@ export function NotificationsBell() {
               notifs.map((n) => (
                 <button
                   key={n.id}
-                  onClick={() => markOneRead(n.id)}
+                  onClick={() => openNotif(n)}
                   className={`w-full text-left px-4 py-3 border-b border-border/60 last:border-0 hover:bg-muted/50 transition ${
-                    !n.leida ? "bg-blue-50/60" : ""
+                    !n.leida ? "bg-[#FAC77520]" : ""
                   }`}
                 >
                   <div className="flex items-start gap-2">
-                    {!n.leida && <span className="mt-1.5 size-2 rounded-full bg-blue-500 shrink-0" />}
+                    {!n.leida && <span className="mt-1.5 size-2 rounded-full bg-[#EF9F27] shrink-0" />}
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-semibold">{n.titulo}</div>
                       <div className="text-xs text-muted-foreground line-clamp-2">{n.mensaje}</div>
@@ -136,6 +142,13 @@ export function NotificationsBell() {
               ))
             )}
           </div>
+          <Link
+            to="/notificaciones"
+            onClick={() => setOpen(false)}
+            className="block text-center px-4 py-3 border-t border-border text-xs font-semibold text-[#EF9F27] hover:bg-[#EF9F27]/5"
+          >
+            Ver todas las notificaciones
+          </Link>
         </div>
       )}
     </div>
