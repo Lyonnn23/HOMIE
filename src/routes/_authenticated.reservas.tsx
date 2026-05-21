@@ -3,9 +3,11 @@ import { CalendarCheck, MapPin, MessageCircle, Star, Shield } from "lucide-react
 import { useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { ReportModal } from "@/components/ReportModal";
+import { ReviewModal } from "@/components/ReviewModal";
 import { EmergencyBanner } from "@/components/EmergencyBanner";
-import { useBookings, useAddReview, useUpdateBookingStatus, type Booking } from "@/store/bookings";
+import { useBookings, useUpdateBookingStatus, type Booking } from "@/store/bookings";
 import { formatCLP } from "@/data/services";
+
 
 export const Route = createFileRoute("/_authenticated/reservas")({
   head: () => ({ meta: [{ title: "Mis reservas — Homie" }] }),
