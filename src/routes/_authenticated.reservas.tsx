@@ -147,55 +147,5 @@ function BookingCard({ b }: { b: Booking }) {
   );
 }
 
-function ReviewModal({ b, onClose }: { b: Booking; onClose: () => void }) {
-  const [rating, setRating] = useState(5);
-  const [comment, setComment] = useState("");
-  const addReview = useAddReview();
 
-  async function submit() {
-    await addReview.mutateAsync({
-      reservaId: b.id,
-      prestadorId: b.providerId,
-      calificacion: rating,
-      comentario: comment,
-    });
-    onClose();
-  }
 
-  return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-4" onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-background rounded-3xl p-6 space-y-4">
-        <div>
-          <h3 className="text-lg font-bold">Califica a {b.providerName}</h3>
-          <p className="text-sm text-muted-foreground">{b.service}</p>
-        </div>
-        <div className="flex justify-center gap-1">
-          {[1,2,3,4,5].map((n) => (
-            <button key={n} onClick={() => setRating(n)} className="p-1 transition-transform hover:scale-110">
-              <Star className={`size-12 ${n <= rating ? "fill-[#EF9F27] text-[#EF9F27]" : "text-[#E5E7EB]"}`} />
-            </button>
-          ))}
-        </div>
-        <textarea
-          value={comment}
-          onChange={(e) => setComment(e.target.value)}
-          rows={4}
-          placeholder="Cuéntanos cómo fue tu experiencia..."
-          className="w-full px-4 py-3 rounded-2xl bg-white border border-border outline-none focus:border-foreground/30 resize-none text-sm"
-        />
-        <div className="flex gap-2">
-          <button onClick={onClose} className="flex-1 py-3 rounded-2xl border border-border font-semibold text-sm">
-            Cancelar
-          </button>
-          <button
-            disabled={addReview.isPending}
-            onClick={submit}
-            className="flex-1 py-3 rounded-2xl bg-foreground text-background font-semibold text-sm disabled:opacity-50"
-          >
-            {addReview.isPending ? "Enviando..." : "Enviar reseña"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
