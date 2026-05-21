@@ -1,7 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ChevronRight, Bell, CreditCard, HelpCircle, MapPin, Shield, LogOut } from "lucide-react";
+import { ChevronRight, Bell, CreditCard, HelpCircle, MapPin, Shield, LogOut, Heart } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { useBookings } from "@/store/bookings";
+import { useFavoritos } from "@/hooks/use-favoritos";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/_authenticated/cuenta")({
@@ -11,6 +12,7 @@ export const Route = createFileRoute("/_authenticated/cuenta")({
 
 function Cuenta() {
   const bookings = useBookings();
+  const favs = useFavoritos();
   const { usuario, signOut } = useAuth();
   const navigate = useNavigate();
   const completed = bookings.filter((b) => b.status === "completado").length;
@@ -21,10 +23,11 @@ function Cuenta() {
     .join("")
     .toUpperCase();
 
-  const items = [
+  const items: Array<{ icon: typeof Bell; label: string; to?: string; badge?: string }> = [
     { icon: MapPin, label: "Direcciones guardadas" },
     { icon: CreditCard, label: "Métodos de pago" },
-    { icon: Bell, label: "Notificaciones" },
+    { icon: Heart, label: "Mis favoritos", to: "/favoritos", badge: favs.length ? String(favs.length) : undefined },
+    { icon: Bell, label: "Notificaciones", to: "/notif-config" },
     { icon: Shield, label: "Privacidad y seguridad" },
     { icon: HelpCircle, label: "Ayuda y soporte" },
   ];
@@ -77,13 +80,39 @@ function Cuenta() {
 
       <section className="px-5 mt-6">
         <div className="rounded-2xl bg-white border border-border divide-y divide-border overflow-hidden">
-          {items.map((it) => (
-            <button key={it.label} className="flex items-center gap-3 w-full px-4 py-3.5 text-left hover:bg-muted/40 transition">
-              <it.icon className="size-4 text-muted-foreground" />
-              <span className="flex-1 text-sm">{it.label}</span>
-              <ChevronRight className="size-4 text-muted-foreground" />
-            </button>
-          ))}
+          {items.map((it) => {
+            const content = (
+              <>
+                <it.icon className="size-4 text-[#EF9F27]" />
+                <span className="flex-1 text-sm">{it.label}</span>
+                {it.badge && (
+                  <span className="px-2 py-0.5 rounded-full bg-[#F5F5F0] text-[10px] font-bold text-[#111827]">
+                    {it.badge}
+                  </span>
+                )}
+                <ChevronRight className="size-4 text-muted-foreground" />
+              </>
+            );
+            if (it.to) {
+              return (
+                <Link
+                  key={it.label}
+                  to={it.to}
+                  className="flex items-center gap-3 w-full px-4 py-3.5 text-left hover:bg-muted/40 transition"
+                >
+                  {content}
+                </Link>
+              );
+            }
+            return (
+              <button
+                key={it.label}
+                className="flex items-center gap-3 w-full px-4 py-3.5 text-left hover:bg-muted/40 transition"
+              >
+                {content}
+              </button>
+            );
+          })}
         </div>
       </section>
 
