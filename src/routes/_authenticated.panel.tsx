@@ -535,3 +535,61 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     </label>
   );
 }
+
+function VerificacionBanner({ prestadorId, verificado }: { prestadorId: string; verificado: boolean }) {
+  const verifQ = useQuery({
+    queryKey: ["mi-verif-status", prestadorId],
+    enabled: !!prestadorId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("verificaciones_prestador")
+        .select("estado, motivo_rechazo")
+        .eq("prestador_id", prestadorId)
+        .order("created_at", { ascending: false })
+        .maybeSingle();
+      return data;
+    },
+  });
+
+  if (verificado) {
+    return (
+      <div className="p-4 rounded-2xl bg-[#111827] text-white flex items-center gap-3">
+        <span className="inline-flex size-9 rounded-full bg-white/10 items-center justify-center">
+          <Check className="size-5 text-[#EF9F27]" />
+        </span>
+        <div className="flex-1">
+          <div className="font-semibold text-sm">Verificado por Homie</div>
+          <div className="text-xs text-white/70">Tu identidad fue confirmada</div>
+        </div>
+      </div>
+    );
+  }
+
+  const estado = verifQ.data?.estado;
+  if (estado === "pendiente") {
+    return (
+      <div className="p-4 rounded-2xl bg-[#E5E7EB] text-[#111827] flex items-center gap-3">
+        <span className="inline-flex size-9 rounded-full bg-white items-center justify-center text-xs font-bold">⏳</span>
+        <div className="flex-1">
+          <div className="font-semibold text-sm">En revisión</div>
+          <div className="text-xs text-[#6B7280]">Revisaremos tu solicitud en menos de 24 horas</div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-4 rounded-2xl bg-[#FAC775] text-[#111827]">
+      <div className="font-semibold text-sm">Completa tu verificación para recibir reservas</div>
+      {estado === "rechazado" && verifQ.data?.motivo_rechazo && (
+        <div className="text-xs mt-1 text-[#854F0B]"><strong>Rechazo previo:</strong> {verifQ.data.motivo_rechazo}</div>
+      )}
+      <Link
+        to="/verificar-identidad"
+        className="inline-block mt-3 px-4 py-2 rounded-xl bg-[#EF9F27] text-[#111827] text-sm font-semibold"
+      >
+        Verificarme ahora
+      </Link>
+    </div>
+  );
+}
