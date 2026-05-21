@@ -4,6 +4,7 @@ import { useState } from "react";
 import { z } from "zod";
 import { AppShell } from "@/components/AppShell";
 import { ProviderAvatar } from "@/components/Avatar";
+import { FavoriteButton } from "@/components/FavoriteButton";
 import { getCategory, useProvider, formatCLP, type ProviderReview } from "@/data/services";
 import { useAuth } from "@/hooks/use-auth";
 import { useReplyReview } from "@/store/bookings";
@@ -59,6 +60,9 @@ function ProviderPage() {
         >
           <ArrowLeft className="size-5 text-[#111827]" />
         </button>
+        <div className="absolute top-5 right-5">
+          <FavoriteButton prestadorId={p.id} size="lg" />
+        </div>
         <div className="absolute -bottom-12 left-5">
           <div className="rounded-full ring-[3px] ring-white shadow-md">
             <ProviderAvatar url={p.avatarUrl} name={p.name} size={90} />
