@@ -304,7 +304,7 @@ function usePrestadorRow() {
     queryFn: async () => {
       const { data } = await supabase
         .from("prestadores")
-        .select("id, bio, direccion, precio_desde, disponible_ahora, categoria_id, calificacion_promedio, resenas_count")
+        .select("id, bio, direccion, precio_desde, disponible_ahora, categoria_id, calificacion_promedio, resenas_count, verificado")
         .eq("usuario_id", usuario!.id)
         .maybeSingle();
       return data;
@@ -445,6 +445,7 @@ function EditorPerfil() {
 
   return (
     <div className="space-y-5">
+      <VerificacionBanner prestadorId={row.id} verificado={!!(row as { verificado?: boolean }).verificado} />
       {/* Foto */}
       <div className="p-4 rounded-2xl bg-white border border-border flex items-center gap-4">
         <ProviderAvatar url={foto || null} name={usuario?.nombre ?? "U"} size={64} />
