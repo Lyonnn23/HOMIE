@@ -464,6 +464,27 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       usuarios: {
         Row: {
           created_at: string
@@ -503,6 +524,7 @@ export type Database = {
           foto_carnet_reverso: string | null
           foto_selfie: string | null
           id: string
+          motivo_rechazo: string | null
           prestador_id: string
           revisado_por: string | null
         }
@@ -514,6 +536,7 @@ export type Database = {
           foto_carnet_reverso?: string | null
           foto_selfie?: string | null
           id?: string
+          motivo_rechazo?: string | null
           prestador_id: string
           revisado_por?: string | null
         }
@@ -525,6 +548,7 @@ export type Database = {
           foto_carnet_reverso?: string | null
           foto_selfie?: string | null
           id?: string
+          motivo_rechazo?: string | null
           prestador_id?: string
           revisado_por?: string | null
         }
@@ -536,8 +560,17 @@ export type Database = {
     }
     Functions: {
       current_usuario_id: { Args: never; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_admin: { Args: never; Returns: boolean }
     }
     Enums: {
+      app_role: "user" | "admin" | "superadmin"
       reserva_estado:
         | "pendiente"
         | "confirmada"
@@ -672,6 +705,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["user", "admin", "superadmin"],
       reserva_estado: [
         "pendiente",
         "confirmada",
