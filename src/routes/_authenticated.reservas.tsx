@@ -1,7 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CalendarCheck, MapPin, MessageCircle, Star } from "lucide-react";
+import { CalendarCheck, MapPin, MessageCircle, Star, Shield } from "lucide-react";
 import { useState } from "react";
 import { AppShell } from "@/components/AppShell";
+import { ReportModal } from "@/components/ReportModal";
+import { EmergencyBanner } from "@/components/EmergencyBanner";
 import { useBookings, useAddReview, useUpdateBookingStatus, type Booking } from "@/store/bookings";
 import { formatCLP } from "@/data/services";
 
@@ -22,9 +24,11 @@ function Reservas() {
   const bookings = useBookings();
   const active = bookings.filter((b) => b.status !== "completado" && b.status !== "cancelada");
   const past = bookings.filter((b) => b.status === "completado" || b.status === "cancelada");
+  const hasOngoing = active.some((b) => b.status === "en camino" || b.status === "confirmada");
 
   return (
     <AppShell>
+      {hasOngoing && <EmergencyBanner />}
       <header className="px-5 pt-8 pb-4">
         <h1 className="text-3xl font-bold tracking-tight">Reservas</h1>
       </header>
@@ -66,7 +70,9 @@ function Reservas() {
 
 function BookingCard({ b }: { b: Booking }) {
   const [showReview, setShowReview] = useState(false);
+  const [showReport, setShowReport] = useState(false);
   const cancel = useUpdateBookingStatus();
+  const canReport = b.status === "confirmada" || b.status === "en camino" || b.status === "completado";
 
   return (
     <div className="p-4 rounded-2xl bg-white border border-border">
@@ -118,7 +124,23 @@ function BookingCard({ b }: { b: Booking }) {
         </div>
       </div>
 
+      {canReport && (
+        <button
+          onClick={() => setShowReport(true)}
+          className="mt-3 w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-[#FF3B6B] text-[#FF3B6B] text-xs font-semibold hover:bg-[#FF3B6B]/5"
+        >
+          <Shield className="size-3.5" /> Reportar problema
+        </button>
+      )}
+
       {showReview && <ReviewModal b={b} onClose={() => setShowReview(false)} />}
+      {showReport && (
+        <ReportModal
+          reservaId={b.id}
+          reportadoId={b.providerId}
+          onClose={() => setShowReport(false)}
+        />
+      )}
     </div>
   );
 }

@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SeguridadRouteImport } from './routes/seguridad'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RegistroRouteImport } from './routes/registro'
 import { Route as LoginRouteImport } from './routes/login'
@@ -27,6 +28,11 @@ import { Route as AuthenticatedCuentaRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedChatReservaIdRouteImport } from './routes/_authenticated.chat.$reservaId'
 import { Route as AuthenticatedAdminVerificacionesRouteImport } from './routes/_authenticated.admin.verificaciones'
 
+const SeguridadRoute = SeguridadRouteImport.update({
+  id: '/seguridad',
+  path: '/seguridad',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
@@ -123,6 +129,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/registro': typeof RegistroRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/seguridad': typeof SeguridadRoute
   '/cuenta': typeof AuthenticatedCuentaRoute
   '/onboarding-prestador': typeof AuthenticatedOnboardingPrestadorRoute
   '/panel': typeof AuthenticatedPanelRoute
@@ -141,6 +148,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/registro': typeof RegistroRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/seguridad': typeof SeguridadRoute
   '/cuenta': typeof AuthenticatedCuentaRoute
   '/onboarding-prestador': typeof AuthenticatedOnboardingPrestadorRoute
   '/panel': typeof AuthenticatedPanelRoute
@@ -161,6 +169,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/registro': typeof RegistroRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/seguridad': typeof SeguridadRoute
   '/_authenticated/cuenta': typeof AuthenticatedCuentaRoute
   '/_authenticated/onboarding-prestador': typeof AuthenticatedOnboardingPrestadorRoute
   '/_authenticated/panel': typeof AuthenticatedPanelRoute
@@ -181,6 +190,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/registro'
     | '/reset-password'
+    | '/seguridad'
     | '/cuenta'
     | '/onboarding-prestador'
     | '/panel'
@@ -199,6 +209,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/registro'
     | '/reset-password'
+    | '/seguridad'
     | '/cuenta'
     | '/onboarding-prestador'
     | '/panel'
@@ -218,6 +229,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/registro'
     | '/reset-password'
+    | '/seguridad'
     | '/_authenticated/cuenta'
     | '/_authenticated/onboarding-prestador'
     | '/_authenticated/panel'
@@ -238,6 +250,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   RegistroRoute: typeof RegistroRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  SeguridadRoute: typeof SeguridadRoute
   PrestadorIdRoute: typeof PrestadorIdRoute
   ReservarIdRoute: typeof ReservarIdRoute
   ServicioServiceRoute: typeof ServicioServiceRoute
@@ -245,6 +258,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/seguridad': {
+      id: '/seguridad'
+      path: '/seguridad'
+      fullPath: '/seguridad'
+      preLoaderRoute: typeof SeguridadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reset-password': {
       id: '/reset-password'
       path: '/reset-password'
@@ -399,6 +419,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   RegistroRoute: RegistroRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  SeguridadRoute: SeguridadRoute,
   PrestadorIdRoute: PrestadorIdRoute,
   ReservarIdRoute: ReservarIdRoute,
   ServicioServiceRoute: ServicioServiceRoute,
