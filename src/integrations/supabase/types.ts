@@ -248,6 +248,7 @@ export type Database = {
           precio_desde: number
           precio_hasta: number
           resenas_count: number
+          suspendido: boolean
           usuario_id: string
           verificado: boolean
           verificado_identidad: boolean
@@ -270,6 +271,7 @@ export type Database = {
           precio_desde?: number
           precio_hasta?: number
           resenas_count?: number
+          suspendido?: boolean
           usuario_id: string
           verificado?: boolean
           verificado_identidad?: boolean
@@ -292,6 +294,7 @@ export type Database = {
           precio_desde?: number
           precio_hasta?: number
           resenas_count?: number
+          suspendido?: boolean
           usuario_id?: string
           verificado?: boolean
           verificado_identidad?: boolean
@@ -312,6 +315,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      reportes: {
+        Row: {
+          created_at: string
+          descripcion: string | null
+          estado: string
+          id: string
+          motivo: string
+          reportado_id: string
+          reportante_id: string
+          reserva_id: string
+        }
+        Insert: {
+          created_at?: string
+          descripcion?: string | null
+          estado?: string
+          id?: string
+          motivo: string
+          reportado_id: string
+          reportante_id: string
+          reserva_id: string
+        }
+        Update: {
+          created_at?: string
+          descripcion?: string | null
+          estado?: string
+          id?: string
+          motivo?: string
+          reportado_id?: string
+          reportante_id?: string
+          reserva_id?: string
+        }
+        Relationships: []
       }
       resenas: {
         Row: {
