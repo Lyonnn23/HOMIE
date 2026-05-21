@@ -62,13 +62,29 @@ export interface ProviderListItem {
   disponibleAhora: boolean;
 }
 
+export interface ProviderReview {
+  id: string;
+  author: string;
+  authorId: string | null;
+  rating: number;
+  text: string;
+  date: string;
+  createdAt: string;
+  fotoUrl: string | null;
+  verificada: boolean;
+  respuesta: string | null;
+  respuestaFecha: string | null;
+}
+
 export interface ProviderDetail extends ProviderListItem {
   bio: string;
+  usuarioId: string | null;
   gallery: string[];
   services: { id: string; name: string; price: number }[];
-  reviews: { id: string; author: string; rating: number; text: string; date: string }[];
+  reviews: ProviderReview[];
   direccion: string | null;
 }
+
 
 // ---------- Helpers ----------
 function timeAgoEs(iso: string) {
