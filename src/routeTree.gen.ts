@@ -27,6 +27,7 @@ import { Route as AuthenticatedOnboardingPrestadorRouteImport } from './routes/_
 import { Route as AuthenticatedCuentaRouteImport } from './routes/_authenticated.cuenta'
 import { Route as AuthenticatedChatReservaIdRouteImport } from './routes/_authenticated.chat.$reservaId'
 import { Route as AuthenticatedAdminVerificacionesRouteImport } from './routes/_authenticated.admin.verificaciones'
+import { Route as AuthenticatedAdminReportesRouteImport } from './routes/_authenticated.admin.reportes'
 
 const SeguridadRoute = SeguridadRouteImport.update({
   id: '/seguridad',
@@ -121,6 +122,12 @@ const AuthenticatedAdminVerificacionesRoute =
     path: '/admin/verificaciones',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedAdminReportesRoute =
+  AuthenticatedAdminReportesRouteImport.update({
+    id: '/admin/reportes',
+    path: '/admin/reportes',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -138,6 +145,7 @@ export interface FileRoutesByFullPath {
   '/prestador/$id': typeof PrestadorIdRoute
   '/reservar/$id': typeof ReservarIdRoute
   '/servicio/$service': typeof ServicioServiceRoute
+  '/admin/reportes': typeof AuthenticatedAdminReportesRoute
   '/admin/verificaciones': typeof AuthenticatedAdminVerificacionesRoute
   '/chat/$reservaId': typeof AuthenticatedChatReservaIdRoute
 }
@@ -157,6 +165,7 @@ export interface FileRoutesByTo {
   '/prestador/$id': typeof PrestadorIdRoute
   '/reservar/$id': typeof ReservarIdRoute
   '/servicio/$service': typeof ServicioServiceRoute
+  '/admin/reportes': typeof AuthenticatedAdminReportesRoute
   '/admin/verificaciones': typeof AuthenticatedAdminVerificacionesRoute
   '/chat/$reservaId': typeof AuthenticatedChatReservaIdRoute
 }
@@ -178,6 +187,7 @@ export interface FileRoutesById {
   '/prestador/$id': typeof PrestadorIdRoute
   '/reservar/$id': typeof ReservarIdRoute
   '/servicio/$service': typeof ServicioServiceRoute
+  '/_authenticated/admin/reportes': typeof AuthenticatedAdminReportesRoute
   '/_authenticated/admin/verificaciones': typeof AuthenticatedAdminVerificacionesRoute
   '/_authenticated/chat/$reservaId': typeof AuthenticatedChatReservaIdRoute
 }
@@ -199,6 +209,7 @@ export interface FileRouteTypes {
     | '/prestador/$id'
     | '/reservar/$id'
     | '/servicio/$service'
+    | '/admin/reportes'
     | '/admin/verificaciones'
     | '/chat/$reservaId'
   fileRoutesByTo: FileRoutesByTo
@@ -218,6 +229,7 @@ export interface FileRouteTypes {
     | '/prestador/$id'
     | '/reservar/$id'
     | '/servicio/$service'
+    | '/admin/reportes'
     | '/admin/verificaciones'
     | '/chat/$reservaId'
   id:
@@ -238,6 +250,7 @@ export interface FileRouteTypes {
     | '/prestador/$id'
     | '/reservar/$id'
     | '/servicio/$service'
+    | '/_authenticated/admin/reportes'
     | '/_authenticated/admin/verificaciones'
     | '/_authenticated/chat/$reservaId'
   fileRoutesById: FileRoutesById
@@ -384,6 +397,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminVerificacionesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin/reportes': {
+      id: '/_authenticated/admin/reportes'
+      path: '/admin/reportes'
+      fullPath: '/admin/reportes'
+      preLoaderRoute: typeof AuthenticatedAdminReportesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
@@ -393,6 +413,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedPanelRoute: typeof AuthenticatedPanelRoute
   AuthenticatedReservasRoute: typeof AuthenticatedReservasRoute
   AuthenticatedVerificarIdentidadRoute: typeof AuthenticatedVerificarIdentidadRoute
+  AuthenticatedAdminReportesRoute: typeof AuthenticatedAdminReportesRoute
   AuthenticatedAdminVerificacionesRoute: typeof AuthenticatedAdminVerificacionesRoute
   AuthenticatedChatReservaIdRoute: typeof AuthenticatedChatReservaIdRoute
 }
@@ -403,6 +424,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedPanelRoute: AuthenticatedPanelRoute,
   AuthenticatedReservasRoute: AuthenticatedReservasRoute,
   AuthenticatedVerificarIdentidadRoute: AuthenticatedVerificarIdentidadRoute,
+  AuthenticatedAdminReportesRoute: AuthenticatedAdminReportesRoute,
   AuthenticatedAdminVerificacionesRoute: AuthenticatedAdminVerificacionesRoute,
   AuthenticatedChatReservaIdRoute: AuthenticatedChatReservaIdRoute,
 }
@@ -427,3 +449,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
