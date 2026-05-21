@@ -254,6 +254,32 @@ function RegistroPage() {
                 maxLength={300}
                 className="w-full px-4 py-3 rounded-2xl bg-white border border-[#E5E7EB] outline-none transition focus:border-[#EF9F27] focus:ring-2 focus:ring-[#EF9F27]/20 text-[#111827] resize-none"
               />
+
+              <div className="flex items-center gap-3 pt-1">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="relative size-16 rounded-full overflow-hidden border-2 border-dashed border-[#E5E7EB] flex items-center justify-center bg-[#F5F5F0] hover:border-[#EF9F27] transition"
+                  aria-label="Subir foto de perfil"
+                >
+                  {fotoPreview ? (
+                    <img src={fotoPreview} alt="" className="size-full object-cover" />
+                  ) : (
+                    <Camera className="size-6 text-[#9CA3AF]" />
+                  )}
+                </button>
+                <div className="text-xs text-[#6B7280]">
+                  <div className="font-semibold text-[#111827]">Foto de perfil</div>
+                  <div>Opcional · JPG o PNG, máx 5MB</div>
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={onPickFoto}
+                />
+              </div>
             </div>
           )}
 
