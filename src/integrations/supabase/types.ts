@@ -17,21 +17,72 @@ export type Database = {
       categorias: {
         Row: {
           color_fondo: string
+          color_hex: string | null
           icono: string
           id: string
           nombre: string
+          slug: string | null
         }
         Insert: {
           color_fondo: string
+          color_hex?: string | null
           icono: string
           id: string
           nombre: string
+          slug?: string | null
         }
         Update: {
           color_fondo?: string
+          color_hex?: string | null
           icono?: string
           id?: string
           nombre?: string
+          slug?: string | null
+        }
+        Relationships: []
+      }
+      creditos: {
+        Row: {
+          created_at: string
+          id: string
+          monto: number
+          motivo: string | null
+          usuario_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          monto: number
+          motivo?: string | null
+          usuario_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          monto?: number
+          motivo?: string | null
+          usuario_id?: string
+        }
+        Relationships: []
+      }
+      favoritos: {
+        Row: {
+          cliente_id: string
+          created_at: string
+          id: string
+          prestador_id: string
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          id?: string
+          prestador_id: string
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          id?: string
+          prestador_id?: string
         }
         Relationships: []
       }
@@ -39,21 +90,27 @@ export type Database = {
         Row: {
           contenido: string
           created_at: string
+          foto_url: string | null
           id: string
+          leido: boolean
           remitente_id: string
           reserva_id: string
         }
         Insert: {
           contenido: string
           created_at?: string
+          foto_url?: string | null
           id?: string
+          leido?: boolean
           remitente_id: string
           reserva_id: string
         }
         Update: {
           contenido?: string
           created_at?: string
+          foto_url?: string | null
           id?: string
+          leido?: boolean
           remitente_id?: string
           reserva_id?: string
         }
@@ -174,9 +231,11 @@ export type Database = {
       }
       prestadores: {
         Row: {
+          antecedentes_ok: boolean
           bio: string | null
           calificacion_promedio: number
           categoria_id: string
+          ciudad: string
           direccion: string | null
           disponibilidad_texto: string | null
           disponible_ahora: boolean
@@ -185,16 +244,20 @@ export type Database = {
           id: string
           lat: number | null
           lng: number | null
+          plan: string
           precio_desde: number
           precio_hasta: number
           resenas_count: number
           usuario_id: string
           verificado: boolean
+          verificado_identidad: boolean
         }
         Insert: {
+          antecedentes_ok?: boolean
           bio?: string | null
           calificacion_promedio?: number
           categoria_id: string
+          ciudad?: string
           direccion?: string | null
           disponibilidad_texto?: string | null
           disponible_ahora?: boolean
@@ -203,16 +266,20 @@ export type Database = {
           id?: string
           lat?: number | null
           lng?: number | null
+          plan?: string
           precio_desde?: number
           precio_hasta?: number
           resenas_count?: number
           usuario_id: string
           verificado?: boolean
+          verificado_identidad?: boolean
         }
         Update: {
+          antecedentes_ok?: boolean
           bio?: string | null
           calificacion_promedio?: number
           categoria_id?: string
+          ciudad?: string
           direccion?: string | null
           disponibilidad_texto?: string | null
           disponible_ahora?: boolean
@@ -221,11 +288,13 @@ export type Database = {
           id?: string
           lat?: number | null
           lng?: number | null
+          plan?: string
           precio_desde?: number
           precio_hasta?: number
           resenas_count?: number
           usuario_id?: string
           verificado?: boolean
+          verificado_identidad?: boolean
         }
         Relationships: [
           {
@@ -250,6 +319,7 @@ export type Database = {
           cliente_id: string
           comentario: string | null
           created_at: string
+          foto_url: string | null
           id: string
           prestador_id: string
           reserva_id: string | null
@@ -259,6 +329,7 @@ export type Database = {
           cliente_id: string
           comentario?: string | null
           created_at?: string
+          foto_url?: string | null
           id?: string
           prestador_id: string
           reserva_id?: string | null
@@ -268,6 +339,7 @@ export type Database = {
           cliente_id?: string
           comentario?: string | null
           created_at?: string
+          foto_url?: string | null
           id?: string
           prestador_id?: string
           reserva_id?: string | null
@@ -299,6 +371,7 @@ export type Database = {
       reservas: {
         Row: {
           cliente_id: string
+          comision: number
           created_at: string
           direccion: string
           estado: Database["public"]["Enums"]["reserva_estado"]
@@ -312,6 +385,7 @@ export type Database = {
         }
         Insert: {
           cliente_id: string
+          comision?: number
           created_at?: string
           direccion: string
           estado?: Database["public"]["Enums"]["reserva_estado"]
@@ -325,6 +399,7 @@ export type Database = {
         }
         Update: {
           cliente_id?: string
+          comision?: number
           created_at?: string
           direccion?: string
           estado?: Database["public"]["Enums"]["reserva_estado"]
@@ -416,6 +491,42 @@ export type Database = {
           nombre?: string
           tipo?: Database["public"]["Enums"]["user_type"]
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      verificaciones_prestador: {
+        Row: {
+          certificados: string[]
+          created_at: string
+          estado: string
+          foto_carnet_frente: string | null
+          foto_carnet_reverso: string | null
+          foto_selfie: string | null
+          id: string
+          prestador_id: string
+          revisado_por: string | null
+        }
+        Insert: {
+          certificados?: string[]
+          created_at?: string
+          estado?: string
+          foto_carnet_frente?: string | null
+          foto_carnet_reverso?: string | null
+          foto_selfie?: string | null
+          id?: string
+          prestador_id: string
+          revisado_por?: string | null
+        }
+        Update: {
+          certificados?: string[]
+          created_at?: string
+          estado?: string
+          foto_carnet_frente?: string | null
+          foto_carnet_reverso?: string | null
+          foto_selfie?: string | null
+          id?: string
+          prestador_id?: string
+          revisado_por?: string | null
         }
         Relationships: []
       }
