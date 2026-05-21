@@ -565,6 +565,8 @@ export type Database = {
           foto_url: string | null
           id: string
           nombre: string
+          notif_config: Json
+          onesignal_player_id: string | null
           tipo: Database["public"]["Enums"]["user_type"]
           user_id: string | null
         }
@@ -574,6 +576,8 @@ export type Database = {
           foto_url?: string | null
           id?: string
           nombre: string
+          notif_config?: Json
+          onesignal_player_id?: string | null
           tipo?: Database["public"]["Enums"]["user_type"]
           user_id?: string | null
         }
@@ -583,6 +587,8 @@ export type Database = {
           foto_url?: string | null
           id?: string
           nombre?: string
+          notif_config?: Json
+          onesignal_player_id?: string | null
           tipo?: Database["public"]["Enums"]["user_type"]
           user_id?: string | null
         }
