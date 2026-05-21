@@ -1,14 +1,18 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { ArrowLeft, Star, MapPin, Clock, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Star, MapPin, Clock, ShieldCheck, BadgeCheck } from "lucide-react";
+import { useState } from "react";
 import { z } from "zod";
 import { AppShell } from "@/components/AppShell";
 import { ProviderAvatar } from "@/components/Avatar";
-import { getCategory, useProvider, formatCLP } from "@/data/services";
+import { getCategory, useProvider, formatCLP, type ProviderReview } from "@/data/services";
+import { useAuth } from "@/hooks/use-auth";
+import { useReplyReview } from "@/store/bookings";
 
 export const Route = createFileRoute("/prestador/$id")({
   validateSearch: z.object({ service: z.string().optional() }),
   component: ProviderPage,
 });
+
 
 function ProviderPage() {
   const { id } = Route.useParams();
@@ -127,24 +131,18 @@ function ProviderPage() {
 
         <section className="mt-6">
           <h2 className="section-title">Reseñas</h2>
-          <div className="mt-3 space-y-2">
+          <ReviewsSummary reviews={p.reviews} rating={p.rating} count={p.reviewsCount} />
+          <div className="mt-4 space-y-2">
+            {p.reviews.length === 0 && (
+              <p className="text-sm text-[#9CA3AF]">Aún no hay reseñas.</p>
+            )}
             {p.reviews.map((r) => (
-              <div key={r.id} className="p-4 rounded-2xl bg-white border border-[#E5E7EB]">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-[#111827]">{r.author}</span>
-                  <span className="text-xs text-[#9CA3AF]">{r.date}</span>
-                </div>
-                <div className="flex items-center gap-0.5 mt-1">
-                  {Array.from({ length: 5 }).map((_, j) => (
-                    <Star key={j} className={`size-3.5 ${j < r.rating ? "fill-[#EF9F27] text-[#EF9F27]" : "text-[#E5E7EB]"}`} />
-                  ))}
-                </div>
-                <p className="text-sm mt-2 text-[#111827]/80">{r.text}</p>
-              </div>
+              <ReviewCard key={r.id} r={r} prestadorUsuarioId={p.usuarioId} />
             ))}
           </div>
         </section>
       </div>
+
 
       <div className="fixed bottom-0 inset-x-0 z-30 border-t border-[#E5E7EB] bg-white/95 backdrop-blur">
         <div className="mx-auto max-w-2xl px-5 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex items-center gap-3">
@@ -163,5 +161,125 @@ function ProviderPage() {
         </div>
       </div>
     </AppShell>
+  );
+}
+
+function ReviewsSummary({ reviews, rating, count }: { reviews: ProviderReview[]; rating: number; count: number }) {
+  const total = Math.max(reviews.length, 1);
+  const dist = [5, 4, 3, 2, 1].map((s) => ({
+    stars: s,
+    n: reviews.filter((r) => r.rating === s).length,
+  }));
+  return (
+    <div className="mt-3 grid grid-cols-[auto_1fr] gap-4 items-center p-4 rounded-2xl bg-[#F5F5F0]">
+      <div className="text-center">
+        <div className="text-3xl font-bold text-[#111827] leading-none">{rating.toFixed(1)}</div>
+        <div className="flex items-center justify-center gap-0.5 mt-1">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Star key={i} className={`size-3.5 ${i < Math.round(rating) ? "fill-[#EF9F27] text-[#EF9F27]" : "text-[#E5E7EB]"}`} />
+          ))}
+        </div>
+        <div className="text-[11px] text-[#6B7280] mt-1">{count} reseñas</div>
+      </div>
+      <div className="space-y-1">
+        {dist.map((d) => (
+          <div key={d.stars} className="flex items-center gap-2 text-xs">
+            <span className="w-3 text-[#6B7280]">{d.stars}</span>
+            <Star className="size-3 fill-[#EF9F27] text-[#EF9F27]" />
+            <div className="flex-1 h-1.5 rounded-full bg-[#E5E7EB] overflow-hidden">
+              <div className="h-full bg-[#EF9F27]" style={{ width: `${(d.n / total) * 100}%` }} />
+            </div>
+            <span className="w-5 text-right text-[#6B7280]">{d.n}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ReviewCard({ r, prestadorUsuarioId }: { r: ProviderReview; prestadorUsuarioId: string | null }) {
+  const { usuario } = useAuth();
+  const isOwner = !!usuario && !!prestadorUsuarioId && usuario.id === prestadorUsuarioId;
+
+  const initial = (r.author || "?").trim().charAt(0).toUpperCase();
+  const [replying, setReplying] = useState(false);
+  const [text, setText] = useState(r.respuesta ?? "");
+  const reply = useReplyReview();
+
+  async function submit() {
+    if (!text.trim()) return;
+    await reply.mutateAsync({ resenaId: r.id, respuesta: text.trim() });
+    setReplying(false);
+  }
+
+  return (
+    <div className="p-4 rounded-2xl bg-white border border-[#E5E7EB]">
+      <div className="flex items-start gap-3">
+        <div className="size-9 rounded-full bg-[#111827] text-white flex items-center justify-center text-sm font-bold shrink-0">
+          {initial}
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-sm font-semibold text-[#111827] truncate">{r.author}</span>
+              {r.verificada && (
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#00C28820] text-[#00754F] text-[10px] font-semibold">
+                  <BadgeCheck className="size-3" /> Verificada
+                </span>
+              )}
+            </div>
+            <span className="text-xs text-[#9CA3AF] shrink-0">{r.date}</span>
+          </div>
+          <div className="flex items-center gap-0.5 mt-1">
+            {Array.from({ length: 5 }).map((_, j) => (
+              <Star key={j} className={`size-3.5 ${j < r.rating ? "fill-[#EF9F27] text-[#EF9F27]" : "text-[#E5E7EB]"}`} />
+            ))}
+          </div>
+          {r.text && <p className="text-sm mt-2 text-[#111827]/80">{r.text}</p>}
+          {r.fotoUrl && (
+            <img src={r.fotoUrl} alt="Foto del trabajo" loading="lazy" className="mt-3 w-full max-w-xs h-40 object-cover rounded-xl" />
+          )}
+
+          {r.respuesta && (
+            <div className="mt-3 p-3 rounded-xl bg-[#F5F5F0] border-l-2 border-[#EF9F27]">
+              <div className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wide">Respuesta del prestador</div>
+              <p className="text-sm mt-1 text-[#111827]/85">{r.respuesta}</p>
+            </div>
+          )}
+
+          {isOwner && !r.respuesta && !replying && (
+            <button
+              onClick={() => setReplying(true)}
+              className="mt-3 text-xs font-semibold text-[#EF9F27]"
+            >
+              Responder
+            </button>
+          )}
+          {isOwner && replying && (
+            <div className="mt-3 space-y-2">
+              <textarea
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                rows={2}
+                placeholder="Escribe tu respuesta..."
+                className="w-full px-3 py-2 rounded-xl bg-[#F5F5F0] border border-[#E5E7EB] outline-none focus:border-[#EF9F27] resize-none text-sm"
+              />
+              <div className="flex gap-2 justify-end">
+                <button onClick={() => setReplying(false)} className="px-3 py-1.5 text-xs font-semibold text-[#6B7280]">
+                  Cancelar
+                </button>
+                <button
+                  disabled={reply.isPending || !text.trim()}
+                  onClick={submit}
+                  className="px-3 py-1.5 rounded-lg bg-[#EF9F27] text-[#111827] text-xs font-bold disabled:opacity-50"
+                >
+                  {reply.isPending ? "Enviando..." : "Publicar respuesta"}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }

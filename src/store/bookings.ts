@@ -217,14 +217,25 @@ export function useAddReview() {
   const qc = useQueryClient();
   const { usuario } = useAuth();
   return useMutation({
-    mutationFn: async (input: { reservaId: string; prestadorId: string; calificacion: number; comentario: string }) => {
+    mutationFn: async (input: { reservaId: string; prestadorId: string; calificacion: number; comentario: string; foto?: File | null }) => {
       if (!usuario?.id) throw new Error("Debes iniciar sesión");
+      const { data: authData } = await supabase.auth.getUser();
+      const authUid = authData.user?.id;
+      let fotoUrl: string | null = null;
+      if (input.foto && authUid) {
+        const ext = input.foto.name.split(".").pop() || "jpg";
+        const path = `${authUid}/${input.reservaId}-${Date.now()}.${ext}`;
+        const up = await supabase.storage.from("resenas").upload(path, input.foto, { upsert: true });
+        if (up.error) throw up.error;
+        fotoUrl = supabase.storage.from("resenas").getPublicUrl(path).data.publicUrl;
+      }
       const { error } = await supabase.from("resenas").insert({
         reserva_id: input.reservaId,
         cliente_id: usuario.id,
         prestador_id: input.prestadorId,
         calificacion: input.calificacion,
         comentario: input.comentario || null,
+        foto_url: fotoUrl,
       });
       if (error) throw error;
     },
@@ -234,3 +245,20 @@ export function useAddReview() {
     },
   });
 }
+
+export function useReplyReview() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { resenaId: string; respuesta: string }) => {
+      const { error } = await supabase
+        .from("resenas")
+        .update({ respuesta_prestador: input.respuesta, respuesta_fecha: new Date().toISOString() })
+        .eq("id", input.resenaId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["provider"] });
+    },
+  });
+}
+
