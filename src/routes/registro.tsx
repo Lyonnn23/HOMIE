@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
-import { Eye, EyeOff, Home, Briefcase } from "lucide-react";
+import { useRef, useState } from "react";
+import { Eye, EyeOff, Home, Briefcase, Camera } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { HomieLogo } from "@/components/Logo";
@@ -22,8 +22,27 @@ function RegistroPage() {
   const [categoriaId, setCategoriaId] = useState<string>("");
   const [precioHora, setPrecioHora] = useState<string>("");
   const [descripcion, setDescripcion] = useState("");
+  const [fotoFile, setFotoFile] = useState<File | null>(null);
+  const [fotoPreview, setFotoPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [err, setErr] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  function onPickFoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    if (!f.type.startsWith("image/")) {
+      setErr("La foto debe ser una imagen");
+      return;
+    }
+    if (f.size > 5 * 1024 * 1024) {
+      setErr("La foto debe pesar menos de 5MB");
+      return;
+    }
+    setErr(null);
+    setFotoFile(f);
+    setFotoPreview(URL.createObjectURL(f));
+  }
 
   const fieldClass =
     "w-full h-12 px-4 rounded-2xl bg-white border border-[#E5E7EB] outline-none transition focus:border-[#EF9F27] focus:ring-2 focus:ring-[#EF9F27]/20 text-[#111827]";
@@ -63,6 +82,23 @@ function RegistroPage() {
       setErr("Revisa tu email para confirmar la cuenta.");
       return;
     }
+
+    // Subir foto de perfil si se eligió (solo prestador)
+    if (tipo === "prestador" && fotoFile && data.user) {
+      const ext = fotoFile.name.split(".").pop() ?? "jpg";
+      const path = `${data.user.id}/avatar.${ext}`;
+      const up = await supabase.storage
+        .from("avatars")
+        .upload(path, fotoFile, { upsert: true, contentType: fotoFile.type });
+      if (!up.error) {
+        const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
+        await supabase
+          .from("usuarios")
+          .update({ foto_url: pub.publicUrl })
+          .eq("user_id", data.user.id);
+      }
+    }
+
     if (tipo === "prestador") navigate({ to: "/onboarding-prestador" });
     else navigate({ to: "/" });
   }
@@ -218,6 +254,32 @@ function RegistroPage() {
                 maxLength={300}
                 className="w-full px-4 py-3 rounded-2xl bg-white border border-[#E5E7EB] outline-none transition focus:border-[#EF9F27] focus:ring-2 focus:ring-[#EF9F27]/20 text-[#111827] resize-none"
               />
+
+              <div className="flex items-center gap-3 pt-1">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="relative size-16 rounded-full overflow-hidden border-2 border-dashed border-[#E5E7EB] flex items-center justify-center bg-[#F5F5F0] hover:border-[#EF9F27] transition"
+                  aria-label="Subir foto de perfil"
+                >
+                  {fotoPreview ? (
+                    <img src={fotoPreview} alt="" className="size-full object-cover" />
+                  ) : (
+                    <Camera className="size-6 text-[#9CA3AF]" />
+                  )}
+                </button>
+                <div className="text-xs text-[#6B7280]">
+                  <div className="font-semibold text-[#111827]">Foto de perfil</div>
+                  <div>Opcional · JPG o PNG, máx 5MB</div>
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={onPickFoto}
+                />
+              </div>
             </div>
           )}
 
