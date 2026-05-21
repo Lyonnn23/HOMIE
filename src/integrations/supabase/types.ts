@@ -381,6 +381,9 @@ export type Database = {
           id: string
           prestador_id: string
           reserva_id: string | null
+          respuesta_fecha: string | null
+          respuesta_prestador: string | null
+          verificada: boolean
         }
         Insert: {
           calificacion: number
@@ -391,6 +394,9 @@ export type Database = {
           id?: string
           prestador_id: string
           reserva_id?: string | null
+          respuesta_fecha?: string | null
+          respuesta_prestador?: string | null
+          verificada?: boolean
         }
         Update: {
           calificacion?: number
@@ -401,6 +407,9 @@ export type Database = {
           id?: string
           prestador_id?: string
           reserva_id?: string | null
+          respuesta_fecha?: string | null
+          respuesta_prestador?: string | null
+          verificada?: boolean
         }
         Relationships: [
           {
