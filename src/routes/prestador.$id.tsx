@@ -131,24 +131,18 @@ function ProviderPage() {
 
         <section className="mt-6">
           <h2 className="section-title">Reseñas</h2>
-          <div className="mt-3 space-y-2">
+          <ReviewsSummary reviews={p.reviews} rating={p.rating} count={p.reviewsCount} />
+          <div className="mt-4 space-y-2">
+            {p.reviews.length === 0 && (
+              <p className="text-sm text-[#9CA3AF]">Aún no hay reseñas.</p>
+            )}
             {p.reviews.map((r) => (
-              <div key={r.id} className="p-4 rounded-2xl bg-white border border-[#E5E7EB]">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-[#111827]">{r.author}</span>
-                  <span className="text-xs text-[#9CA3AF]">{r.date}</span>
-                </div>
-                <div className="flex items-center gap-0.5 mt-1">
-                  {Array.from({ length: 5 }).map((_, j) => (
-                    <Star key={j} className={`size-3.5 ${j < r.rating ? "fill-[#EF9F27] text-[#EF9F27]" : "text-[#E5E7EB]"}`} />
-                  ))}
-                </div>
-                <p className="text-sm mt-2 text-[#111827]/80">{r.text}</p>
-              </div>
+              <ReviewCard key={r.id} r={r} prestadorUsuarioId={p.usuarioId} />
             ))}
           </div>
         </section>
       </div>
+
 
       <div className="fixed bottom-0 inset-x-0 z-30 border-t border-[#E5E7EB] bg-white/95 backdrop-blur">
         <div className="mx-auto max-w-2xl px-5 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex items-center gap-3">
