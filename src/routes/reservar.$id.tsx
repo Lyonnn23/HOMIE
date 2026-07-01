@@ -1,11 +1,14 @@
-import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
-import { ArrowLeft, Check } from "lucide-react";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { ArrowLeft } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { z } from "zod";
 import { AppShell } from "@/components/AppShell";
 import { ProviderAvatar } from "@/components/Avatar";
 import { useProvider, formatCLP } from "@/data/services";
 import { useAddBooking } from "@/store/bookings";
+import { createPaymentPreference } from "@/lib/mercadopago.functions";
 
 export const Route = createFileRoute("/reservar/$id")({
   validateSearch: z.object({ service: z.string().optional() }),
