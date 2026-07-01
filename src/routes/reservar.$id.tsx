@@ -37,10 +37,10 @@ const TIMES = ["09:00","10:00","11:00","12:00","14:00","15:00","16:00","17:00","
 function BookingPage() {
   const { id } = Route.useParams();
   const { service: incoming } = Route.useSearch();
-  const navigate = useNavigate();
   const router = useRouter();
   const { data: p, isLoading } = useProvider(id);
   const addBooking = useAddBooking();
+  const createPreference = useServerFn(createPaymentPreference);
 
   const days = useMemo(() => nextDays(10), []);
   const [date, setDate] = useState(days[0].value);
@@ -48,9 +48,8 @@ function BookingPage() {
   const [serviceName, setServiceName] = useState<string | undefined>(incoming);
   const [address, setAddress] = useState("");
   const [note, setNote] = useState("");
-  const [confirmed, setConfirmed] = useState(false);
+  const [paying, setPaying] = useState(false);
 
-  // Inicializa el servicio elegido cuando los datos cargan.
   useEffect(() => {
     if (!p) return;
     if (!serviceName || !p.services.some((s) => s.name === serviceName)) {
@@ -68,44 +67,23 @@ function BookingPage() {
 
   async function confirm() {
     if (!address.trim() || !selected || !p) return;
-    await addBooking.mutateAsync({
-      providerId: p.id,
-      serviceId: selected.id,
-      service: selected.name,
-      date, time, address, note, price: total,
-    });
-    setConfirmed(true);
+    setPaying(true);
+    try {
+      const reserva = await addBooking.mutateAsync({
+        providerId: p.id,
+        serviceId: selected.id,
+        service: selected.name,
+        date, time, address, note, price: total,
+      });
+      const { initPoint } = await createPreference({ data: { reservaId: reserva.id } });
+      window.location.href = initPoint;
+    } catch (err) {
+      console.error(err);
+      toast.error(err instanceof Error ? err.message : "No se pudo iniciar el pago");
+      setPaying(false);
+    }
   }
 
-  if (confirmed) {
-    return (
-      <AppShell>
-        <div className="px-5 pt-20 text-center">
-          <div className="mx-auto size-16 rounded-full bg-green-100 flex items-center justify-center">
-            <Check className="size-8 text-green-600" />
-          </div>
-          <h1 className="mt-6 text-2xl font-bold">¡Reserva confirmada!</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {p.name} se contactará contigo para confirmar la visita.
-          </p>
-          <div className="mt-8 mx-auto max-w-sm p-4 rounded-2xl bg-white border border-border text-left text-sm space-y-2">
-            <Row label="Servicio" value={selected?.name ?? ""} />
-            <Row label="Fecha" value={`${date} · ${time}`} />
-            <Row label="Dirección" value={address} />
-            <Row label="Total" value={formatCLP(total)} bold />
-          </div>
-          <div className="mt-6 flex gap-2 justify-center">
-            <button onClick={() => navigate({ to: "/reservas" })} className="px-5 py-3 rounded-2xl bg-foreground text-background font-semibold text-sm">
-              Ver mis reservas
-            </button>
-            <button onClick={() => navigate({ to: "/" })} className="px-5 py-3 rounded-2xl border border-border font-semibold text-sm">
-              Inicio
-            </button>
-          </div>
-        </div>
-      </AppShell>
-    );
-  }
 
   return (
     <AppShell>
