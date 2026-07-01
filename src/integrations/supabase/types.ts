@@ -241,10 +241,12 @@ export type Database = {
           disponibilidad_texto: string | null
           disponible_ahora: boolean
           distancia_km: number | null
+          foto_url: string | null
           gallery_urls: string[]
           id: string
           lat: number | null
           lng: number | null
+          nombre: string | null
           plan: string
           precio_desde: number
           precio_hasta: number
@@ -266,10 +268,12 @@ export type Database = {
           disponibilidad_texto?: string | null
           disponible_ahora?: boolean
           distancia_km?: number | null
+          foto_url?: string | null
           gallery_urls?: string[]
           id?: string
           lat?: number | null
           lng?: number | null
+          nombre?: string | null
           plan?: string
           precio_desde?: number
           precio_hasta?: number
@@ -291,10 +295,12 @@ export type Database = {
           disponibilidad_texto?: string | null
           disponible_ahora?: boolean
           distancia_km?: number | null
+          foto_url?: string | null
           gallery_urls?: string[]
           id?: string
           lat?: number | null
           lng?: number | null
+          nombre?: string | null
           plan?: string
           precio_desde?: number
           precio_hasta?: number
@@ -381,6 +387,7 @@ export type Database = {
         Row: {
           calificacion: number
           cliente_id: string
+          cliente_nombre: string | null
           comentario: string | null
           created_at: string
           foto_url: string | null
@@ -394,6 +401,7 @@ export type Database = {
         Insert: {
           calificacion: number
           cliente_id: string
+          cliente_nombre?: string | null
           comentario?: string | null
           created_at?: string
           foto_url?: string | null
@@ -407,6 +415,7 @@ export type Database = {
         Update: {
           calificacion?: number
           cliente_id?: string
+          cliente_nombre?: string | null
           comentario?: string | null
           created_at?: string
           foto_url?: string | null
@@ -443,7 +452,9 @@ export type Database = {
       }
       reservas: {
         Row: {
+          cliente_foto_url: string | null
           cliente_id: string
+          cliente_nombre: string | null
           comision: number
           created_at: string
           direccion: string
@@ -452,12 +463,17 @@ export type Database = {
           hora: string
           id: string
           nota: string | null
+          prestador_foto_url: string | null
           prestador_id: string
+          prestador_nombre: string | null
+          prestador_usuario_id: string | null
           servicio_id: string | null
           total: number
         }
         Insert: {
+          cliente_foto_url?: string | null
           cliente_id: string
+          cliente_nombre?: string | null
           comision?: number
           created_at?: string
           direccion: string
@@ -466,12 +482,17 @@ export type Database = {
           hora: string
           id?: string
           nota?: string | null
+          prestador_foto_url?: string | null
           prestador_id: string
+          prestador_nombre?: string | null
+          prestador_usuario_id?: string | null
           servicio_id?: string | null
           total: number
         }
         Update: {
+          cliente_foto_url?: string | null
           cliente_id?: string
+          cliente_nombre?: string | null
           comision?: number
           created_at?: string
           direccion?: string
@@ -480,7 +501,10 @@ export type Database = {
           hora?: string
           id?: string
           nota?: string | null
+          prestador_foto_url?: string | null
           prestador_id?: string
+          prestador_nombre?: string | null
+          prestador_usuario_id?: string | null
           servicio_id?: string | null
           total?: number
         }

@@ -34,8 +34,7 @@ const DB_TO_UI: Record<string, Booking["status"]> = {
 const SELECT = `
   id, fecha, hora, direccion, estado, nota, total, created_at,
   prestador_id, cliente_id, servicio_id,
-  prestadores ( id, usuarios ( nombre ) ),
-  cliente:usuarios!reservas_cliente_id_fkey ( nombre ),
+  prestador_nombre, cliente_nombre,
   servicios ( nombre ),
   resenas ( id )
 `;
@@ -44,8 +43,8 @@ type Row = {
   id: string; fecha: string; hora: string; direccion: string;
   estado: string; nota: string | null; total: number; created_at: string;
   prestador_id: string; cliente_id: string; servicio_id: string | null;
-  prestadores: { id: string; usuarios: { nombre: string } | null } | null;
-  cliente: { nombre: string } | null;
+  prestador_nombre: string | null;
+  cliente_nombre: string | null;
   servicios: { nombre: string } | null;
   resenas: { id: string }[] | null;
 };
@@ -54,9 +53,9 @@ function mapRow(r: Row): Booking {
   return {
     id: r.id,
     providerId: r.prestador_id,
-    providerName: r.prestadores?.usuarios?.nombre ?? "Prestador",
+    providerName: r.prestador_nombre ?? "Prestador",
     clientId: r.cliente_id,
-    clientName: r.cliente?.nombre ?? "Cliente",
+    clientName: r.cliente_nombre ?? "Cliente",
     service: r.servicios?.nombre ?? "Servicio",
     serviceId: r.servicio_id,
     date: r.fecha,

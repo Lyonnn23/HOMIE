@@ -45,7 +45,7 @@ function FavoritosPage() {
             {favs.map((f) => {
               const p = f.prestador;
               if (!p) return null;
-              const name = p.usuarios?.nombre ?? "Prestador";
+              const name = p.nombre ?? "Prestador";
               return (
                 <div key={f.id} className="relative p-4 rounded-2xl bg-white border border-[#E5E7EB]">
                   <button
@@ -57,7 +57,7 @@ function FavoritosPage() {
                     <Heart className="size-4 fill-[#EF9F27] text-[#EF9F27]" />
                   </button>
                   <div className="flex flex-col items-center text-center">
-                    <ProviderAvatar url={p.usuarios?.foto_url ?? null} name={name} size={64} />
+                    <ProviderAvatar url={p.foto_url ?? null} name={name} size={64} />
                     <div className="mt-2 font-semibold text-sm text-[#111827] truncate w-full">
                       {name}
                     </div>

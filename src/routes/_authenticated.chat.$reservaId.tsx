@@ -53,32 +53,22 @@ function ChatPage() {
       const { data } = await supabase
         .from("reservas")
         .select(`
-          id, cliente_id, prestador_id,
-          prestadores!inner ( usuarios!inner ( id, nombre, foto_url ) ),
-          usuarios!reservas_cliente_id_fkey ( id, nombre, foto_url )
+          id, cliente_id, prestador_id, prestador_usuario_id,
+          prestador_nombre, prestador_foto_url,
+          cliente_nombre, cliente_foto_url
         `)
         .eq("id", reservaId)
         .maybeSingle();
       if (!data) return null;
-      // Fallback: separately fetch participants if join shape differs
       const r = data as any;
-      let prestUsuario = r.prestadores?.usuarios ?? null;
-      let cliente = r.usuarios ?? null;
-      if (!prestUsuario) {
-        const { data: p } = await supabase
-          .from("prestadores").select("usuarios ( id, nombre, foto_url )")
-          .eq("id", r.prestador_id).maybeSingle();
-        prestUsuario = (p as any)?.usuarios ?? null;
-      }
-      if (!cliente) {
-        const { data: c } = await supabase
-          .from("usuarios").select("id, nombre, foto_url")
-          .eq("id", r.cliente_id).maybeSingle();
-        cliente = c ?? null;
-      }
       return {
-        id: r.id, cliente_id: r.cliente_id, prestador_id: r.prestador_id,
-        prestador_usuario: prestUsuario, cliente,
+        id: r.id,
+        cliente_id: r.cliente_id,
+        prestador_id: r.prestador_id,
+        prestador_usuario: r.prestador_usuario_id
+          ? { id: r.prestador_usuario_id, nombre: r.prestador_nombre ?? "Prestador", foto_url: r.prestador_foto_url ?? null }
+          : null,
+        cliente: { id: r.cliente_id, nombre: r.cliente_nombre ?? "Cliente", foto_url: r.cliente_foto_url ?? null },
       };
     },
   });
