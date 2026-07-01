@@ -52,9 +52,8 @@ function useSearchProviders(params: { q: string; cat: string; min: number; max: 
       let query = supabase
         .from("prestadores")
         .select(`
-          id, categoria_id, bio, calificacion_promedio, resenas_count,
+          id, categoria_id, nombre, foto_url, bio, calificacion_promedio, resenas_count,
           precio_desde, disponible_ahora, distancia_km,
-          usuarios!inner ( nombre, foto_url ),
           prestador_servicios ( servicios ( nombre ) )
         `);
 
@@ -69,9 +68,9 @@ function useSearchProviders(params: { q: string; cat: string; min: number; max: 
 
       type Row = {
         id: string; categoria_id: string; bio: string | null;
+        nombre: string | null; foto_url: string | null;
         calificacion_promedio: number; resenas_count: number;
         precio_desde: number; disponible_ahora: boolean; distancia_km: number | null;
-        usuarios: { nombre: string; foto_url: string | null };
         prestador_servicios: { servicios: { nombre: string } | null }[] | null;
       };
 
@@ -87,7 +86,7 @@ function useSearchProviders(params: { q: string; cat: string; min: number; max: 
         let score = 0;
 
         if (qLower) {
-          const nameLower = r.usuarios.nombre.toLowerCase();
+          const nameLower = (r.nombre ?? "").toLowerCase();
           const bioLower = (r.bio ?? "").toLowerCase();
           const exact = services.find((s) => s.toLowerCase() === qLower);
           if (exact) { matchedService = exact; score += 100; }

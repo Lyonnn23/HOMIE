@@ -9,11 +9,12 @@ export interface FavoritoRow {
   created_at: string;
   prestador: {
     id: string;
+    nombre: string | null;
+    foto_url: string | null;
     calificacion_promedio: number;
     resenas_count: number;
     precio_desde: number;
     categoria_id: string;
-    usuarios: { nombre: string; foto_url: string | null } | null;
   } | null;
 }
 
@@ -30,9 +31,7 @@ export function useFavoritos() {
         .from("favoritos")
         .select(`
           id, prestador_id, created_at,
-          prestador:prestadores ( id, calificacion_promedio, resenas_count, precio_desde, categoria_id,
-            usuarios ( nombre, foto_url )
-          )
+          prestador:prestadores ( id, nombre, foto_url, calificacion_promedio, resenas_count, precio_desde, categoria_id )
         `)
         .eq("cliente_id", clienteId!)
         .order("created_at", { ascending: false });

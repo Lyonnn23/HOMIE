@@ -104,22 +104,21 @@ export function useProvidersForService(serviceName: string) {
       const { data, error } = await supabase
         .from("prestadores")
         .select(`
-          id, categoria_id, calificacion_promedio, resenas_count,
+          id, categoria_id, nombre, foto_url, calificacion_promedio, resenas_count,
           precio_desde, disponible_ahora, disponibilidad_texto, distancia_km,
-          usuarios!inner ( nombre, foto_url ),
           prestador_servicios!inner ( servicios!inner ( nombre ) )
         `)
         .eq("categoria_id", cat.id)
         .eq("prestador_servicios.servicios.nombre", serviceName);
       if (error) throw error;
       type Row = {
-        id: string; categoria_id: string; calificacion_promedio: number;
+        id: string; categoria_id: string;
+        nombre: string | null; foto_url: string | null;
+        calificacion_promedio: number;
         resenas_count: number; precio_desde: number; disponible_ahora: boolean;
         disponibilidad_texto: string | null; distancia_km: number | null;
-        usuarios: { nombre: string; foto_url: string | null };
       };
       const rows = (data ?? []) as unknown as Row[];
-      // Dedupe (un prestador puede aparecer dos veces por el inner join)
       const seen = new Set<string>();
       const out: ProviderListItem[] = [];
       for (const r of rows) {
@@ -127,8 +126,8 @@ export function useProvidersForService(serviceName: string) {
         seen.add(r.id);
         out.push({
           id: r.id,
-          name: r.usuarios.nombre,
-          avatarUrl: r.usuarios.foto_url,
+          name: r.nombre ?? "Prestador",
+          avatarUrl: r.foto_url,
           categoryId: r.categoria_id as CategoryId,
           rating: Number(r.calificacion_promedio),
           reviewsCount: r.resenas_count,
@@ -150,38 +149,38 @@ export function useProvider(id: string) {
       const { data, error } = await supabase
         .from("prestadores")
         .select(`
-          id, categoria_id, bio, calificacion_promedio, resenas_count,
+          id, categoria_id, nombre, foto_url, bio, calificacion_promedio, resenas_count,
           precio_desde, disponible_ahora, disponibilidad_texto, distancia_km,
           direccion, gallery_urls, usuario_id,
-          usuarios ( nombre, foto_url ),
           prestador_servicios ( precio, servicios ( id, nombre ) ),
-          resenas ( id, calificacion, comentario, created_at, foto_url, verificada, respuesta_prestador, respuesta_fecha, cliente_id, usuarios ( nombre ) )
+          resenas ( id, calificacion, comentario, created_at, foto_url, verificada, respuesta_prestador, respuesta_fecha, cliente_id, cliente_nombre )
         `)
         .eq("id", id)
         .maybeSingle();
       if (error) throw error;
       if (!data) return null;
       type Row = {
-        id: string; categoria_id: string; bio: string | null; usuario_id: string | null;
+        id: string; categoria_id: string;
+        nombre: string | null; foto_url: string | null;
+        bio: string | null; usuario_id: string | null;
         calificacion_promedio: number; resenas_count: number;
         precio_desde: number; disponible_ahora: boolean;
         disponibilidad_texto: string | null; distancia_km: number | null;
         direccion: string | null; gallery_urls: string[];
-        usuarios: { nombre: string; foto_url: string | null };
         prestador_servicios: { precio: number; servicios: { id: string; nombre: string } }[];
         resenas: {
           id: string; calificacion: number; comentario: string | null; created_at: string;
           foto_url: string | null; verificada: boolean | null;
           respuesta_prestador: string | null; respuesta_fecha: string | null;
           cliente_id: string | null;
-          usuarios: { nombre: string } | null;
+          cliente_nombre: string | null;
         }[];
       };
       const r = data as unknown as Row;
       return {
         id: r.id,
-        name: r.usuarios.nombre,
-        avatarUrl: r.usuarios.foto_url,
+        name: r.nombre ?? "Prestador",
+        avatarUrl: r.foto_url,
         categoryId: r.categoria_id as CategoryId,
         bio: r.bio ?? "",
         usuarioId: r.usuario_id,
@@ -199,7 +198,7 @@ export function useProvider(id: string) {
           price: ps.precio,
         })),
         reviews: (r.resenas ?? []).map((rv) => {
-          const author = rv.usuarios?.nombre ?? "Anónimo";
+          const author = rv.cliente_nombre ?? "Anónimo";
           const parts = author.split(" ");
           const initials = parts.length > 1 ? `${parts[0]} ${parts[1][0]}.` : author;
           return {
