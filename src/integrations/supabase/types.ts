@@ -158,8 +158,11 @@ export type Database = {
           moneda: string
           monto_prestador: number
           monto_total: number
+          mp_payment_id: string | null
+          mp_preference_id: string | null
           reserva_id: string
           stripe_session_id: string | null
+          updated_at: string
         }
         Insert: {
           comision: number
@@ -169,8 +172,11 @@ export type Database = {
           moneda?: string
           monto_prestador: number
           monto_total: number
+          mp_payment_id?: string | null
+          mp_preference_id?: string | null
           reserva_id: string
           stripe_session_id?: string | null
+          updated_at?: string
         }
         Update: {
           comision?: number
@@ -180,8 +186,11 @@ export type Database = {
           moneda?: string
           monto_prestador?: number
           monto_total?: number
+          mp_payment_id?: string | null
+          mp_preference_id?: string | null
           reserva_id?: string
           stripe_session_id?: string | null
+          updated_at?: string
         }
         Relationships: [
           {
