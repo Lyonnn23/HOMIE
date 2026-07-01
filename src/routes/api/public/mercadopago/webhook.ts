@@ -75,7 +75,7 @@ export const Route = createFileRoute("/api/public/mercadopago/webhook")({
 
         // Map MP status to our internal states.
         let pagoEstado: "pagado" | "rechazado" | "pendiente" | "reembolsado" = "pendiente";
-        let reservaEstado: string | null = null;
+        let reservaEstado: "confirmada" | "cancelada" | "pendiente" | null = null;
         switch (payment.status) {
           case "approved":
             pagoEstado = "pagado";

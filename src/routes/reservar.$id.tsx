@@ -174,11 +174,11 @@ function BookingPage() {
       <div className="fixed bottom-0 inset-x-0 z-30 border-t border-border bg-background/95 backdrop-blur">
         <div className="mx-auto max-w-2xl px-5 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           <button
-            disabled={!address.trim() || addBooking.isPending}
+            disabled={!address.trim() || paying || addBooking.isPending}
             onClick={confirm}
             className="w-full py-3.5 rounded-2xl bg-foreground text-background font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            {addBooking.isPending ? "Confirmando..." : `Confirmar reserva · ${formatCLP(total)}`}
+            {paying ? "Redirigiendo a Mercado Pago..." : `Pagar ${formatCLP(total)} con Mercado Pago`}
           </button>
         </div>
       </div>
