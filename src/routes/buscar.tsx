@@ -105,8 +105,8 @@ function useSearchProviders(params: { q: string; cat: string; min: number; max: 
 
         return {
           id: r.id,
-          name: r.usuarios.nombre,
-          avatarUrl: r.usuarios.foto_url,
+          name: r.nombre ?? "Prestador",
+          avatarUrl: r.foto_url,
           categoryId: r.categoria_id as CategoryId,
           rating: Number(r.calificacion_promedio),
           reviewsCount: r.resenas_count,
