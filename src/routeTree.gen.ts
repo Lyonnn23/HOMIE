@@ -27,7 +27,9 @@ import { Route as AuthenticatedOnboardingPrestadorRouteImport } from './routes/_
 import { Route as AuthenticatedNotificacionesRouteImport } from './routes/_authenticated.notificaciones'
 import { Route as AuthenticatedNotifConfigRouteImport } from './routes/_authenticated.notif-config'
 import { Route as AuthenticatedFavoritosRouteImport } from './routes/_authenticated.favoritos'
+import { Route as AuthenticatedDireccionesRouteImport } from './routes/_authenticated.direcciones'
 import { Route as AuthenticatedCuentaRouteImport } from './routes/_authenticated.cuenta'
+import { Route as AuthenticatedAyudaRouteImport } from './routes/_authenticated.ayuda'
 import { Route as AuthenticatedChatReservaIdRouteImport } from './routes/_authenticated.chat.$reservaId'
 import { Route as AuthenticatedAdminVerificacionesRouteImport } from './routes/_authenticated.admin.verificaciones'
 import { Route as AuthenticatedAdminReportesRouteImport } from './routes/_authenticated.admin.reportes'
@@ -126,9 +128,20 @@ const AuthenticatedFavoritosRoute = AuthenticatedFavoritosRouteImport.update({
   path: '/favoritos',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedDireccionesRoute =
+  AuthenticatedDireccionesRouteImport.update({
+    id: '/direcciones',
+    path: '/direcciones',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedCuentaRoute = AuthenticatedCuentaRouteImport.update({
   id: '/cuenta',
   path: '/cuenta',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedAyudaRoute = AuthenticatedAyudaRouteImport.update({
+  id: '/ayuda',
+  path: '/ayuda',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedChatReservaIdRoute =
@@ -164,7 +177,9 @@ export interface FileRoutesByFullPath {
   '/registro': typeof RegistroRoute
   '/reset-password': typeof ResetPasswordRoute
   '/seguridad': typeof SeguridadRoute
+  '/ayuda': typeof AuthenticatedAyudaRoute
   '/cuenta': typeof AuthenticatedCuentaRoute
+  '/direcciones': typeof AuthenticatedDireccionesRoute
   '/favoritos': typeof AuthenticatedFavoritosRoute
   '/notif-config': typeof AuthenticatedNotifConfigRoute
   '/notificaciones': typeof AuthenticatedNotificacionesRoute
@@ -188,7 +203,9 @@ export interface FileRoutesByTo {
   '/registro': typeof RegistroRoute
   '/reset-password': typeof ResetPasswordRoute
   '/seguridad': typeof SeguridadRoute
+  '/ayuda': typeof AuthenticatedAyudaRoute
   '/cuenta': typeof AuthenticatedCuentaRoute
+  '/direcciones': typeof AuthenticatedDireccionesRoute
   '/favoritos': typeof AuthenticatedFavoritosRoute
   '/notif-config': typeof AuthenticatedNotifConfigRoute
   '/notificaciones': typeof AuthenticatedNotificacionesRoute
@@ -214,7 +231,9 @@ export interface FileRoutesById {
   '/registro': typeof RegistroRoute
   '/reset-password': typeof ResetPasswordRoute
   '/seguridad': typeof SeguridadRoute
+  '/_authenticated/ayuda': typeof AuthenticatedAyudaRoute
   '/_authenticated/cuenta': typeof AuthenticatedCuentaRoute
+  '/_authenticated/direcciones': typeof AuthenticatedDireccionesRoute
   '/_authenticated/favoritos': typeof AuthenticatedFavoritosRoute
   '/_authenticated/notif-config': typeof AuthenticatedNotifConfigRoute
   '/_authenticated/notificaciones': typeof AuthenticatedNotificacionesRoute
@@ -240,7 +259,9 @@ export interface FileRouteTypes {
     | '/registro'
     | '/reset-password'
     | '/seguridad'
+    | '/ayuda'
     | '/cuenta'
+    | '/direcciones'
     | '/favoritos'
     | '/notif-config'
     | '/notificaciones'
@@ -264,7 +285,9 @@ export interface FileRouteTypes {
     | '/registro'
     | '/reset-password'
     | '/seguridad'
+    | '/ayuda'
     | '/cuenta'
+    | '/direcciones'
     | '/favoritos'
     | '/notif-config'
     | '/notificaciones'
@@ -289,7 +312,9 @@ export interface FileRouteTypes {
     | '/registro'
     | '/reset-password'
     | '/seguridad'
+    | '/_authenticated/ayuda'
     | '/_authenticated/cuenta'
+    | '/_authenticated/direcciones'
     | '/_authenticated/favoritos'
     | '/_authenticated/notif-config'
     | '/_authenticated/notificaciones'
@@ -449,11 +474,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedFavoritosRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/direcciones': {
+      id: '/_authenticated/direcciones'
+      path: '/direcciones'
+      fullPath: '/direcciones'
+      preLoaderRoute: typeof AuthenticatedDireccionesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/cuenta': {
       id: '/_authenticated/cuenta'
       path: '/cuenta'
       fullPath: '/cuenta'
       preLoaderRoute: typeof AuthenticatedCuentaRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/ayuda': {
+      id: '/_authenticated/ayuda'
+      path: '/ayuda'
+      fullPath: '/ayuda'
+      preLoaderRoute: typeof AuthenticatedAyudaRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/chat/$reservaId': {
@@ -488,7 +527,9 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedAyudaRoute: typeof AuthenticatedAyudaRoute
   AuthenticatedCuentaRoute: typeof AuthenticatedCuentaRoute
+  AuthenticatedDireccionesRoute: typeof AuthenticatedDireccionesRoute
   AuthenticatedFavoritosRoute: typeof AuthenticatedFavoritosRoute
   AuthenticatedNotifConfigRoute: typeof AuthenticatedNotifConfigRoute
   AuthenticatedNotificacionesRoute: typeof AuthenticatedNotificacionesRoute
@@ -502,7 +543,9 @@ interface AuthenticatedRouteChildren {
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedAyudaRoute: AuthenticatedAyudaRoute,
   AuthenticatedCuentaRoute: AuthenticatedCuentaRoute,
+  AuthenticatedDireccionesRoute: AuthenticatedDireccionesRoute,
   AuthenticatedFavoritosRoute: AuthenticatedFavoritosRoute,
   AuthenticatedNotifConfigRoute: AuthenticatedNotifConfigRoute,
   AuthenticatedNotificacionesRoute: AuthenticatedNotificacionesRoute,

@@ -24,12 +24,12 @@ function Cuenta() {
     .toUpperCase();
 
   const items: Array<{ icon: typeof Bell; label: string; to?: string; badge?: string }> = [
-    { icon: MapPin, label: "Direcciones guardadas" },
-    { icon: CreditCard, label: "Métodos de pago" },
+    { icon: MapPin, label: "Direcciones guardadas", to: "/direcciones" },
+    { icon: CreditCard, label: "Métodos de pago", badge: "Próximamente" },
     { icon: Heart, label: "Mis favoritos", to: "/favoritos", badge: favs.length ? String(favs.length) : undefined },
     { icon: Bell, label: "Notificaciones", to: "/notif-config" },
-    { icon: Shield, label: "Privacidad y seguridad" },
-    { icon: HelpCircle, label: "Ayuda y soporte" },
+    { icon: Shield, label: "Privacidad y seguridad", to: "/seguridad" },
+    { icon: HelpCircle, label: "Ayuda y soporte", to: "/ayuda" },
   ];
 
   return (
@@ -90,7 +90,7 @@ function Cuenta() {
                     {it.badge}
                   </span>
                 )}
-                <ChevronRight className="size-4 text-muted-foreground" />
+                {it.to && <ChevronRight className="size-4 text-muted-foreground" />}
               </>
             );
             if (it.to) {
@@ -105,12 +105,12 @@ function Cuenta() {
               );
             }
             return (
-              <button
+              <div
                 key={it.label}
-                className="flex items-center gap-3 w-full px-4 py-3.5 text-left hover:bg-muted/40 transition"
+                className="flex items-center gap-3 w-full px-4 py-3.5 text-left opacity-60"
               >
                 {content}
-              </button>
+              </div>
             );
           })}
         </div>

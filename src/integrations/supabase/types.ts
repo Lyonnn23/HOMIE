@@ -65,6 +65,47 @@ export type Database = {
         }
         Relationships: []
       }
+      direcciones_guardadas: {
+        Row: {
+          comuna: string | null
+          created_at: string
+          detalle: string | null
+          direccion: string
+          etiqueta: string
+          id: string
+          updated_at: string
+          usuario_id: string
+        }
+        Insert: {
+          comuna?: string | null
+          created_at?: string
+          detalle?: string | null
+          direccion: string
+          etiqueta: string
+          id?: string
+          updated_at?: string
+          usuario_id: string
+        }
+        Update: {
+          comuna?: string | null
+          created_at?: string
+          detalle?: string | null
+          direccion?: string
+          etiqueta?: string
+          id?: string
+          updated_at?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "direcciones_guardadas_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       favoritos: {
         Row: {
           cliente_id: string
