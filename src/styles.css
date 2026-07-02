@@ -138,4 +138,8 @@
   /* Ocultar scrollbar para rieles horizontales del hero */
   .no-scrollbar { scrollbar-width: none; }
   .no-scrollbar::-webkit-scrollbar { display: none; }
+  /* Track del slider de precio en ámbar translúcido */
+  .slider-amber .bg-primary\/20 {
+    background-color: color-mix(in oklab, #EF9F27 20%, transparent) !important;
+  }
 }

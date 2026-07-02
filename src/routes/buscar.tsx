@@ -270,7 +270,7 @@ function Buscar() {
                   {formatCLP(range[0])} – {range[1] >= PRICE_MAX ? `${formatCLP(PRICE_MAX)}+` : formatCLP(range[1])}
                 </span>
               </div>
-              <div className="[&_[role=slider]]:!border-[#EF9F27] [&_[role=slider]]:!bg-[#EF9F27] [&_.bg-primary]:!bg-[#EF9F27] [&_.bg-primary\/20]:!bg-[#EF9F27]/20">
+              <div className="slider-amber [&_[role=slider]]:!border-[#EF9F27] [&_[role=slider]]:!bg-[#EF9F27] [&_.bg-primary]:!bg-[#EF9F27]">
                 <Slider
                   min={PRICE_MIN}
                   max={PRICE_MAX}
