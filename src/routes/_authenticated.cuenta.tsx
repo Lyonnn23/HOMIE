@@ -90,7 +90,7 @@ function Cuenta() {
                     {it.badge}
                   </span>
                 )}
-                <ChevronRight className="size-4 text-muted-foreground" />
+                {it.to && <ChevronRight className="size-4 text-muted-foreground" />}
               </>
             );
             if (it.to) {
