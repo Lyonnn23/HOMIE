@@ -20,9 +20,17 @@ export const Route = createFileRoute("/api/public/mercadopago/webhook")({
         const requestId = request.headers.get("x-request-id") ?? "";
         const rawBody = await request.text();
 
-        // ---- Signature verification ----
+        // ---- Signature verification (MANDATORY) ----
         const secret = process.env.MERCADOPAGO_WEBHOOK_SECRET;
-        if (secret && dataId) {
+        if (!secret) {
+          console.error("[MP webhook] MERCADOPAGO_WEBHOOK_SECRET not configured — rejecting");
+          return new Response("Webhook not configured", { status: 401 });
+        }
+        if (!dataId) {
+          // Nothing verifiable/processable — acknowledge without side effects.
+          return new Response("ok", { status: 200 });
+        }
+        {
           const parts = Object.fromEntries(
             sigHeader.split(",").map((s) => {
               const [k, ...rest] = s.trim().split("=");
@@ -34,11 +42,18 @@ export const Route = createFileRoute("/api/public/mercadopago/webhook")({
           if (!ts || !v1) {
             return new Response("Missing signature parts", { status: 401 });
           }
+          // Replay protection: reject notifications older than 5 minutes.
+          const tsNum = Number(ts);
+          const tsMs = tsNum > 1e12 ? tsNum : tsNum * 1000;
+          if (!Number.isFinite(tsNum) || Math.abs(Date.now() - tsMs) > 5 * 60 * 1000) {
+            console.warn("[MP webhook] stale or invalid ts");
+            return new Response("Stale signature", { status: 401 });
+          }
           const manifest = `id:${dataId};request-id:${requestId};ts:${ts};`;
           const expected = createHmac("sha256", secret).update(manifest).digest("hex");
           const a = Buffer.from(expected, "hex");
           const b = Buffer.from(v1, "hex");
-          if (a.length !== b.length || !timingSafeEqual(a, b)) {
+          if (a.length !== b.length || b.length === 0 || !timingSafeEqual(a, b)) {
             console.warn("[MP webhook] invalid signature");
             return new Response("Invalid signature", { status: 401 });
           }
