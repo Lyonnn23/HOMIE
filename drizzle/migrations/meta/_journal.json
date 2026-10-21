@@ -29,6 +29,13 @@
       "when": 1792556336195,
       "tag": "0003_homie_operacion_permisos_y_correo_verificado",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792556358888,
+      "tag": "0004_20261021050000_admin_actualiza_reservas",
+      "breakpoints": true
     }
   ]
 }
