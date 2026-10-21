@@ -43,6 +43,13 @@
       "when": 1792556403791,
       "tag": "0005_20261021030000_homie_cotizaciones",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792556465465,
+      "tag": "0006_perfiles_lectura_de_objetos_solo_dueno",
+      "breakpoints": true
     }
   ]
 }

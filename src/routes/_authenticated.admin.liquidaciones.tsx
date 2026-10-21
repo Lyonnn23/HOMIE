@@ -9,7 +9,14 @@ import { useAuth } from "@/hooks/use-auth";
 import { formatCLP } from "@/data/services";
 
 export const Route = createFileRoute("/_authenticated/admin/liquidaciones")({
-  head: () => ({ meta: [{ title: "Liquidaciones — Admin Homie" }] }),
+  head: () => ({ meta: [
+    { title: "Liquidaciones — Admin Homie" },
+    { name: "description", content: "Gestiona los pagos y saldos pendientes de profesionales en Homie." },
+    { property: "og:title", content: "Liquidaciones — Admin Homie" },
+    { property: "og:description", content: "Gestión administrativa de pagos y saldos de profesionales Homie." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: AdminLiquidaciones,
 });
 
@@ -44,10 +51,11 @@ function AdminLiquidaciones() {
     queryKey: ["is-admin", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
+      if (!user) return false;
       const { data } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", user!.id)
+        .eq("user_id", user.id)
         .in("role", ["admin", "superadmin"]);
       return (data ?? []).length > 0;
     },
@@ -223,8 +231,8 @@ function SaldoCard({ s }: { s: Saldo }) {
       const { data, error } = await supabase.rpc("registrar_liquidacion", {
         _prestador_id: s.prestador_id,
         _medio: medio,
-        _referencia: referencia.trim() || null,
-        _nota: nota.trim() || null,
+        _referencia: referencia.trim(),
+        _nota: nota.trim(),
       });
       if (error) throw error;
       return data;
