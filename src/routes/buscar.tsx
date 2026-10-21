@@ -1,10 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Star, MapPin, SlidersHorizontal, X, Zap, Home as HomeIcon } from "lucide-react";
+import { Search, Star, MapPin, SlidersHorizontal, X, Zap, Home as HomeIcon, Map as MapIcon } from "lucide-react";
 import { z } from "zod";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { AppShell } from "@/components/AppShell";
+import { MapaPrestadores } from "@/components/MapaPrestadores";
 import { ProviderAvatar } from "@/components/Avatar";
 import { Slider } from "@/components/ui/slider";
 import { categories, formatCLP, type CategoryId } from "@/data/services";
@@ -35,6 +36,8 @@ interface ResultRow {
   reviewsCount: number;
   pricePerHour: number;
   disponibleAhora: boolean;
+  lat: number | null;
+  lng: number | null;
   matchedService?: string;
   bio: string;
   distanceKm: number;
@@ -53,7 +56,7 @@ function useSearchProviders(params: { q: string; cat: string; min: number; max: 
         .from("prestadores")
         .select(`
           id, categoria_id, nombre, foto_url, bio, calificacion_promedio, resenas_count,
-          precio_desde, disponible_ahora, distancia_km,
+          precio_desde, disponible_ahora, distancia_km, lat, lng,
           prestador_servicios ( servicios ( nombre ) )
         `);
 
@@ -71,6 +74,7 @@ function useSearchProviders(params: { q: string; cat: string; min: number; max: 
         nombre: string | null; foto_url: string | null;
         calificacion_promedio: number; resenas_count: number;
         precio_desde: number; disponible_ahora: boolean; distancia_km: number | null;
+        lat: number | null; lng: number | null;
         prestador_servicios: { servicios: { nombre: string } | null }[] | null;
       };
 
@@ -115,6 +119,8 @@ function useSearchProviders(params: { q: string; cat: string; min: number; max: 
           matchedService: matchedService ?? services[0],
           bio: r.bio ?? "",
           distanceKm: Number(r.distancia_km ?? 0),
+          lat: r.lat == null ? null : Number(r.lat),
+          lng: r.lng == null ? null : Number(r.lng),
           score,
         };
       }).filter(Boolean) as (ResultRow & { score: number })[];
@@ -130,6 +136,8 @@ function useSearchProviders(params: { q: string; cat: string; min: number; max: 
             return (a.distanceKm || 999) - (b.distanceKm || 999);
           case "relevance":
           default:
+            // Prioridad: disponibles ahora, luego relevancia, luego los mejor calificados
+            if (a.disponibleAhora !== b.disponibleAhora) return a.disponibleAhora ? -1 : 1;
             if (b.score !== a.score) return b.score - a.score;
             if (b.rating !== a.rating) return b.rating - a.rating;
             return b.reviewsCount - a.reviewsCount;
@@ -156,6 +164,7 @@ function Buscar() {
   }, [localQ, q, navigate]);
 
   const { data: results = [], isLoading } = useSearchProviders({ q, cat, min, max, rating, now, sort });
+  const [vista, setVista] = useState<"lista" | "mapa">("lista");
 
   const activeCount = useMemo(() => {
     let n = 0;
@@ -314,19 +323,29 @@ function Buscar() {
           <p className="text-xs text-muted-foreground">
             {isLoading ? "Buscando..." : `${results.length} resultado${results.length === 1 ? "" : "s"}`}
           </p>
+          <div className="flex items-center gap-2">
+          <div className="inline-flex rounded-lg border border-border overflow-hidden text-xs">
+            <button onClick={() => setVista("lista")} className={`px-2.5 py-1.5 ${vista === "lista" ? "bg-[#111827] text-white" : "bg-white"}`}>Lista</button>
+            <button onClick={() => setVista("mapa")} className={`px-2.5 py-1.5 inline-flex items-center gap-1 ${vista === "mapa" ? "bg-[#111827] text-white" : "bg-white"}`}><MapIcon className="size-3.5" /> Mapa</button>
+          </div>
           <select
             value={sort}
             onChange={(e) => navigate({ search: (p: z.infer<typeof searchSchema>) => ({ ...p, sort: e.target.value as SortKey }) })}
             className="text-xs bg-transparent border border-border rounded-lg px-2 py-1.5 outline-none focus:border-[#EF9F27]"
           >
             <option value="relevance">Relevancia</option>
-            <option value="rating">Calificación</option>
+            <option value="rating">Mejor calificados</option>
             <option value="price">Precio</option>
             <option value="distance">Distancia</option>
           </select>
+          </div>
         </div>
 
-        <div className="mt-3">
+        {vista === "mapa" && !isLoading && (
+          <MapaPrestadores items={results} className="mt-3" />
+        )}
+
+        <div className={vista === "mapa" ? "hidden" : "mt-3"}>
           {!isLoading && results.length === 0 ? (
             <div className="text-center py-16">
               <div className="mx-auto size-16 rounded-full border-2 border-[#EF9F27] flex items-center justify-center">
@@ -356,8 +375,15 @@ function Buscar() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <div className="font-semibold text-sm truncate">{r.name}</div>
-                        {r.disponibleAhora && (
-                          <span className="shrink-0 size-1.5 rounded-full bg-[#00C288]" aria-label="Disponible" />
+                        <span
+                          className={`shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${r.disponibleAhora ? "bg-[#00C28820] text-[#00754F]" : "bg-[#FF3B6B1A] text-[#B3123F]"}`}
+                          aria-label={r.disponibleAhora ? "Disponible ahora" : "No disponible"}
+                        >
+                          <span className={`size-1.5 rounded-full ${r.disponibleAhora ? "bg-[#00C288]" : "bg-[#FF3B6B]"}`} />
+                          {r.disponibleAhora ? "Disponible" : "Ocupado"}
+                        </span>
+                        {r.rating >= 4.8 && r.reviewsCount >= 5 && (
+                          <span className="shrink-0 px-1.5 py-0.5 rounded-full bg-[#EF9F27] text-[#111827] text-[10px] font-bold">TOP</span>
                         )}
                       </div>
                       <div className="text-xs text-muted-foreground truncate">

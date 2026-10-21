@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { ChevronDown, Mail } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ChevronDown, Mail, Scale } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 
 export const Route = createFileRoute("/_authenticated/ayuda")({
@@ -22,7 +22,7 @@ const FAQS = [
   },
   {
     q: "¿Qué pasa si tengo un problema con un prestador?",
-    a: "Puedes reportarlo directamente desde la reserva con el botón de reporte. Nuestro equipo revisa cada caso y toma medidas, incluyendo la suspensión de prestadores.",
+    a: "Puedes reportarlo directamente desde la reserva con el botón de reporte, o enviar un reclamo en \"Reclamos y sugerencias\". Homie actúa como mediador entre cliente y profesional, revisa cada caso y toma medidas, incluyendo la suspensión de prestadores.",
   },
 ];
 
@@ -33,6 +33,24 @@ function AyudaPage() {
         <h1 className="text-3xl font-bold tracking-tight">Ayuda y soporte</h1>
         <p className="mt-1 text-sm text-[#6B7280]">Respuestas rápidas a las dudas más comunes.</p>
       </header>
+
+      <section className="px-5 mb-6">
+        <Link
+          to="/reclamos"
+          className="flex items-center gap-4 p-5 rounded-2xl bg-white border-2 border-[#EF9F27] hover:bg-[#EF9F27]/5 transition"
+        >
+          <span className="size-12 rounded-full bg-[#EF9F27] text-[#111827] flex items-center justify-center shrink-0">
+            <Scale className="size-6" />
+          </span>
+          <span className="flex-1 min-w-0">
+            <span className="block font-bold text-[#111827]">Reclamos y sugerencias</span>
+            <span className="block text-sm text-[#6B7280] mt-0.5">
+              ¿Tuviste un problema con un servicio? Homie media entre tú y el profesional.
+            </span>
+          </span>
+          <ChevronDown className="size-5 text-[#9CA3AF] -rotate-90 shrink-0" />
+        </Link>
+      </section>
 
       <section className="px-5">
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">

@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as BuscarRouteImport } from './routes/buscar'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as GasRouteImport } from './routes/gas'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as RegistroRouteImport } from './routes/registro'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
@@ -25,11 +26,13 @@ import { Route as AuthenticatedNotifConfigRouteImport } from './routes/_authenti
 import { Route as AuthenticatedNotificacionesRouteImport } from './routes/_authenticated.notificaciones'
 import { Route as AuthenticatedOnboardingPrestadorRouteImport } from './routes/_authenticated.onboarding-prestador'
 import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated.panel'
+import { Route as AuthenticatedReclamosRouteImport } from './routes/_authenticated.reclamos'
 import { Route as AuthenticatedReservasRouteImport } from './routes/_authenticated.reservas'
 import { Route as AuthenticatedVerificarIdentidadRouteImport } from './routes/_authenticated.verificar-identidad'
 import { Route as PrestadorIdRouteImport } from './routes/prestador.$id'
 import { Route as ReservarIdRouteImport } from './routes/reservar.$id'
 import { Route as ServicioServiceRouteImport } from './routes/servicio.$service'
+import { Route as AuthenticatedAdminReclamosRouteImport } from './routes/_authenticated.admin.reclamos'
 import { Route as AuthenticatedAdminReportesRouteImport } from './routes/_authenticated.admin.reportes'
 import { Route as AuthenticatedAdminVerificacionesRouteImport } from './routes/_authenticated.admin.verificaciones'
 import { Route as AuthenticatedChatReservaIdRouteImport } from './routes/_authenticated.chat.$reservaId'
@@ -52,6 +55,11 @@ const BuscarRoute = BuscarRouteImport.update({
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GasRoute = GasRouteImport.update({
+  id: '/gas',
+  path: '/gas',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -118,6 +126,11 @@ const AuthenticatedPanelRoute = AuthenticatedPanelRouteImport.update({
   path: '/panel',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedReclamosRoute = AuthenticatedReclamosRouteImport.update({
+  id: '/reclamos',
+  path: '/reclamos',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedReservasRoute = AuthenticatedReservasRouteImport.update({
   id: '/reservas',
   path: '/reservas',
@@ -144,6 +157,12 @@ const ServicioServiceRoute = ServicioServiceRouteImport.update({
   path: '/servicio/$service',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminReclamosRoute =
+  AuthenticatedAdminReclamosRouteImport.update({
+    id: '/admin/reclamos',
+    path: '/admin/reclamos',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedAdminReportesRoute =
   AuthenticatedAdminReportesRouteImport.update({
     id: '/admin/reportes',
@@ -173,6 +192,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/buscar': typeof BuscarRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/gas': typeof GasRoute
   '/login': typeof LoginRoute
   '/registro': typeof RegistroRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -185,11 +205,13 @@ export interface FileRoutesByFullPath {
   '/notificaciones': typeof AuthenticatedNotificacionesRoute
   '/onboarding-prestador': typeof AuthenticatedOnboardingPrestadorRoute
   '/panel': typeof AuthenticatedPanelRoute
+  '/reclamos': typeof AuthenticatedReclamosRoute
   '/reservas': typeof AuthenticatedReservasRoute
   '/verificar-identidad': typeof AuthenticatedVerificarIdentidadRoute
   '/prestador/$id': typeof PrestadorIdRoute
   '/reservar/$id': typeof ReservarIdRoute
   '/servicio/$service': typeof ServicioServiceRoute
+  '/admin/reclamos': typeof AuthenticatedAdminReclamosRoute
   '/admin/reportes': typeof AuthenticatedAdminReportesRoute
   '/admin/verificaciones': typeof AuthenticatedAdminVerificacionesRoute
   '/chat/$reservaId': typeof AuthenticatedChatReservaIdRoute
@@ -199,6 +221,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/buscar': typeof BuscarRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/gas': typeof GasRoute
   '/login': typeof LoginRoute
   '/registro': typeof RegistroRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -211,11 +234,13 @@ export interface FileRoutesByTo {
   '/notificaciones': typeof AuthenticatedNotificacionesRoute
   '/onboarding-prestador': typeof AuthenticatedOnboardingPrestadorRoute
   '/panel': typeof AuthenticatedPanelRoute
+  '/reclamos': typeof AuthenticatedReclamosRoute
   '/reservas': typeof AuthenticatedReservasRoute
   '/verificar-identidad': typeof AuthenticatedVerificarIdentidadRoute
   '/prestador/$id': typeof PrestadorIdRoute
   '/reservar/$id': typeof ReservarIdRoute
   '/servicio/$service': typeof ServicioServiceRoute
+  '/admin/reclamos': typeof AuthenticatedAdminReclamosRoute
   '/admin/reportes': typeof AuthenticatedAdminReportesRoute
   '/admin/verificaciones': typeof AuthenticatedAdminVerificacionesRoute
   '/chat/$reservaId': typeof AuthenticatedChatReservaIdRoute
@@ -227,6 +252,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/buscar': typeof BuscarRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/gas': typeof GasRoute
   '/login': typeof LoginRoute
   '/registro': typeof RegistroRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -239,11 +265,13 @@ export interface FileRoutesById {
   '/_authenticated/notificaciones': typeof AuthenticatedNotificacionesRoute
   '/_authenticated/onboarding-prestador': typeof AuthenticatedOnboardingPrestadorRoute
   '/_authenticated/panel': typeof AuthenticatedPanelRoute
+  '/_authenticated/reclamos': typeof AuthenticatedReclamosRoute
   '/_authenticated/reservas': typeof AuthenticatedReservasRoute
   '/_authenticated/verificar-identidad': typeof AuthenticatedVerificarIdentidadRoute
   '/prestador/$id': typeof PrestadorIdRoute
   '/reservar/$id': typeof ReservarIdRoute
   '/servicio/$service': typeof ServicioServiceRoute
+  '/_authenticated/admin/reclamos': typeof AuthenticatedAdminReclamosRoute
   '/_authenticated/admin/reportes': typeof AuthenticatedAdminReportesRoute
   '/_authenticated/admin/verificaciones': typeof AuthenticatedAdminVerificacionesRoute
   '/_authenticated/chat/$reservaId': typeof AuthenticatedChatReservaIdRoute
@@ -255,6 +283,7 @@ export interface FileRouteTypes {
     | '/'
     | '/buscar'
     | '/forgot-password'
+    | '/gas'
     | '/login'
     | '/registro'
     | '/reset-password'
@@ -267,11 +296,13 @@ export interface FileRouteTypes {
     | '/notificaciones'
     | '/onboarding-prestador'
     | '/panel'
+    | '/reclamos'
     | '/reservas'
     | '/verificar-identidad'
     | '/prestador/$id'
     | '/reservar/$id'
     | '/servicio/$service'
+    | '/admin/reclamos'
     | '/admin/reportes'
     | '/admin/verificaciones'
     | '/chat/$reservaId'
@@ -281,6 +312,7 @@ export interface FileRouteTypes {
     | '/'
     | '/buscar'
     | '/forgot-password'
+    | '/gas'
     | '/login'
     | '/registro'
     | '/reset-password'
@@ -293,11 +325,13 @@ export interface FileRouteTypes {
     | '/notificaciones'
     | '/onboarding-prestador'
     | '/panel'
+    | '/reclamos'
     | '/reservas'
     | '/verificar-identidad'
     | '/prestador/$id'
     | '/reservar/$id'
     | '/servicio/$service'
+    | '/admin/reclamos'
     | '/admin/reportes'
     | '/admin/verificaciones'
     | '/chat/$reservaId'
@@ -308,6 +342,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/buscar'
     | '/forgot-password'
+    | '/gas'
     | '/login'
     | '/registro'
     | '/reset-password'
@@ -320,11 +355,13 @@ export interface FileRouteTypes {
     | '/_authenticated/notificaciones'
     | '/_authenticated/onboarding-prestador'
     | '/_authenticated/panel'
+    | '/_authenticated/reclamos'
     | '/_authenticated/reservas'
     | '/_authenticated/verificar-identidad'
     | '/prestador/$id'
     | '/reservar/$id'
     | '/servicio/$service'
+    | '/_authenticated/admin/reclamos'
     | '/_authenticated/admin/reportes'
     | '/_authenticated/admin/verificaciones'
     | '/_authenticated/chat/$reservaId'
@@ -336,6 +373,7 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   BuscarRoute: typeof BuscarRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
+  GasRoute: typeof GasRoute
   LoginRoute: typeof LoginRoute
   RegistroRoute: typeof RegistroRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
@@ -374,6 +412,13 @@ declare module '@tanstack/react-router' {
       path: '/forgot-password'
       fullPath: '/forgot-password'
       preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/gas': {
+      id: '/gas'
+      path: '/gas'
+      fullPath: '/gas'
+      preLoaderRoute: typeof GasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -460,6 +505,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPanelRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/reclamos': {
+      id: '/_authenticated/reclamos'
+      path: '/reclamos'
+      fullPath: '/reclamos'
+      preLoaderRoute: typeof AuthenticatedReclamosRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/reservas': {
       id: '/_authenticated/reservas'
       path: '/reservas'
@@ -494,6 +546,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/servicio/$service'
       preLoaderRoute: typeof ServicioServiceRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/admin/reclamos': {
+      id: '/_authenticated/admin/reclamos'
+      path: '/admin/reclamos'
+      fullPath: '/admin/reclamos'
+      preLoaderRoute: typeof AuthenticatedAdminReclamosRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/admin/reportes': {
       id: '/_authenticated/admin/reportes'
@@ -535,8 +594,10 @@ interface AuthenticatedRouteChildren {
   AuthenticatedNotificacionesRoute: typeof AuthenticatedNotificacionesRoute
   AuthenticatedOnboardingPrestadorRoute: typeof AuthenticatedOnboardingPrestadorRoute
   AuthenticatedPanelRoute: typeof AuthenticatedPanelRoute
+  AuthenticatedReclamosRoute: typeof AuthenticatedReclamosRoute
   AuthenticatedReservasRoute: typeof AuthenticatedReservasRoute
   AuthenticatedVerificarIdentidadRoute: typeof AuthenticatedVerificarIdentidadRoute
+  AuthenticatedAdminReclamosRoute: typeof AuthenticatedAdminReclamosRoute
   AuthenticatedAdminReportesRoute: typeof AuthenticatedAdminReportesRoute
   AuthenticatedAdminVerificacionesRoute: typeof AuthenticatedAdminVerificacionesRoute
   AuthenticatedChatReservaIdRoute: typeof AuthenticatedChatReservaIdRoute
@@ -551,8 +612,10 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedNotificacionesRoute: AuthenticatedNotificacionesRoute,
   AuthenticatedOnboardingPrestadorRoute: AuthenticatedOnboardingPrestadorRoute,
   AuthenticatedPanelRoute: AuthenticatedPanelRoute,
+  AuthenticatedReclamosRoute: AuthenticatedReclamosRoute,
   AuthenticatedReservasRoute: AuthenticatedReservasRoute,
   AuthenticatedVerificarIdentidadRoute: AuthenticatedVerificarIdentidadRoute,
+  AuthenticatedAdminReclamosRoute: AuthenticatedAdminReclamosRoute,
   AuthenticatedAdminReportesRoute: AuthenticatedAdminReportesRoute,
   AuthenticatedAdminVerificacionesRoute: AuthenticatedAdminVerificacionesRoute,
   AuthenticatedChatReservaIdRoute: AuthenticatedChatReservaIdRoute,
@@ -567,6 +630,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   BuscarRoute: BuscarRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
+  GasRoute: GasRoute,
   LoginRoute: LoginRoute,
   RegistroRoute: RegistroRoute,
   ResetPasswordRoute: ResetPasswordRoute,

@@ -1,9 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ChevronRight, Bell, CreditCard, HelpCircle, MapPin, Shield, LogOut, Heart } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { ChevronRight, Bell, CreditCard, HelpCircle, MapPin, Shield, LogOut, Heart, Scale, Accessibility, ShieldCheck } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { useBookings } from "@/store/bookings";
 import { useFavoritos } from "@/hooks/use-favoritos";
 import { useAuth } from "@/hooks/use-auth";
+import { useAccesibilidad } from "@/hooks/use-accesibilidad";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/cuenta")({
   head: () => ({ meta: [{ title: "Mi cuenta — Homie" }] }),
@@ -13,8 +16,22 @@ export const Route = createFileRoute("/_authenticated/cuenta")({
 function Cuenta() {
   const bookings = useBookings();
   const favs = useFavoritos();
-  const { usuario, signOut } = useAuth();
+  const { usuario, signOut, user } = useAuth();
   const navigate = useNavigate();
+  const { modoFacil, setModoFacil } = useAccesibilidad();
+
+  const isAdminQ = useQuery({
+    queryKey: ["is-admin", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user!.id)
+        .in("role", ["admin", "superadmin"]);
+      return (data ?? []).length > 0;
+    },
+  });
   const completed = bookings.filter((b) => b.status === "completado").length;
   const initials = (usuario?.nombre ?? "U")
     .split(" ")
@@ -30,6 +47,7 @@ function Cuenta() {
     { icon: Bell, label: "Notificaciones", to: "/notif-config" },
     { icon: Shield, label: "Privacidad y seguridad", to: "/seguridad" },
     { icon: HelpCircle, label: "Ayuda y soporte", to: "/ayuda" },
+    { icon: Scale, label: "Reclamos y sugerencias", to: "/reclamos" },
   ];
 
   return (
@@ -115,6 +133,51 @@ function Cuenta() {
           })}
         </div>
       </section>
+
+      <section className="px-5 mt-6">
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">Accesibilidad</h2>
+        <div className="rounded-2xl bg-white border border-border overflow-hidden">
+          <button
+            type="button"
+            role="switch"
+            aria-checked={modoFacil}
+            aria-pressed={modoFacil}
+            onClick={() => setModoFacil(!modoFacil)}
+            className="flex items-center gap-3 w-full px-4 py-3.5 text-left hover:bg-muted/40 transition"
+          >
+            <Accessibility className="size-4 text-[#EF9F27]" />
+            <span className="flex-1 min-w-0">
+              <span className="block text-sm">Accesibilidad: Modo fácil</span>
+              <span className="block text-xs text-muted-foreground">Letras grandes, más contraste, sin animaciones</span>
+            </span>
+            <span
+              aria-hidden="true"
+              className={`shrink-0 relative w-12 h-7 rounded-full transition-colors ${modoFacil ? "bg-[#EF9F27]" : "bg-[#D1D5DB]"}`}
+            >
+              <span className={`absolute top-1 size-5 rounded-full bg-white shadow transition-transform ${modoFacil ? "left-6" : "left-1"}`} />
+            </span>
+          </button>
+        </div>
+      </section>
+
+      {isAdminQ.data && (
+        <section className="px-5 mt-6">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">Administración</h2>
+          <div className="rounded-2xl bg-white border border-border divide-y divide-border overflow-hidden">
+            {[
+              { label: "Reportes", to: "/admin/reportes" as const },
+              { label: "Verificaciones", to: "/admin/verificaciones" as const },
+              { label: "Reclamos", to: "/admin/reclamos" as const },
+            ].map((a) => (
+              <Link key={a.to} to={a.to} className="flex items-center gap-3 w-full px-4 py-3.5 text-left hover:bg-muted/40 transition">
+                <ShieldCheck className="size-4 text-[#EF9F27]" />
+                <span className="flex-1 text-sm">{a.label}</span>
+                <ChevronRight className="size-4 text-muted-foreground" />
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="px-5 mt-6">
         <button

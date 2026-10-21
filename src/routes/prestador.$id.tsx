@@ -1,11 +1,11 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { ArrowLeft, Star, MapPin, Clock, ShieldCheck, BadgeCheck } from "lucide-react";
+import { ArrowLeft, Star, Clock, ShieldCheck, BadgeCheck, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { z } from "zod";
 import { AppShell } from "@/components/AppShell";
 import { ProviderAvatar } from "@/components/Avatar";
 import { FavoriteButton } from "@/components/FavoriteButton";
-import { getCategory, useProvider, formatCLP, type ProviderReview } from "@/data/services";
+import { getCategory, useProvider, formatCLP, DIAS, type ProviderReview } from "@/data/services";
 import { useAuth } from "@/hooks/use-auth";
 import { useReplyReview } from "@/store/bookings";
 
@@ -19,6 +19,7 @@ function ProviderPage() {
   const { id } = Route.useParams();
   const { service } = Route.useSearch();
   const router = useRouter();
+  const { usuario } = useAuth();
   const { data: p, isLoading } = useProvider(id);
 
   if (isLoading) {
@@ -41,31 +42,47 @@ function ProviderPage() {
   }
 
   const cat = getCategory(p.categoryId)!;
+  const color = p.colorPerfil || cat.bg;
+  const isOwner = !!usuario && !!p.usuarioId && usuario.id === p.usuarioId;
   const selectedService = service && p.services.some((s) => s.name === service)
     ? service
     : p.services[0]?.name;
+  const diasActivos = DIAS.filter((d) => p.horario[d.key]?.activo);
 
   return (
     <AppShell>
+      {/* BANNER */}
       <div className="relative">
         <div
-          className="h-52"
+          className="h-56 bg-cover bg-center"
           style={{
-            background: `linear-gradient(180deg, ${cat.bg}33 0%, ${cat.bg}0D 100%)`,
+            backgroundImage: p.bannerUrl ? `url(${p.bannerUrl})` : undefined,
+            background: p.bannerUrl ? undefined : `linear-gradient(135deg, ${color} 0%, ${color}99 60%, #111827 140%)`,
           }}
         />
+        {p.bannerUrl && <div className="absolute inset-0 h-56 bg-gradient-to-t from-black/50 to-transparent" />}
         <button
           onClick={() => router.history.back()}
           className="absolute top-5 left-5 p-2 rounded-full bg-white/90 backdrop-blur hover:bg-white shadow-sm"
+          aria-label="Volver"
         >
           <ArrowLeft className="size-5 text-[#111827]" />
         </button>
-        <div className="absolute top-5 right-5">
+        <div className="absolute top-5 right-5 flex items-center gap-2">
+          {isOwner && (
+            <Link to="/panel" className="px-3 py-2 rounded-full bg-white/90 text-xs font-semibold text-[#111827] shadow-sm">
+              Editar perfil
+            </Link>
+          )}
           <FavoriteButton prestadorId={p.id} size="lg" />
         </div>
         <div className="absolute -bottom-12 left-5">
-          <div className="rounded-full ring-[3px] ring-white shadow-md">
-            <ProviderAvatar url={p.avatarUrl} name={p.name} size={90} />
+          <div className="relative rounded-full ring-[3px] ring-white shadow-md">
+            <ProviderAvatar url={p.avatarUrl} name={p.name} size={96} />
+            <span
+              className={`absolute bottom-1 right-1 size-5 rounded-full ring-2 ring-white ${p.disponibleAhora ? "bg-[#00C288]" : "bg-[#FF3B6B]"}`}
+              title={p.disponibleAhora ? "Disponible ahora" : "No disponible"}
+            />
           </div>
         </div>
       </div>
@@ -73,15 +90,21 @@ function ProviderPage() {
       <div className="px-5 pt-16">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h1 className="text-2xl font-bold text-[#111827] truncate">{p.name}</h1>
-            <div className="text-xs text-[#6B7280] mt-0.5">{cat.name}</div>
+            <h1 className="text-2xl font-bold text-[#111827] leading-tight">{p.name}</h1>
+            <div className="text-sm font-medium mt-0.5" style={{ color }}>{p.tituloProfesional || cat.name}</div>
+            <div className="text-xs text-[#6B7280] mt-0.5">
+              {cat.name}{p.comuna ? ` · ${p.comuna}` : ""}{p.anosExperiencia ? ` · ${p.anosExperiencia} años de experiencia` : ""}
+            </div>
           </div>
-          <span className="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#111827] text-white text-[11px] font-semibold">
-            <ShieldCheck className="size-3.5 text-[#EF9F27]" />
-            Verificado
+          <span
+            className={`shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold text-white ${p.disponibleAhora ? "bg-[#00C288]" : "bg-[#FF3B6B]"}`}
+          >
+            <span className="size-1.5 rounded-full bg-white" />
+            {p.disponibleAhora ? "Disponible" : "No disponible"}
           </span>
         </div>
 
+        {/* RATING */}
         <div className="mt-3 flex items-end gap-2">
           <span className="text-[28px] font-bold leading-none text-[#111827]">{p.rating.toFixed(1)}</span>
           <div className="flex items-center gap-0.5 pb-1">
@@ -92,46 +115,110 @@ function ProviderPage() {
           <span className="pb-1 text-xs text-[#6B7280]">({p.reviewsCount} reseñas)</span>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-[#9CA3AF]">
-          <span className="inline-flex items-center gap-1"><MapPin className="size-[14px]" />{p.distanceKm} km</span>
-          <span className="inline-flex items-center gap-1"><Clock className="size-[14px]" />{p.availability}</span>
+        {/* CONFIANZA */}
+        <div className="mt-4 grid grid-cols-3 gap-2">
+          <TrustChip ok={p.verificadoIdentidad || p.verificado} label="Identidad" sub="Cédula + selfie" />
+          <TrustChip ok={p.antecedentesOk || p.verificado} label="Antecedentes" sub="Registro Civil" />
+          <TrustChip ok={p.verificado} label="Certificado" sub="Estudios del rubro" />
         </div>
 
         <section className="mt-6">
           <h2 className="section-title">Sobre mí</h2>
-          <p className="mt-2 text-sm leading-relaxed text-[#111827]/80">{p.bio}</p>
+          <p className="mt-2 text-sm leading-relaxed text-[#111827]/80 whitespace-pre-line">{p.bio}</p>
         </section>
 
+        {/* SERVICIOS Y PRECIOS */}
         <section className="mt-6">
-          <h2 className="section-title">Servicios</h2>
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="flex items-center justify-between">
+            <h2 className="section-title">Servicios y precios</h2>
+            <span className="text-[11px] text-[#6B7280]">Rango garantizado</span>
+          </div>
+          <p className="mt-1 text-xs text-[#6B7280]">
+            Pagas el precio <b>desde</b> al reservar. Si el trabajo requiere más, el profesional te lo informa antes y
+            <b> nunca puede superar el precio hasta</b>.
+          </p>
+          <div className="mt-3 space-y-2">
             {p.services.map((s) => (
-              <span
+              <Link
                 key={s.id}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold"
-                style={{
-                  border: `1.5px solid ${cat.bg}`,
-                  backgroundColor: `${cat.bg}14`,
-                  color: cat.bg,
-                }}
+                to="/reservar/$id"
+                params={{ id: p.id }}
+                search={{ service: s.name }}
+                className="flex gap-3 p-3 rounded-2xl bg-white border border-[#E5E7EB] hover:border-[#111827]/30 transition"
               >
-                {s.name}
-                <span className="text-[#111827] font-bold">{formatCLP(s.price)}</span>
-              </span>
+                {s.photoUrl ? (
+                  <img src={s.photoUrl} alt={s.name} loading="lazy" className="size-20 rounded-xl object-cover shrink-0" />
+                ) : (
+                  <div className="size-20 rounded-xl shrink-0 flex items-center justify-center" style={{ backgroundColor: `${color}1A` }}>
+                    <cat.icon className="size-7" style={{ color }} />
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="font-semibold text-sm text-[#111827]">{s.name}</div>
+                    <ChevronRight className="size-4 text-[#9CA3AF] shrink-0" />
+                  </div>
+                  {s.description && (
+                    <p className="text-xs text-[#6B7280] mt-0.5 line-clamp-2">{s.description}</p>
+                  )}
+                  <div className="mt-2 flex items-baseline gap-1.5">
+                    <span className="text-base font-bold text-[#111827]">{formatCLP(s.price)}</span>
+                    {s.priceTo > s.price && (
+                      <span className="text-xs text-[#6B7280]">– {formatCLP(s.priceTo)}</span>
+                    )}
+                    <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${color}1A`, color }}>
+                      + 15% servicio Homie
+                    </span>
+                  </div>
+                </div>
+              </Link>
             ))}
           </div>
         </section>
 
+        {/* HORARIO */}
         <section className="mt-6">
-          <h2 className="section-title">Galería</h2>
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            {p.gallery.map((src: string, i: number) => (
-              <div key={i} className="aspect-square rounded-2xl overflow-hidden bg-muted">
-                <img src={src} alt="" loading="lazy" className="size-full object-cover" />
-              </div>
-            ))}
+          <h2 className="section-title">Horario de atención</h2>
+          <div className="mt-3 p-4 rounded-2xl bg-[#F5F5F0]">
+            <div className="flex gap-1.5">
+              {DIAS.map((d) => {
+                const on = p.horario[d.key]?.activo;
+                return (
+                  <span
+                    key={d.key}
+                    title={d.label}
+                    className={`flex-1 h-9 rounded-xl flex items-center justify-center text-xs font-bold ${on ? "text-white" : "bg-white text-[#9CA3AF] border border-[#E5E7EB]"}`}
+                    style={on ? { backgroundColor: color } : undefined}
+                  >
+                    {d.corto}
+                  </span>
+                );
+              })}
+            </div>
+            <ul className="mt-3 space-y-1 text-xs text-[#374151]">
+              {diasActivos.length === 0 && <li className="text-[#9CA3AF]">Sin horario definido.</li>}
+              {diasActivos.map((d) => (
+                <li key={d.key} className="flex justify-between">
+                  <span>{d.label}</span>
+                  <span className="font-medium">{p.horario[d.key].desde} – {p.horario[d.key].hasta}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         </section>
+
+        {p.gallery.length > 0 && (
+          <section className="mt-6">
+            <h2 className="section-title">Galería de trabajos</h2>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              {p.gallery.map((src: string, i: number) => (
+                <div key={i} className="aspect-square rounded-2xl overflow-hidden bg-muted">
+                  <img src={src} alt="" loading="lazy" className="size-full object-cover" />
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         <section className="mt-6">
           <h2 className="section-title">Reseñas</h2>
@@ -147,24 +234,41 @@ function ProviderPage() {
         </section>
       </div>
 
-
-      <div className="fixed bottom-0 inset-x-0 z-30 border-t border-[#E5E7EB] bg-white/95 backdrop-blur">
-        <div className="mx-auto max-w-2xl px-5 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex items-center gap-3">
-          <div className="flex-1">
-            <div className="text-xs text-[#9CA3AF]">Desde</div>
-            <div className="text-lg font-bold text-[#111827]">{formatCLP(p.pricePerHour)}<span className="text-xs font-medium text-[#6B7280]">/hr</span></div>
+      {!isOwner && (
+        <div className="fixed bottom-0 inset-x-0 z-30 border-t border-[#E5E7EB] bg-white/95 backdrop-blur">
+          <div className="mx-auto max-w-2xl px-5 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex items-center gap-3">
+            <div className="flex-1">
+              <div className="text-xs text-[#9CA3AF]">Estimado</div>
+              <div className="text-lg font-bold text-[#111827]">
+                {formatCLP(p.pricePerHour)}
+                {p.priceTo > p.pricePerHour && <span className="text-sm font-medium text-[#6B7280]"> – {formatCLP(p.priceTo)}</span>}
+              </div>
+            </div>
+            <Link
+              to="/reservar/$id"
+              params={{ id: p.id }}
+              search={{ service: selectedService }}
+              className="px-6 py-3 rounded-2xl text-white font-semibold text-sm"
+              style={{ backgroundColor: p.disponibleAhora ? "#111827" : "#6B7280" }}
+            >
+              {p.disponibleAhora ? "Contratar" : "Agendar"}
+            </Link>
           </div>
-          <Link
-            to="/reservar/$id"
-            params={{ id: p.id }}
-            search={{ service: selectedService }}
-            className="px-6 py-3 rounded-2xl bg-[#111827] text-white font-semibold text-sm"
-          >
-            Contratar
-          </Link>
         </div>
-      </div>
+      )}
     </AppShell>
+  );
+}
+
+function TrustChip({ ok, label, sub }: { ok: boolean; label: string; sub: string }) {
+  return (
+    <div className={`p-2.5 rounded-2xl border ${ok ? "bg-[#00C28812] border-[#00C28840]" : "bg-white border-[#E5E7EB]"}`}>
+      <div className="flex items-center gap-1">
+        {ok ? <ShieldCheck className="size-4 text-[#00754F]" /> : <Clock className="size-4 text-[#9CA3AF]" />}
+        <span className={`text-xs font-semibold ${ok ? "text-[#00754F]" : "text-[#6B7280]"}`}>{label}</span>
+      </div>
+      <div className="text-[10px] text-[#6B7280] mt-0.5">{ok ? sub : "Pendiente"}</div>
+    </div>
   );
 }
 

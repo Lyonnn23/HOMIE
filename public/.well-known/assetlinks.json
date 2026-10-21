@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "app.homie.cl",
+    "sha256_cert_fingerprints": ["REEMPLAZAR_CON_EL_SHA256_QUE_ENTREGA_PWABUILDER_O_PLAY_CONSOLE"]
+  }
+}]

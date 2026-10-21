@@ -7,6 +7,7 @@ import { HomieLogo } from "@/components/Logo";
 import { categories } from "@/data/services";
 
 export const Route = createFileRoute("/registro")({
+  validateSearch: (s: Record<string, unknown>): { tipo?: "prestador" } => (s.tipo === "prestador" ? { tipo: "prestador" } : {}),
   head: () => ({ meta: [{ title: "Crear cuenta — Homie" }] }),
   component: RegistroPage,
 });
@@ -18,7 +19,8 @@ function RegistroPage() {
   const [password, setPassword] = useState("");
   const [confirmPw, setConfirmPw] = useState("");
   const [showPw, setShowPw] = useState(false);
-  const [tipo, setTipo] = useState<"cliente" | "prestador">("cliente");
+  const search = Route.useSearch();
+  const [tipo, setTipo] = useState<"cliente" | "prestador">(search.tipo ?? "cliente");
   const [categoriaId, setCategoriaId] = useState<string>("");
   const [precioHora, setPrecioHora] = useState<string>("");
   const [descripcion, setDescripcion] = useState("");

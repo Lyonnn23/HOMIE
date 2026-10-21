@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Search, ChevronRight, X } from "lucide-react";
+import { Search, ChevronRight, X, BadgeCheck, ShieldCheck, Wallet, Star, Flame } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { AppShell } from "@/components/AppShell";
 import { categories, type CategoryId } from "@/data/services";
@@ -27,6 +27,10 @@ const TOP_REQUESTED: { service: string; catId: CategoryId }[] = [
   { service: "Peluquería", catId: "beauty" },
   { service: "Kinesiólogo", catId: "health" },
   { service: "Fotógrafo", catId: "events" },
+  { service: "Mecánico a domicilio", catId: "auto" },
+  { service: "Limpieza de piscinas", catId: "garden" },
+  { service: "Desayunos sorpresa", catId: "gifts" },
+  { service: "Juegos inflables", catId: "party" },
 ];
 
 function Home() {
@@ -116,6 +120,20 @@ function Home() {
         </div>
       </section>
 
+      {/* GAS DE EMERGENCIA */}
+      <section className="px-5 mt-6">
+        <Link to="/gas" className="flex items-center gap-3 p-4 rounded-2xl bg-[#FF6B00]/10 border border-[#FF6B00]/30">
+          <span className="size-11 rounded-full bg-[#FF6B00] flex items-center justify-center shrink-0">
+            <Flame className="size-5 text-white" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block font-bold text-sm text-[#111827]">¿Te quedaste sin gas?</span>
+            <span className="block text-xs text-[#6B7280]">Distribuidoras abiertas cerca de ti, incluso de noche. Llama o pide cómo llegar.</span>
+          </span>
+          <ChevronRight className="size-5 text-[#FF6B00]" />
+        </Link>
+      </section>
+
       {/* CATEGORÍAS */}
       <section className="px-5 mt-8">
         <div className="flex items-center justify-between mb-4">
@@ -158,6 +176,36 @@ function Home() {
           })}
         </div>
       </section>
+
+      {/* ÚNETE COMO PROFESIONAL */}
+      {usuario?.tipo !== "prestador" && (
+        <section className="px-5 mt-10">
+          <div className="rounded-3xl bg-[#111827] text-white p-6 overflow-hidden relative">
+            <div className="absolute -right-10 -top-10 size-40 rounded-full bg-[#EF9F27]/20" />
+            <div className="relative">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EF9F27] text-[#111827] text-xs font-bold">
+                <BadgeCheck className="size-3.5" /> Para profesionales
+              </div>
+              <h2 className="mt-3 text-2xl font-bold leading-tight">¿Ofreces un servicio? Únete a Homie</h2>
+              <p className="mt-2 text-sm text-white/75">
+                Recibe clientes cerca de ti, cobra seguro con Mercado Pago y construye tu reputación con reseñas reales.
+              </p>
+              <ul className="mt-4 space-y-2 text-sm">
+                <li className="flex items-start gap-2"><ShieldCheck className="size-4 mt-0.5 text-[#EF9F27] shrink-0" /><span>Solo profesionales verificados: cédula, antecedentes y <b>certificado o estudios del rubro</b>.</span></li>
+                <li className="flex items-start gap-2"><Wallet className="size-4 mt-0.5 text-[#EF9F27] shrink-0" /><span>Tú defines tus precios con un rango transparente. Homie cobra una comisión del 15% solo por servicio concretado.</span></li>
+                <li className="flex items-start gap-2"><Star className="size-4 mt-0.5 text-[#EF9F27] shrink-0" /><span>Los mejores calificados aparecen primero.</span></li>
+              </ul>
+              <Link
+                to="/registro"
+                search={{ tipo: "prestador" }}
+                className="mt-5 inline-flex h-12 items-center justify-center px-6 rounded-2xl bg-[#EF9F27] text-[#111827] font-semibold w-full sm:w-auto"
+              >
+                Quiero ofrecer mis servicios
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* MODAL servicios */}
       {active && (

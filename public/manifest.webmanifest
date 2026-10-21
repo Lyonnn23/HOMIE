@@ -1,0 +1,25 @@
+{
+  "name": "Homie — Servicios a domicilio",
+  "short_name": "Homie",
+  "description": "Encuentra profesionales verificados a domicilio: limpieza, técnicos, belleza, mascotas, autos, jardín, fiestas y más.",
+  "id": "/",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#111827",
+  "theme_color": "#111827",
+  "lang": "es-CL",
+  "dir": "ltr",
+  "categories": ["lifestyle", "utilities", "business"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Buscar un servicio", "url": "/buscar", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Mis reservas", "url": "/reservas", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Gas cerca de mí", "url": "/gas", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

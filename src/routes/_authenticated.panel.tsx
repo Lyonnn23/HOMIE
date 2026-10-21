@@ -1,10 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   CalendarCheck, MapPin, Check, X, Truck, CheckCircle2, Star, DollarSign, MessageCircle,
-  LayoutDashboard, ListTodo, History, UserCog, Loader2,
+  LayoutDashboard, ListTodo, History, UserCog, Loader2, ChevronDown, ImagePlus, Clock, Palette, ExternalLink,
 } from "lucide-react";
+import { HorarioEditor, parseHorario, validarHorario, type Horario } from "@/components/HorarioEditor";
 import { AppShell } from "@/components/AppShell";
 import { ProviderAvatar } from "@/components/Avatar";
 import {
@@ -304,7 +306,7 @@ function usePrestadorRow() {
     queryFn: async () => {
       const { data } = await supabase
         .from("prestadores")
-        .select("id, bio, direccion, precio_desde, disponible_ahora, categoria_id, calificacion_promedio, resenas_count, verificado")
+        .select("id, bio, direccion, precio_desde, disponible_ahora, categoria_id, calificacion_promedio, resenas_count, verificado, horario, banner_url, color_perfil, titulo_profesional, anos_experiencia, comuna")
         .eq("usuario_id", usuario!.id)
         .maybeSingle();
       return data;
@@ -333,19 +335,26 @@ function AvailabilityToggle() {
   });
   const on = !!row?.disponible_ahora;
   return (
-    <div className="p-4 rounded-2xl bg-[#F5F5F0] border border-border flex items-center justify-between gap-3">
-      <div className="min-w-0">
-        <div className="font-semibold text-sm">Disponible ahora</div>
-        <div className="text-xs text-muted-foreground mt-0.5">
-          {on ? "Estás aceptando reservas" : "No apareces en búsquedas"}
+    <div className={`p-4 rounded-2xl border-2 flex items-center justify-between gap-3 transition ${
+      on ? "bg-[#00C288]/10 border-[#00C288]" : "bg-[#FF3B6B]/10 border-[#FF3B6B]"
+    }`}>
+      <div className="min-w-0 flex items-center gap-3">
+        <span className={`size-3 rounded-full shrink-0 ${on ? "bg-[#00C288]" : "bg-[#FF3B6B]"}`} />
+        <div>
+          <div className={`font-semibold text-sm ${on ? "text-[#00754F]" : "text-[#FF3B6B]"}`}>
+            {on ? "Disponible (verde)" : "No disponible (rojo)"}
+          </div>
+          <div className="text-xs text-muted-foreground mt-0.5">
+            {on ? "Estás aceptando reservas" : "No apareces en búsquedas"}
+          </div>
         </div>
       </div>
       <button
         onClick={() => m.mutate(!on)}
         disabled={m.isPending || !row}
         aria-pressed={on}
-        className={`relative inline-flex h-7 w-12 items-center rounded-full transition disabled:opacity-50 ${
-          on ? "bg-[#EF9F27]" : "bg-[#E5E7EB]"
+        className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition disabled:opacity-50 ${
+          on ? "bg-[#00C288]" : "bg-[#FF3B6B]"
         }`}
       >
         <span className={`inline-block size-5 rounded-full bg-white shadow transition ${on ? "translate-x-6" : "translate-x-1"}`} />
@@ -360,19 +369,43 @@ interface ServicioRow {
   servicio_id: string;
   nombre: string;
   precio: number;
+  precio_hasta: number;
+  descripcion: string | null;
+  foto_url: string | null;
+}
+
+const MAX_DESC = 600;
+const PRESET_COLORS = [
+  ...categories.map((c) => c.bg),
+  "#111827", "#EF9F27", "#0EA5E9", "#14B8A6", "#F59E0B", "#8B5CF6",
+];
+
+function sugerirHasta(desde: number) {
+  return Math.round((desde * 1.3) / 1000) * 1000;
+}
+function maxHasta(desde: number) {
+  return Math.floor(desde * 1.5);
+}
+
+async function subirAPerfiles(userId: string, file: File, slug: string) {
+  const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+  const path = `${userId}/${slug}-${Date.now()}.${ext}`;
+  const { error } = await supabase.storage.from("perfiles").upload(path, file, { upsert: true });
+  if (error) throw error;
+  return supabase.storage.from("perfiles").getPublicUrl(path).data.publicUrl;
 }
 
 function EditorPerfil() {
   const qc = useQueryClient();
-  const { usuario } = useAuth();
+  const { usuario, user } = useAuth();
   const row = usePrestadorRow();
 
   const [foto, setFoto] = useState("");
   const [bio, setBio] = useState("");
   const [direccion, setDireccion] = useState("");
-  const [precio, setPrecio] = useState<number>(15000);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const fotoRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setFoto(usuario?.foto_url ?? "");
@@ -381,7 +414,6 @@ function EditorPerfil() {
     if (!row) return;
     setBio(row.bio ?? "");
     setDireccion(row.direccion ?? "");
-    setPrecio(row.precio_desde ?? 15000);
   }, [row]);
 
   const cat = useMemo(() => categories.find((c) => c.id === row?.categoria_id), [row?.categoria_id]);
@@ -393,29 +425,58 @@ function EditorPerfil() {
     queryFn: async (): Promise<ServicioRow[]> => {
       const { data } = await supabase
         .from("prestador_servicios")
-        .select("id, precio, servicio_id, servicios ( id, nombre )")
+        .select("id, precio, precio_hasta, descripcion, foto_url, servicio_id, servicios ( id, nombre )")
         .eq("prestador_id", row!.id);
-      type R = { id: string; precio: number; servicio_id: string; servicios: { id: string; nombre: string } | null };
+      type R = {
+        id: string; precio: number; precio_hasta: number; descripcion: string | null; foto_url: string | null;
+        servicio_id: string; servicios: { id: string; nombre: string } | null;
+      };
       return ((data ?? []) as unknown as R[]).map((r) => ({
-        id: r.id, servicio_id: r.servicio_id, nombre: r.servicios?.nombre ?? "?", precio: r.precio,
+        id: r.id, servicio_id: r.servicio_id, nombre: r.servicios?.nombre ?? "?",
+        precio: r.precio, precio_hasta: r.precio_hasta, descripcion: r.descripcion, foto_url: r.foto_url,
       }));
     },
   });
   const misServicios = serviciosQ.data ?? [];
   const ofrecidos = new Set(misServicios.map((s) => s.nombre));
 
+  async function syncRangoPrestador(servicios: ServicioRow[]) {
+    if (!row || servicios.length === 0) return;
+    const desde = Math.min(...servicios.map((s) => s.precio));
+    const hasta = Math.max(...servicios.map((s) => s.precio_hasta));
+    await supabase.from("prestadores").update({ precio_desde: desde, precio_hasta: hasta }).eq("id", row.id);
+    qc.invalidateQueries({ queryKey: ["prestador-row"] });
+  }
+
+  async function onPickFoto(file: File) {
+    if (!user || !usuario) return;
+    setSaving(true); setMsg(null);
+    try {
+      const url = await subirAPerfiles(user.id, file, "perfil");
+      const u = await supabase.from("usuarios").update({ foto_url: url }).eq("id", usuario.id);
+      if (u.error) throw u.error;
+      if (row) await supabase.from("prestadores").update({ foto_url: url }).eq("id", row.id);
+      setFoto(url);
+      toast.success("Foto actualizada");
+      qc.invalidateQueries({ queryKey: ["usuario"] });
+      qc.invalidateQueries({ queryKey: ["prestador-row"] });
+      qc.invalidateQueries({ queryKey: ["provider"] });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo subir la foto");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function savePerfil() {
     if (!usuario || !row) return;
     setSaving(true); setMsg(null);
-    const u = await supabase.from("usuarios").update({ foto_url: foto || null }).eq("id", usuario.id);
-    const p = await supabase.from("prestadores").update({
-      bio, direccion, precio_desde: precio, precio_hasta: Math.round(precio * 1.5),
-    }).eq("id", row.id);
+    const p = await supabase.from("prestadores").update({ bio, direccion }).eq("id", row.id);
     setSaving(false);
-    if (u.error || p.error) { setMsg(u.error?.message ?? p.error?.message ?? "Error al guardar"); return; }
+    if (p.error) { setMsg(p.error.message); toast.error(p.error.message); return; }
     setMsg("Perfil actualizado");
+    toast.success("Perfil actualizado");
     qc.invalidateQueries({ queryKey: ["prestador-row"] });
-    qc.invalidateQueries({ queryKey: ["usuario"] });
     qc.invalidateQueries({ queryKey: ["provider"] });
   }
 
@@ -423,22 +484,29 @@ function EditorPerfil() {
     if (!row) return;
     const existing = misServicios.find((s) => s.nombre === nombre);
     if (existing) {
-      await supabase.from("prestador_servicios").delete().eq("id", existing.id);
+      const { error } = await supabase.from("prestador_servicios").delete().eq("id", existing.id);
+      if (error) { toast.error(error.message); return; }
+      await syncRangoPrestador(misServicios.filter((s) => s.id !== existing.id));
     } else {
       const { data: srv } = await supabase
         .from("servicios").select("id").eq("categoria_id", row.categoria_id).eq("nombre", nombre).maybeSingle();
       if (srv) {
-        await supabase.from("prestador_servicios").insert({
-          prestador_id: row.id, servicio_id: srv.id, precio,
+        const precio = row.precio_desde || 15000;
+        const { error } = await supabase.from("prestador_servicios").insert({
+          prestador_id: row.id, servicio_id: srv.id, precio, precio_hasta: sugerirHasta(precio),
         });
+        if (error) { toast.error(error.message); return; }
       }
     }
     qc.invalidateQueries({ queryKey: ["mis-servicios"] });
   }
 
-  async function updateServicioPrecio(id: string, nuevoPrecio: number) {
-    await supabase.from("prestador_servicios").update({ precio: nuevoPrecio }).eq("id", id);
+  async function updateServicio(id: string, patch: { precio: number; precio_hasta: number; descripcion: string | null; foto_url: string | null }) {
+    const { error } = await supabase.from("prestador_servicios").update(patch).eq("id", id);
+    if (error) throw error;
+    await syncRangoPrestador(misServicios.map((s) => (s.id === id ? { ...s, ...patch } : s)));
     qc.invalidateQueries({ queryKey: ["mis-servicios"] });
+    qc.invalidateQueries({ queryKey: ["provider"] });
   }
 
   if (!row) return <div className="py-16 text-center text-muted-foreground"><Loader2 className="size-5 mx-auto animate-spin" /></div>;
@@ -446,15 +514,21 @@ function EditorPerfil() {
   return (
     <div className="space-y-5">
       <VerificacionBanner prestadorId={row.id} verificado={!!(row as { verificado?: boolean }).verificado} />
+
       {/* Foto */}
       <div className="p-4 rounded-2xl bg-white border border-border flex items-center gap-4">
         <ProviderAvatar url={foto || null} name={usuario?.nombre ?? "U"} size={64} />
         <div className="flex-1 min-w-0">
-          <label className="block text-xs font-medium text-muted-foreground mb-1">Foto de perfil (URL)</label>
-          <input
-            value={foto} onChange={(e) => setFoto(e.target.value)} placeholder="https://..."
-            className="w-full h-10 px-3 rounded-xl bg-muted/50 border border-border outline-none focus:border-foreground/30 text-sm"
-          />
+          <div className="text-sm font-semibold">Foto de perfil</div>
+          <p className="text-xs text-muted-foreground mt-0.5">JPG o PNG, idealmente cuadrada.</p>
+          <button
+            type="button" onClick={() => fotoRef.current?.click()} disabled={saving}
+            className="mt-2 inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#111827] text-white text-xs font-semibold disabled:opacity-50"
+          >
+            <ImagePlus className="size-3.5" /> {foto ? "Cambiar foto" : "Subir foto"}
+          </button>
+          <input ref={fotoRef} type="file" accept="image/*" className="hidden"
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) onPickFoto(f); e.target.value = ""; }} />
         </div>
       </div>
 
@@ -465,14 +539,18 @@ function EditorPerfil() {
       </Field>
 
       <Field label="Dirección base">
-        <input value={direccion} onChange={(e) => setDireccion(e.target.value)} placeholder="Comuna o sector"
+        <input value={direccion} onChange={(e) => setDireccion(e.target.value)} placeholder="Calle o sector"
           className="w-full h-12 px-4 rounded-2xl bg-white border border-border outline-none focus:border-foreground/30" />
       </Field>
 
-      <Field label="Precio base por hora (CLP)">
-        <input type="number" min={1000} step={1000} value={precio} onChange={(e) => setPrecio(Number(e.target.value))}
-          className="w-full h-12 px-4 rounded-2xl bg-white border border-border outline-none focus:border-foreground/30" />
-      </Field>
+      {msg && <p className="text-sm text-emerald-700">{msg}</p>}
+
+      <button
+        onClick={savePerfil} disabled={saving}
+        className="w-full h-12 rounded-2xl bg-foreground text-background font-semibold disabled:opacity-60"
+      >
+        {saving ? "Guardando..." : "Guardar bio y dirección"}
+      </button>
 
       {/* Servicios */}
       <div>
@@ -494,35 +572,335 @@ function EditorPerfil() {
         </div>
 
         {misServicios.length > 0 && (
-          <div className="mt-3 divide-y divide-border rounded-2xl bg-white border border-border">
+          <div className="mt-3 space-y-3">
             {misServicios.map((s) => (
-              <div key={s.id} className="flex items-center justify-between gap-3 px-4 py-3">
-                <span className="text-sm truncate">{s.nombre}</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">CLP</span>
-                  <input
-                    type="number" min={1000} step={1000} defaultValue={s.precio}
-                    onBlur={(e) => {
-                      const v = Number(e.target.value);
-                      if (v && v !== s.precio) updateServicioPrecio(s.id, v);
-                    }}
-                    className="w-28 h-9 px-3 rounded-lg bg-muted/50 border border-border outline-none focus:border-foreground/30 text-sm text-right"
-                  />
-                </div>
-              </div>
+              <ServicioEditCard key={s.id} s={s} userId={user?.id ?? ""} onSave={(patch) => updateServicio(s.id, patch)} />
             ))}
           </div>
         )}
       </div>
 
-      {msg && <p className="text-sm text-emerald-700">{msg}</p>}
+      {/* Horario */}
+      <HorarioCard prestadorId={row.id} horarioRaw={row.horario} />
 
-      <button
-        onClick={savePerfil} disabled={saving}
-        className="w-full h-12 rounded-2xl bg-foreground text-background font-semibold disabled:opacity-60"
-      >
-        {saving ? "Guardando..." : "Guardar cambios"}
+      {/* Perfil público */}
+      <PerfilPublicoCard
+        prestadorId={row.id}
+        userId={user?.id ?? ""}
+        initial={{
+          banner_url: row.banner_url, color_perfil: row.color_perfil, titulo_profesional: row.titulo_profesional,
+          anos_experiencia: row.anos_experiencia, comuna: row.comuna,
+        }}
+      />
+    </div>
+  );
+}
+
+function ServicioEditCard({
+  s, userId, onSave,
+}: { s: ServicioRow; userId: string; onSave: (p: { precio: number; precio_hasta: number; descripcion: string | null; foto_url: string | null }) => Promise<void> }) {
+  const [open, setOpen] = useState(false);
+  const [precio, setPrecio] = useState(s.precio);
+  const [hasta, setHasta] = useState(s.precio_hasta);
+  const [desc, setDesc] = useState(s.descripcion ?? "");
+  const [fotoUrl, setFotoUrl] = useState<string | null>(s.foto_url);
+  const [fotoFile, setFotoFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(s.foto_url);
+  const [saving, setSaving] = useState(false);
+  const ref = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setPrecio(s.precio); setHasta(s.precio_hasta); setDesc(s.descripcion ?? "");
+    setFotoUrl(s.foto_url); setPreview(s.foto_url); setFotoFile(null);
+  }, [s]);
+
+  const max = maxHasta(precio);
+  const invalido = !precio || precio < 1000 || hasta < precio || hasta > max;
+
+  async function guardar() {
+    if (!precio || precio < 1000) { toast.error("El precio desde debe ser al menos $1.000."); return; }
+    if (hasta < precio) { toast.error("El precio hasta no puede ser menor que el precio desde."); return; }
+    if (hasta > max) { toast.error("El precio hasta no puede superar el 50% sobre el precio desde."); return; }
+    if (desc.length > MAX_DESC) { toast.error(`La descripción supera los ${MAX_DESC} caracteres.`); return; }
+    setSaving(true);
+    try {
+      let url = fotoUrl;
+      if (fotoFile && userId) url = await subirAPerfiles(userId, fotoFile, `servicio-${s.servicio_id}`);
+      await onSave({ precio, precio_hasta: hasta, descripcion: desc.trim() || null, foto_url: url });
+      setFotoUrl(url); setFotoFile(null);
+      toast.success(`"${s.nombre}" actualizado`);
+      setOpen(false);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo guardar");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="rounded-2xl bg-white border border-border overflow-hidden">
+      <button type="button" onClick={() => setOpen((o) => !o)} className="w-full flex items-center gap-3 px-4 py-3 text-left">
+        {s.foto_url ? (
+          <img src={s.foto_url} alt="" className="size-10 rounded-lg object-cover shrink-0" />
+        ) : (
+          <span className="size-10 rounded-lg bg-[#F5F5F0] flex items-center justify-center shrink-0"><ImagePlus className="size-4 text-muted-foreground" /></span>
+        )}
+        <div className="min-w-0 flex-1">
+          <div className="font-semibold text-sm truncate">{s.nombre}</div>
+          <div className="text-xs text-muted-foreground">{formatCLP(s.precio)} – {formatCLP(s.precio_hasta)}</div>
+        </div>
+        <ChevronDown className={`size-4 text-muted-foreground transition ${open ? "rotate-180" : ""}`} />
       </button>
+
+      {open && (
+        <div className="px-4 pb-4 pt-4 border-t border-border space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <label className="block">
+              <span className="block text-xs font-medium mb-1">Precio desde (CLP)</span>
+              <input type="number" min={1000} step={1000} value={precio || ""}
+                onChange={(e) => { const v = Number(e.target.value); setPrecio(v); setHasta(sugerirHasta(v)); }}
+                className="w-full h-11 px-3 rounded-xl bg-muted/50 border border-border outline-none focus:border-foreground/30 text-sm" />
+            </label>
+            <label className="block">
+              <span className="block text-xs font-medium mb-1">Precio hasta (CLP)</span>
+              <input type="number" min={precio} max={max} step={1000} value={hasta || ""}
+                onChange={(e) => setHasta(Number(e.target.value))}
+                onBlur={() => { if (hasta > max) setHasta(max); else if (hasta < precio) setHasta(precio); }}
+                className={`w-full h-11 px-3 rounded-xl bg-muted/50 border outline-none text-sm ${invalido ? "border-[#FF3B6B]" : "border-border focus:border-foreground/30"}`} />
+            </label>
+          </div>
+          <p className="text-[11px] text-muted-foreground -mt-2">
+            Máximo 50% sobre el precio desde. El cliente paga el precio desde al reservar; el valor final nunca puede superar el precio hasta.
+            {precio >= 1000 && <> Máximo permitido: <strong>{formatCLP(max)}</strong>.</>}
+          </p>
+
+          <label className="block">
+            <span className="block text-xs font-medium mb-1">Descripción corta</span>
+            <textarea rows={3} maxLength={MAX_DESC} value={desc} onChange={(e) => setDesc(e.target.value)}
+              placeholder="Qué incluye, materiales, tiempo estimado..."
+              className="w-full p-3 rounded-xl bg-muted/50 border border-border outline-none focus:border-foreground/30 resize-none text-sm" />
+            <span className="block text-right text-[11px] text-muted-foreground mt-1">{desc.length}/{MAX_DESC}</span>
+          </label>
+
+          <div className="flex items-center gap-3">
+            <button type="button" onClick={() => ref.current?.click()}
+              className="size-16 rounded-xl overflow-hidden bg-[#F5F5F0] border-2 border-dashed border-[#E5E7EB] flex items-center justify-center shrink-0">
+              {preview ? <img src={preview} alt="" className="size-full object-cover" /> : <ImagePlus className="size-5 text-[#EF9F27]" />}
+            </button>
+            <div className="text-xs text-muted-foreground flex-1">
+              <div className="font-medium text-[#111827]">Foto del servicio (opcional)</div>
+              Muestra un trabajo tuyo relacionado.
+              {preview && (
+                <button type="button" onClick={() => { setPreview(null); setFotoUrl(null); setFotoFile(null); }}
+                  className="block mt-1 text-[#FF3B6B] font-semibold">Quitar foto</button>
+              )}
+            </div>
+            <input ref={ref} type="file" accept="image/*" className="hidden"
+              onChange={(e) => { const f = e.target.files?.[0]; if (f) { setFotoFile(f); setPreview(URL.createObjectURL(f)); } e.target.value = ""; }} />
+          </div>
+
+          <button type="button" onClick={guardar} disabled={saving || invalido}
+            className="w-full h-11 rounded-xl bg-[#111827] text-white text-sm font-semibold disabled:opacity-50">
+            {saving ? "Guardando..." : "Guardar servicio"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function HorarioCard({ prestadorId, horarioRaw }: { prestadorId: string; horarioRaw: unknown }) {
+  const qc = useQueryClient();
+  const [horario, setHorario] = useState<Horario>(() => parseHorario(horarioRaw));
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => { setHorario(parseHorario(horarioRaw)); }, [horarioRaw]);
+
+  async function guardar() {
+    const e = validarHorario(horario);
+    if (e) { toast.error(e); return; }
+    setSaving(true);
+    const { error } = await supabase.from("prestadores").update({ horario }).eq("id", prestadorId);
+    setSaving(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Horario actualizado");
+    qc.invalidateQueries({ queryKey: ["prestador-row"] });
+    qc.invalidateQueries({ queryKey: ["provider"] });
+  }
+
+  return (
+    <div>
+      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-1.5">
+        <Clock className="size-3.5" /> Horario de atención
+      </h3>
+      <HorarioEditor value={horario} onChange={setHorario} compact />
+      <button type="button" onClick={guardar} disabled={saving}
+        className="mt-3 w-full h-11 rounded-xl bg-[#111827] text-white text-sm font-semibold disabled:opacity-50">
+        {saving ? "Guardando..." : "Guardar horario"}
+      </button>
+    </div>
+  );
+}
+
+interface PerfilPublicoInitial {
+  banner_url: string | null;
+  color_perfil: string | null;
+  titulo_profesional: string | null;
+  anos_experiencia: number | null;
+  comuna: string | null;
+}
+
+function PerfilPublicoCard({ prestadorId, userId, initial }: { prestadorId: string; userId: string; initial: PerfilPublicoInitial }) {
+  const qc = useQueryClient();
+  const [bannerUrl, setBannerUrl] = useState<string | null>(initial.banner_url);
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [bannerPreview, setBannerPreview] = useState<string | null>(initial.banner_url);
+  const [color, setColor] = useState(initial.color_perfil ?? "#EF9F27");
+  const [titulo, setTitulo] = useState(initial.titulo_profesional ?? "");
+  const [anos, setAnos] = useState<number>(initial.anos_experiencia ?? 0);
+  const [comuna, setComuna] = useState(initial.comuna ?? "");
+  const [telefono, setTelefono] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
+  const [saving, setSaving] = useState(false);
+  const bannerRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setBannerUrl(initial.banner_url); setBannerPreview(initial.banner_url); setBannerFile(null);
+    setColor(initial.color_perfil ?? "#EF9F27");
+    setTitulo(initial.titulo_profesional ?? "");
+    setAnos(initial.anos_experiencia ?? 0);
+    setComuna(initial.comuna ?? "");
+  }, [initial.banner_url, initial.color_perfil, initial.titulo_profesional, initial.anos_experiencia, initial.comuna]);
+
+  const contactoQ = useQuery({
+    queryKey: ["prestador-contacto", prestadorId],
+    enabled: !!prestadorId,
+    queryFn: async () => {
+      const { data } = await supabase.from("prestador_contacto").select("telefono, whatsapp").eq("prestador_id", prestadorId).maybeSingle();
+      return data;
+    },
+  });
+  useEffect(() => {
+    if (contactoQ.data) {
+      setTelefono(contactoQ.data.telefono ?? "");
+      setWhatsapp(contactoQ.data.whatsapp ?? "");
+    }
+  }, [contactoQ.data]);
+
+  async function guardar() {
+    if (titulo.trim().length > 0 && titulo.trim().length < 3) { toast.error("El título profesional es muy corto."); return; }
+    if (!Number.isFinite(anos) || anos < 0 || anos > 60) { toast.error("Ingresa tus años de experiencia (0 a 60)."); return; }
+    setSaving(true);
+    try {
+      let url = bannerUrl;
+      if (bannerFile && userId) url = await subirAPerfiles(userId, bannerFile, "banner");
+      const p = await supabase.from("prestadores").update({
+        banner_url: url, color_perfil: color, titulo_profesional: titulo.trim() || null,
+        anos_experiencia: anos, comuna: comuna.trim() || null,
+      }).eq("id", prestadorId);
+      if (p.error) throw p.error;
+      const c = await supabase.from("prestador_contacto").upsert({
+        prestador_id: prestadorId, telefono: telefono.trim() || null, whatsapp: whatsapp.trim() || null,
+      });
+      if (c.error) throw c.error;
+      setBannerUrl(url); setBannerFile(null);
+      toast.success("Perfil público actualizado");
+      qc.invalidateQueries({ queryKey: ["prestador-row"] });
+      qc.invalidateQueries({ queryKey: ["prestador-contacto"] });
+      qc.invalidateQueries({ queryKey: ["provider"] });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo guardar");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div>
+      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-1.5">
+        <Palette className="size-3.5" /> Perfil público
+      </h3>
+      <div className="rounded-2xl bg-white border border-border overflow-hidden">
+        {/* Banner */}
+        <div className="relative h-28 w-full" style={{ backgroundColor: color }}>
+          {bannerPreview && <img src={bannerPreview} alt="" className="absolute inset-0 size-full object-cover" />}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+          <button type="button" onClick={() => bannerRef.current?.click()}
+            className="absolute bottom-3 right-3 inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white/90 text-[#111827] text-xs font-semibold">
+            <ImagePlus className="size-3.5" /> {bannerPreview ? "Cambiar banner" : "Subir banner"}
+          </button>
+          {bannerPreview && (
+            <button type="button" onClick={() => { setBannerPreview(null); setBannerUrl(null); setBannerFile(null); }}
+              className="absolute bottom-3 left-3 px-3 py-1.5 rounded-xl bg-black/50 text-white text-xs font-semibold">
+              Quitar
+            </button>
+          )}
+          <input ref={bannerRef} type="file" accept="image/*" className="hidden"
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) { setBannerFile(f); setBannerPreview(URL.createObjectURL(f)); } e.target.value = ""; }} />
+        </div>
+
+        <div className="p-4 space-y-4">
+          <div>
+            <span className="block text-xs font-medium mb-2">Color de perfil</span>
+            <div className="flex flex-wrap gap-2">
+              {PRESET_COLORS.map((c) => (
+                <button key={c} type="button" onClick={() => setColor(c)} aria-label={c}
+                  className={`size-8 rounded-full border-2 transition ${color.toLowerCase() === c.toLowerCase() ? "border-[#111827] scale-110" : "border-white shadow"}`}
+                  style={{ backgroundColor: c }} />
+              ))}
+              <label className="size-8 rounded-full border-2 border-dashed border-border flex items-center justify-center cursor-pointer overflow-hidden relative">
+                <Palette className="size-4 text-muted-foreground" />
+                <input type="color" value={color} onChange={(e) => setColor(e.target.value)} className="absolute inset-0 opacity-0 cursor-pointer" />
+              </label>
+            </div>
+          </div>
+
+          <label className="block">
+            <span className="block text-xs font-medium mb-1">Título profesional</span>
+            <input value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder='Ej. "Gasfíter certificado SEC"'
+              className="w-full h-11 px-3 rounded-xl bg-muted/50 border border-border outline-none focus:border-foreground/30 text-sm" />
+          </label>
+
+          <div className="grid grid-cols-2 gap-3">
+            <label className="block">
+              <span className="block text-xs font-medium mb-1">Años de experiencia</span>
+              <input type="number" min={0} max={60} value={anos} onChange={(e) => setAnos(Number(e.target.value))}
+                className="w-full h-11 px-3 rounded-xl bg-muted/50 border border-border outline-none focus:border-foreground/30 text-sm" />
+            </label>
+            <label className="block">
+              <span className="block text-xs font-medium mb-1">Comuna</span>
+              <input value={comuna} onChange={(e) => setComuna(e.target.value)} placeholder="Ej. Ñuñoa"
+                className="w-full h-11 px-3 rounded-xl bg-muted/50 border border-border outline-none focus:border-foreground/30 text-sm" />
+            </label>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <label className="block">
+              <span className="block text-xs font-medium mb-1">Teléfono</span>
+              <input type="tel" value={telefono} onChange={(e) => setTelefono(e.target.value)} placeholder="+56 9 1234 5678"
+                className="w-full h-11 px-3 rounded-xl bg-muted/50 border border-border outline-none focus:border-foreground/30 text-sm" />
+            </label>
+            <label className="block">
+              <span className="block text-xs font-medium mb-1">WhatsApp</span>
+              <input type="tel" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="+56 9 1234 5678"
+                className="w-full h-11 px-3 rounded-xl bg-muted/50 border border-border outline-none focus:border-foreground/30 text-sm" />
+            </label>
+          </div>
+
+          <div className="flex gap-3">
+            <Link
+              to="/prestador/$id" params={{ id: prestadorId }}
+              className="h-11 px-4 rounded-xl border border-border text-sm font-semibold inline-flex items-center gap-1.5 hover:bg-muted"
+            >
+              <ExternalLink className="size-4" /> Ver mi perfil público
+            </Link>
+            <button type="button" onClick={guardar} disabled={saving}
+              className="flex-1 h-11 rounded-xl bg-[#111827] text-white text-sm font-semibold disabled:opacity-50">
+              {saving ? "Guardando..." : "Guardar perfil público"}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

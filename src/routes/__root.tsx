@@ -12,6 +12,8 @@ import {
 import appCss from "../styles.css?url";
 import OnboardingGate from "../components/OnboardingGate";
 import { Toaster } from "@/components/ui/sonner";
+import { AccesibilidadProvider } from "@/hooks/use-accesibilidad";
+import { AuthProvider } from "@/hooks/use-auth";
 
 function NotFoundComponent() {
   return (
@@ -76,6 +78,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { name: "theme-color", content: "#111827" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "Homie" },
       { title: "Homie — Tu hogar, en buenas manos" },
       { name: "description", content: "Homie conecta tu hogar con prestadores de confianza: limpieza, técnicos, belleza, mascotas y más." },
       { name: "author", content: "Homie" },
@@ -92,6 +98,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     links: [
       { rel: "stylesheet", href: appCss },
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "apple-touch-icon", href: "/icons/apple-touch-icon.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" },
@@ -105,13 +113,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="es-CL">
       <head>
         <HeadContent />
       </head>
       <body>
         {children}
         <Scripts />
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js').catch(function(){})})}",
+          }}
+        />
       </body>
     </html>
   );
@@ -122,10 +136,14 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <OnboardingGate>
-        <Outlet />
-      </OnboardingGate>
-      <Toaster />
+      <AuthProvider>
+        <AccesibilidadProvider>
+          <OnboardingGate>
+            <Outlet />
+          </OnboardingGate>
+          <Toaster />
+        </AccesibilidadProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

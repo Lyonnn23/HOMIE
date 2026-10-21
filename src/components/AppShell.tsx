@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { BottomNav } from "./BottomNav";
+import { AccesibilidadBoton } from "./AccesibilidadBoton";
 import { NotificationsBell } from "./NotificationsBell";
 import { HomieIcon, HomieWordmark } from "./Logo";
 import { useAuth } from "@/hooks/use-auth";
@@ -35,6 +36,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </div>
       <main className="mx-auto max-w-2xl pb-28">{children}</main>
       <BottomNav />
+      <AccesibilidadBoton />
     </div>
   );
 }

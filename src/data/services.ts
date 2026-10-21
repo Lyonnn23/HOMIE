@@ -1,12 +1,14 @@
 import {
   Scissors, Home, Wrench, HeartPulse, PawPrint, Truck, Laptop, Camera,
+  Car, Flower2, Gift, Baby, PartyPopper,
   type LucideIcon,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 export type CategoryId =
-  | "beauty" | "home" | "tech-fix" | "health" | "pets" | "moving" | "tech" | "events";
+  | "beauty" | "home" | "tech-fix" | "health" | "pets" | "moving" | "tech" | "events"
+  | "auto" | "garden" | "gifts" | "care" | "party";
 
 export interface Category {
   id: CategoryId;
@@ -37,6 +39,16 @@ export const categories: Category[] = [
     services: ["Reparación de PC","Instalación de red/WiFi","Instalación de cámaras","Soporte impresoras","Reparación celulares","Clases de computación"] },
   { id: "events", name: "Eventos y fotografía", bg: "#EC4899", tokenVar: "--cat-events", icon: Camera,
     services: ["Fotógrafo","Videógrafo","Decorador de eventos","Chef a domicilio","DJ/sonido","Repostería"] },
+  { id: "auto", name: "Automotriz a domicilio", bg: "#2563EB", tokenVar: "--cat-auto", icon: Car,
+    services: ["Mecánico a domicilio","Lavado de autos","Cambio de batería","Cambio de neumáticos","Scanner y diagnóstico","Pulido y encerado"] },
+  { id: "garden", name: "Jardín y piscinas", bg: "#16A34A", tokenVar: "--cat-garden", icon: Flower2,
+    services: ["Jardinería","Corte de pasto","Poda de árboles","Limpieza de piscinas","Mantención de piscinas","Diseño de jardines"] },
+  { id: "gifts", name: "Regalos y sorpresas", bg: "#DB2777", tokenVar: "--cat-gifts", icon: Gift,
+    services: ["Florería","Desayunos sorpresa","Regalos de cumpleaños","Paquetería y envoltura","Cajas de regalo","Globos y decoración"] },
+  { id: "care", name: "Cuidado y asesoría", bg: "#0D9488", tokenVar: "--cat-care", icon: Baby,
+    services: ["Cuidadora de niños","Asesora del hogar","Limpieza por día","Cuidado de adulto mayor","Acompañamiento","Apoyo escolar"] },
+  { id: "party", name: "Fiestas y diversión", bg: "#F59E0B", tokenVar: "--cat-party", icon: PartyPopper,
+    services: ["Juegos inflables","DJ para fiestas","Food truck","Animación infantil","Cumpleaños completo","Carrito de algodón y palomitas","Bartender","Fotocabina"] },
 ];
 
 
@@ -76,13 +88,49 @@ export interface ProviderReview {
   respuestaFecha: string | null;
 }
 
+export type DiaKey = "lun" | "mar" | "mie" | "jue" | "vie" | "sab" | "dom";
+export type Horario = Record<DiaKey, { activo: boolean; desde: string; hasta: string }>;
+export const DIAS: { key: DiaKey; label: string; corto: string }[] = [
+  { key: "lun", label: "Lunes", corto: "L" }, { key: "mar", label: "Martes", corto: "M" },
+  { key: "mie", label: "Miércoles", corto: "X" }, { key: "jue", label: "Jueves", corto: "J" },
+  { key: "vie", label: "Viernes", corto: "V" }, { key: "sab", label: "Sábado", corto: "S" },
+  { key: "dom", label: "Domingo", corto: "D" },
+];
+export const HORARIO_DEFAULT: Horario = {
+  lun: { activo: true, desde: "09:00", hasta: "18:00" }, mar: { activo: true, desde: "09:00", hasta: "18:00" },
+  mie: { activo: true, desde: "09:00", hasta: "18:00" }, jue: { activo: true, desde: "09:00", hasta: "18:00" },
+  vie: { activo: true, desde: "09:00", hasta: "18:00" }, sab: { activo: false, desde: "10:00", hasta: "14:00" },
+  dom: { activo: false, desde: "10:00", hasta: "14:00" },
+};
+/** Tope legal del rango: el precio hasta nunca supera 1.5x el precio desde. */
+export const RANGO_MAX_FACTOR = 1.5;
+
+export interface ProviderService {
+  id: string;
+  name: string;
+  price: number;        // precio DESDE: lo que se cobra al reservar
+  priceTo: number;      // precio HASTA: tope que el profesional no puede superar
+  description: string | null;
+  photoUrl: string | null;
+}
+
 export interface ProviderDetail extends ProviderListItem {
   bio: string;
   usuarioId: string | null;
   gallery: string[];
-  services: { id: string; name: string; price: number }[];
+  services: ProviderService[];
   reviews: ProviderReview[];
   direccion: string | null;
+  comuna: string | null;
+  bannerUrl: string | null;
+  colorPerfil: string | null;
+  tituloProfesional: string | null;
+  anosExperiencia: number | null;
+  horario: Horario;
+  verificado: boolean;
+  verificadoIdentidad: boolean;
+  antecedentesOk: boolean;
+  priceTo: number;
 }
 
 
@@ -150,9 +198,10 @@ export function useProvider(id: string) {
         .from("prestadores")
         .select(`
           id, categoria_id, nombre, foto_url, bio, calificacion_promedio, resenas_count,
-          precio_desde, disponible_ahora, disponibilidad_texto, distancia_km,
-          direccion, gallery_urls, usuario_id,
-          prestador_servicios ( precio, servicios ( id, nombre ) ),
+          precio_desde, precio_hasta, disponible_ahora, disponibilidad_texto, distancia_km,
+          direccion, gallery_urls, usuario_id, comuna, banner_url, color_perfil,
+          titulo_profesional, anos_experiencia, horario, verificado, verificado_identidad, antecedentes_ok,
+          prestador_servicios ( precio, precio_hasta, descripcion, foto_url, servicios ( id, nombre ) ),
           resenas ( id, calificacion, comentario, created_at, foto_url, verificada, respuesta_prestador, respuesta_fecha, cliente_id, cliente_nombre )
         `)
         .eq("id", id)
@@ -164,10 +213,13 @@ export function useProvider(id: string) {
         nombre: string | null; foto_url: string | null;
         bio: string | null; usuario_id: string | null;
         calificacion_promedio: number; resenas_count: number;
-        precio_desde: number; disponible_ahora: boolean;
+        precio_desde: number; precio_hasta: number | null; disponible_ahora: boolean;
         disponibilidad_texto: string | null; distancia_km: number | null;
         direccion: string | null; gallery_urls: string[];
-        prestador_servicios: { precio: number; servicios: { id: string; nombre: string } }[];
+        comuna: string | null; banner_url: string | null; color_perfil: string | null;
+        titulo_profesional: string | null; anos_experiencia: number | null; horario: Horario | null;
+        verificado: boolean | null; verificado_identidad: boolean | null; antecedentes_ok: boolean | null;
+        prestador_servicios: { precio: number; precio_hasta: number | null; descripcion: string | null; foto_url: string | null; servicios: { id: string; nombre: string } }[];
         resenas: {
           id: string; calificacion: number; comentario: string | null; created_at: string;
           foto_url: string | null; verificada: boolean | null;
@@ -192,10 +244,23 @@ export function useProvider(id: string) {
         disponibleAhora: r.disponible_ahora,
         gallery: r.gallery_urls ?? [],
         direccion: r.direccion,
+        comuna: r.comuna,
+        bannerUrl: r.banner_url,
+        colorPerfil: r.color_perfil,
+        tituloProfesional: r.titulo_profesional,
+        anosExperiencia: r.anos_experiencia,
+        horario: { ...HORARIO_DEFAULT, ...(r.horario ?? {}) },
+        verificado: !!r.verificado,
+        verificadoIdentidad: !!r.verificado_identidad,
+        antecedentesOk: !!r.antecedentes_ok,
+        priceTo: r.precio_hasta ?? r.precio_desde,
         services: (r.prestador_servicios ?? []).map((ps) => ({
           id: ps.servicios.id,
           name: ps.servicios.nombre,
           price: ps.precio,
+          priceTo: ps.precio_hasta ?? ps.precio,
+          description: ps.descripcion,
+          photoUrl: ps.foto_url,
         })),
         reviews: (r.resenas ?? []).map((rv) => {
           const author = rv.cliente_nombre ?? "Anónimo";

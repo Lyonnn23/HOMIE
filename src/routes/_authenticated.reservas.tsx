@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CalendarCheck, MapPin, MessageCircle, Star, Shield, RotateCcw, Award } from "lucide-react";
+import { CalendarCheck, MapPin, MessageCircle, Star, Shield, RotateCcw, Award, Scale } from "lucide-react";
 import { useMemo, useState } from "react";
 import { AppShell } from "@/components/AppShell";
+import { ContactoPrestador } from "@/components/ContactoPrestador";
 import { ReportModal } from "@/components/ReportModal";
 import { ReviewModal } from "@/components/ReviewModal";
 import { EmergencyBanner } from "@/components/EmergencyBanner";
@@ -119,6 +120,9 @@ function BookingCard({ b, timesHired }: { b: Booking; timesHired: number }) {
               <MessageCircle className="size-3.5" /> Chat
             </Link>
           )}
+          {(b.status === "confirmada" || b.status === "en camino") && (
+            <ContactoPrestador reservaId={b.id} nombre={b.providerName} />
+          )}
           {b.status === "pendiente" && (
             <button
               disabled={cancel.isPending}
@@ -155,12 +159,20 @@ function BookingCard({ b, timesHired }: { b: Booking; timesHired: number }) {
       )}
 
       {canReport && (
-        <button
-          onClick={() => setShowReport(true)}
-          className="mt-3 w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-[#FF3B6B] text-[#FF3B6B] text-xs font-semibold hover:bg-[#FF3B6B]/5"
-        >
-          <Shield className="size-3.5" /> Reportar problema
-        </button>
+        <div className="mt-3 flex items-center gap-2">
+          <button
+            onClick={() => setShowReport(true)}
+            className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-[#FF3B6B] text-[#FF3B6B] text-xs font-semibold hover:bg-[#FF3B6B]/5"
+          >
+            <Shield className="size-3.5" /> Reportar problema
+          </button>
+          <Link
+            to="/reclamos"
+            className="inline-flex items-center justify-center gap-1 px-3 py-2 rounded-xl border border-border text-xs font-semibold text-[#111827] hover:bg-muted"
+          >
+            <Scale className="size-3.5 text-[#EF9F27]" /> Reclamo
+          </Link>
+        </div>
       )}
 
       {showReview && <ReviewModal b={b} onClose={() => setShowReview(false)} />}

@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Camera, Check, ChevronLeft, Clock, Upload, FileText, AlertCircle, ShieldCheck } from "lucide-react";
+import { Camera, Check, ChevronLeft, Clock, Upload, Plus, X, AlertCircle, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -11,6 +11,15 @@ export const Route = createFileRoute("/_authenticated/verificar-identidad")({
 });
 
 type FileSlot = { file: File; preview: string } | null;
+type CertSlot = { tipo: string; file: FileSlot };
+const MAX_CERTS = 3;
+
+function slugify(s: string) {
+  return s
+    .normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
+    .slice(0, 40) || "general";
+}
 
 function VerificarIdentidad() {
   const { user, usuario } = useAuth();
@@ -19,9 +28,7 @@ function VerificarIdentidad() {
   const [frente, setFrente] = useState<FileSlot>(null);
   const [reverso, setReverso] = useState<FileSlot>(null);
   const [selfie, setSelfie] = useState<FileSlot>(null);
-  const [tieneCert, setTieneCert] = useState<boolean | null>(null);
-  const [tipoCert, setTipoCert] = useState("");
-  const [certFile, setCertFile] = useState<FileSlot>(null);
+  const [certs, setCerts] = useState<CertSlot[]>([{ tipo: "", file: null }]);
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [done, setDone] = useState(false);
@@ -108,6 +115,15 @@ function VerificarIdentidad() {
       setErr("Faltan fotos por subir");
       return;
     }
+    const certsListos = certs.filter((c) => c.file);
+    if (certsListos.length === 0) {
+      setErr("Debes subir al menos un certificado, título o diploma.");
+      return;
+    }
+    if (certsListos.some((c) => !c.tipo.trim())) {
+      setErr("Indica el tipo de cada certificado que subiste.");
+      return;
+    }
     setSubmitting(true);
     try {
       const [pFrente, pReverso, pSelfie] = await Promise.all([
@@ -115,17 +131,18 @@ function VerificarIdentidad() {
         uploadFile(reverso.file, "carnet-reverso"),
         uploadFile(selfie.file, "selfie"),
       ]);
-      const certs: string[] = [];
-      if (tieneCert && certFile) {
-        const p = await uploadFile(certFile.file, `cert-${tipoCert || "general"}`);
-        certs.push(p);
+      const certPaths: string[] = [];
+      for (let i = 0; i < certsListos.length; i++) {
+        const c = certsListos[i];
+        const p = await uploadFile(c.file!.file, `cert-${i + 1}-${slugify(c.tipo)}`);
+        certPaths.push(p);
       }
       const { error } = await supabase.from("verificaciones_prestador").insert({
         prestador_id: prestadorQ.data!.id,
         foto_carnet_frente: pFrente,
         foto_carnet_reverso: pReverso,
         foto_selfie: pSelfie,
-        certificados: certs,
+        certificados: certPaths,
         estado: "pendiente",
       });
       if (error) throw error;
@@ -181,14 +198,7 @@ function VerificarIdentidad() {
           />
         )}
         {step === 4 && (
-          <StepCertificados
-            tiene={tieneCert}
-            setTiene={setTieneCert}
-            tipo={tipoCert}
-            setTipo={setTipoCert}
-            file={certFile}
-            setFile={setCertFile}
-          />
+          <StepCertificados certs={certs} setCerts={setCerts} />
         )}
 
         {err && (
@@ -211,7 +221,7 @@ function VerificarIdentidad() {
           ) : (
             <button
               onClick={enviar}
-              disabled={submitting || tieneCert === null}
+              disabled={submitting || !certs.some((c) => c.file)}
               className="w-full h-12 rounded-2xl bg-[#111827] text-white font-semibold disabled:opacity-50"
             >
               {submitting ? "Enviando..." : "Enviar solicitud"}
@@ -265,78 +275,100 @@ function StepFoto({
 }
 
 function StepCertificados({
-  tiene, setTiene, tipo, setTipo, file, setFile,
-}: {
-  tiene: boolean | null; setTiene: (v: boolean) => void;
-  tipo: string; setTipo: (v: string) => void;
-  file: FileSlot; setFile: (s: FileSlot) => void;
-}) {
-  const ref = useRef<HTMLInputElement>(null);
+  certs, setCerts,
+}: { certs: CertSlot[]; setCerts: (c: CertSlot[]) => void }) {
+  function update(i: number, patch: Partial<CertSlot>) {
+    setCerts(certs.map((c, idx) => (idx === i ? { ...c, ...patch } : c)));
+  }
+  function remove(i: number) {
+    const next = certs.filter((_, idx) => idx !== i);
+    setCerts(next.length ? next : [{ tipo: "", file: null }]);
+  }
   return (
     <div>
       <h2 className="text-xl font-bold text-[#111827]">Certificados del rubro</h2>
-      <p className="mt-1 text-sm text-[#6B7280]">Opcional. Los usuarios prefieren profesionales certificados.</p>
+      <p className="mt-1 text-sm text-[#6B7280]">
+        <strong className="text-[#111827]">Obligatorio.</strong> Homie solo acepta profesionales con certificación o estudios comprobables.
+      </p>
+      <p className="mt-2 text-xs text-[#6B7280] bg-[#FAC775]/30 p-3 rounded-xl">
+        Sube al menos uno: título, diploma, curso, certificado SEC, licencia, etc. Puedes agregar hasta {MAX_CERTS}.
+      </p>
 
-      <div className="mt-5 grid grid-cols-2 gap-3">
-        <button
-          onClick={() => setTiene(true)}
-          className={`p-4 rounded-2xl border-2 text-left transition ${tiene === true ? "border-[#EF9F27] bg-[#EF9F27]/10" : "border-[#E5E7EB] bg-white"}`}
-        >
-          <Check className="size-5 text-[#EF9F27]" />
-          <div className="mt-2 font-semibold text-sm text-[#111827]">Esto lo tengo</div>
-          <div className="text-xs text-[#6B7280] mt-0.5">Subiré mi certificado</div>
-        </button>
-        <button
-          onClick={() => { setTiene(false); setFile(null); }}
-          className={`p-4 rounded-2xl border-2 text-left transition ${tiene === false ? "border-[#EF9F27] bg-[#EF9F27]/10" : "border-[#E5E7EB] bg-white"}`}
-        >
-          <FileText className="size-5 text-[#9CA3AF]" />
-          <div className="mt-2 font-semibold text-sm text-[#111827]">No tengo</div>
-          <div className="text-xs text-[#6B7280] mt-0.5">Continuar sin certificado</div>
-        </button>
+      <div className="mt-5 space-y-4">
+        {certs.map((c, i) => (
+          <CertItem
+            key={i}
+            index={i}
+            cert={c}
+            canRemove={certs.length > 1 || !!c.file}
+            onChange={(patch) => update(i, patch)}
+            onRemove={() => remove(i)}
+          />
+        ))}
       </div>
 
-      {tiene === false && (
-        <p className="mt-4 text-xs text-[#6B7280] bg-[#FAC775]/30 p-3 rounded-xl">
-          Sin certificado igual puedes registrarte, pero los usuarios prefieren profesionales certificados.
-        </p>
+      {certs.length < MAX_CERTS && (
+        <button
+          type="button"
+          onClick={() => setCerts([...certs, { tipo: "", file: null }])}
+          className="mt-4 w-full h-11 rounded-2xl border border-dashed border-[#EF9F27] text-[#111827] text-sm font-semibold flex items-center justify-center gap-2 bg-white"
+        >
+          <Plus className="size-4 text-[#EF9F27]" /> Agregar otro certificado
+        </button>
       )}
+    </div>
+  );
+}
 
-      {tiene === true && (
-        <div className="mt-5 space-y-4">
-          <label className="block">
-            <span className="block text-sm font-medium mb-2">Tipo de certificado</span>
-            <input
-              value={tipo}
-              onChange={(e) => setTipo(e.target.value)}
-              placeholder="Ej: Curso de electricidad SEC"
-              className="w-full h-12 px-4 rounded-2xl bg-white border border-[#E5E7EB] outline-none focus:border-[#EF9F27]"
-            />
-          </label>
+function CertItem({
+  index, cert, canRemove, onChange, onRemove,
+}: { index: number; cert: CertSlot; canRemove: boolean; onChange: (p: Partial<CertSlot>) => void; onRemove: () => void }) {
+  const ref = useRef<HTMLInputElement>(null);
+  return (
+    <div className="p-4 rounded-2xl bg-white border border-[#E5E7EB] space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-semibold text-[#6B7280] uppercase tracking-wide">Certificado {index + 1}</span>
+        {canRemove && (
+          <button type="button" onClick={onRemove} className="p-1 rounded-full hover:bg-[#F5F5F0] text-[#9CA3AF]" aria-label="Quitar">
+            <X className="size-4" />
+          </button>
+        )}
+      </div>
+      <label className="block">
+        <span className="block text-sm font-medium mb-2">Tipo de certificado</span>
+        <input
+          value={cert.tipo}
+          onChange={(e) => onChange({ tipo: e.target.value })}
+          placeholder="Ej: Certificado SEC clase D, Título técnico, Curso..."
+          className="w-full h-12 px-4 rounded-2xl bg-white border border-[#E5E7EB] outline-none focus:border-[#EF9F27]"
+        />
+      </label>
 
-          <div
-            onClick={() => ref.current?.click()}
-            className="cursor-pointer p-6 rounded-2xl bg-white border-2 border-dashed border-[#E5E7EB] text-center"
-          >
-            {file ? (
-              <div className="text-sm text-[#111827] font-medium truncate">{file.file.name}</div>
-            ) : (
-              <>
-                <Upload className="size-6 mx-auto text-[#EF9F27]" />
-                <p className="mt-2 text-sm text-[#111827] font-medium">Sube tu certificado</p>
-                <p className="text-xs text-[#6B7280] mt-1">PDF o imagen, máx 5MB</p>
-              </>
-            )}
-            <input
-              ref={ref} type="file" accept="image/*,application/pdf" className="hidden"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) setFile({ file: f, preview: URL.createObjectURL(f) });
-              }}
-            />
+      <div
+        onClick={() => ref.current?.click()}
+        className={`cursor-pointer p-5 rounded-2xl bg-white border-2 border-dashed text-center ${cert.file ? "border-[#00C288]" : "border-[#E5E7EB]"}`}
+      >
+        {cert.file ? (
+          <div className="flex items-center justify-center gap-2 text-sm text-[#111827] font-medium">
+            <Check className="size-4 text-[#00C288] shrink-0" />
+            <span className="truncate">{cert.file.file.name}</span>
           </div>
-        </div>
-      )}
+        ) : (
+          <>
+            <Upload className="size-6 mx-auto text-[#EF9F27]" />
+            <p className="mt-2 text-sm text-[#111827] font-medium">Sube tu certificado</p>
+            <p className="text-xs text-[#6B7280] mt-1">PDF o imagen, máx 5MB</p>
+          </>
+        )}
+        <input
+          ref={ref} type="file" accept="image/*,application/pdf" className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) onChange({ file: { file: f, preview: URL.createObjectURL(f) } });
+            e.target.value = "";
+          }}
+        />
+      </div>
     </div>
   );
 }

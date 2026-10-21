@@ -163,6 +163,14 @@ function BookingPage() {
         <div className="p-4 rounded-2xl bg-[#F5F5F0] border border-border space-y-2 text-sm">
           <Row label={selected?.name ?? ""} value={formatCLP(base)} />
           <Row label="Comisión de servicio (15%)" value={formatCLP(fee)} />
+          {selected && selected.priceTo > selected.price && (
+            <div className="mt-1 p-3 rounded-xl bg-white border border-border text-xs text-[#374151]">
+              <div className="font-semibold text-[#111827]">Estimado del trabajo: {formatCLP(selected.price)} – {formatCLP(selected.priceTo)}</div>
+              Hoy pagas el precio desde. Si el trabajo requiere materiales o tiempo extra, el profesional te lo informa
+              antes de empezar y el valor final <b>nunca puede superar {formatCLP(selected.priceTo)}</b> (más la comisión).
+              Si te cobran más, repórtalo y Homie media.
+            </div>
+          )}
           <div className="h-px bg-border my-2" />
           <div className="flex items-center justify-between gap-3">
             <span className="font-bold">Total</span>
