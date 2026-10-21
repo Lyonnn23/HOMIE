@@ -15,6 +15,48 @@
       "when": 1792552885658,
       "tag": "0001_20261021010000_homie_mejoras_v2",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792556309639,
+      "tag": "0002_20261021040000_homie_operacion",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792556336195,
+      "tag": "0003_homie_operacion_permisos_y_correo_verificado",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792556358888,
+      "tag": "0004_20261021050000_admin_actualiza_reservas",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792556403791,
+      "tag": "0005_20261021030000_homie_cotizaciones",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792556465465,
+      "tag": "0006_perfiles_lectura_de_objetos_solo_dueno",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792556711904,
+      "tag": "0007_homie_cotizaciones_lectura_sin_recursion",
+      "breakpoints": true
     }
   ]
 }
