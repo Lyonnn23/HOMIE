@@ -9,55 +9,39 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SeguridadRouteImport } from './routes/seguridad'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as RegistroRouteImport } from './routes/registro'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
-import { Route as BuscarRouteImport } from './routes/buscar'
-import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ServicioServiceRouteImport } from './routes/servicio.$service'
-import { Route as ReservarIdRouteImport } from './routes/reservar.$id'
-import { Route as PrestadorIdRouteImport } from './routes/prestador.$id'
-import { Route as AuthenticatedVerificarIdentidadRouteImport } from './routes/_authenticated.verificar-identidad'
-import { Route as AuthenticatedReservasRouteImport } from './routes/_authenticated.reservas'
-import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated.panel'
-import { Route as AuthenticatedOnboardingPrestadorRouteImport } from './routes/_authenticated.onboarding-prestador'
-import { Route as AuthenticatedNotificacionesRouteImport } from './routes/_authenticated.notificaciones'
-import { Route as AuthenticatedNotifConfigRouteImport } from './routes/_authenticated.notif-config'
-import { Route as AuthenticatedFavoritosRouteImport } from './routes/_authenticated.favoritos'
-import { Route as AuthenticatedDireccionesRouteImport } from './routes/_authenticated.direcciones'
-import { Route as AuthenticatedCuentaRouteImport } from './routes/_authenticated.cuenta'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as BuscarRouteImport } from './routes/buscar'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as RegistroRouteImport } from './routes/registro'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as SeguridadRouteImport } from './routes/seguridad'
 import { Route as AuthenticatedAyudaRouteImport } from './routes/_authenticated.ayuda'
-import { Route as AuthenticatedChatReservaIdRouteImport } from './routes/_authenticated.chat.$reservaId'
-import { Route as AuthenticatedAdminVerificacionesRouteImport } from './routes/_authenticated.admin.verificaciones'
+import { Route as AuthenticatedCuentaRouteImport } from './routes/_authenticated.cuenta'
+import { Route as AuthenticatedDireccionesRouteImport } from './routes/_authenticated.direcciones'
+import { Route as AuthenticatedFavoritosRouteImport } from './routes/_authenticated.favoritos'
+import { Route as AuthenticatedNotifConfigRouteImport } from './routes/_authenticated.notif-config'
+import { Route as AuthenticatedNotificacionesRouteImport } from './routes/_authenticated.notificaciones'
+import { Route as AuthenticatedOnboardingPrestadorRouteImport } from './routes/_authenticated.onboarding-prestador'
+import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated.panel'
+import { Route as AuthenticatedReservasRouteImport } from './routes/_authenticated.reservas'
+import { Route as AuthenticatedVerificarIdentidadRouteImport } from './routes/_authenticated.verificar-identidad'
+import { Route as PrestadorIdRouteImport } from './routes/prestador.$id'
+import { Route as ReservarIdRouteImport } from './routes/reservar.$id'
+import { Route as ServicioServiceRouteImport } from './routes/servicio.$service'
 import { Route as AuthenticatedAdminReportesRouteImport } from './routes/_authenticated.admin.reportes'
+import { Route as AuthenticatedAdminVerificacionesRouteImport } from './routes/_authenticated.admin.verificaciones'
+import { Route as AuthenticatedChatReservaIdRouteImport } from './routes/_authenticated.chat.$reservaId'
 import { Route as ApiPublicMercadopagoWebhookRouteImport } from './routes/api/public/mercadopago/webhook'
 
-const SeguridadRoute = SeguridadRouteImport.update({
-  id: '/seguridad',
-  path: '/seguridad',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RegistroRoute = RegistroRouteImport.update({
-  id: '/registro',
-  path: '/registro',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
-  id: '/forgot-password',
-  path: '/forgot-password',
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BuscarRoute = BuscarRouteImport.update({
@@ -65,67 +49,39 @@ const BuscarRoute = BuscarRouteImport.update({
   path: '/buscar',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRoute = AuthenticatedRouteImport.update({
-  id: '/_authenticated',
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ServicioServiceRoute = ServicioServiceRouteImport.update({
-  id: '/servicio/$service',
-  path: '/servicio/$service',
+const RegistroRoute = RegistroRouteImport.update({
+  id: '/registro',
+  path: '/registro',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ReservarIdRoute = ReservarIdRouteImport.update({
-  id: '/reservar/$id',
-  path: '/reservar/$id',
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PrestadorIdRoute = PrestadorIdRouteImport.update({
-  id: '/prestador/$id',
-  path: '/prestador/$id',
+const SeguridadRoute = SeguridadRouteImport.update({
+  id: '/seguridad',
+  path: '/seguridad',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedVerificarIdentidadRoute =
-  AuthenticatedVerificarIdentidadRouteImport.update({
-    id: '/verificar-identidad',
-    path: '/verificar-identidad',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedReservasRoute = AuthenticatedReservasRouteImport.update({
-  id: '/reservas',
-  path: '/reservas',
+const AuthenticatedAyudaRoute = AuthenticatedAyudaRouteImport.update({
+  id: '/ayuda',
+  path: '/ayuda',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedPanelRoute = AuthenticatedPanelRouteImport.update({
-  id: '/panel',
-  path: '/panel',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedOnboardingPrestadorRoute =
-  AuthenticatedOnboardingPrestadorRouteImport.update({
-    id: '/onboarding-prestador',
-    path: '/onboarding-prestador',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedNotificacionesRoute =
-  AuthenticatedNotificacionesRouteImport.update({
-    id: '/notificaciones',
-    path: '/notificaciones',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedNotifConfigRoute =
-  AuthenticatedNotifConfigRouteImport.update({
-    id: '/notif-config',
-    path: '/notif-config',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedFavoritosRoute = AuthenticatedFavoritosRouteImport.update({
-  id: '/favoritos',
-  path: '/favoritos',
+const AuthenticatedCuentaRoute = AuthenticatedCuentaRouteImport.update({
+  id: '/cuenta',
+  path: '/cuenta',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedDireccionesRoute =
@@ -134,20 +90,64 @@ const AuthenticatedDireccionesRoute =
     path: '/direcciones',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedCuentaRoute = AuthenticatedCuentaRouteImport.update({
-  id: '/cuenta',
-  path: '/cuenta',
+const AuthenticatedFavoritosRoute = AuthenticatedFavoritosRouteImport.update({
+  id: '/favoritos',
+  path: '/favoritos',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedAyudaRoute = AuthenticatedAyudaRouteImport.update({
-  id: '/ayuda',
-  path: '/ayuda',
+const AuthenticatedNotifConfigRoute =
+  AuthenticatedNotifConfigRouteImport.update({
+    id: '/notif-config',
+    path: '/notif-config',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedNotificacionesRoute =
+  AuthenticatedNotificacionesRouteImport.update({
+    id: '/notificaciones',
+    path: '/notificaciones',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedOnboardingPrestadorRoute =
+  AuthenticatedOnboardingPrestadorRouteImport.update({
+    id: '/onboarding-prestador',
+    path: '/onboarding-prestador',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedPanelRoute = AuthenticatedPanelRouteImport.update({
+  id: '/panel',
+  path: '/panel',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedChatReservaIdRoute =
-  AuthenticatedChatReservaIdRouteImport.update({
-    id: '/chat/$reservaId',
-    path: '/chat/$reservaId',
+const AuthenticatedReservasRoute = AuthenticatedReservasRouteImport.update({
+  id: '/reservas',
+  path: '/reservas',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedVerificarIdentidadRoute =
+  AuthenticatedVerificarIdentidadRouteImport.update({
+    id: '/verificar-identidad',
+    path: '/verificar-identidad',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const PrestadorIdRoute = PrestadorIdRouteImport.update({
+  id: '/prestador/$id',
+  path: '/prestador/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReservarIdRoute = ReservarIdRouteImport.update({
+  id: '/reservar/$id',
+  path: '/reservar/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ServicioServiceRoute = ServicioServiceRouteImport.update({
+  id: '/servicio/$service',
+  path: '/servicio/$service',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAdminReportesRoute =
+  AuthenticatedAdminReportesRouteImport.update({
+    id: '/admin/reportes',
+    path: '/admin/reportes',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedAdminVerificacionesRoute =
@@ -156,10 +156,10 @@ const AuthenticatedAdminVerificacionesRoute =
     path: '/admin/verificaciones',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedAdminReportesRoute =
-  AuthenticatedAdminReportesRouteImport.update({
-    id: '/admin/reportes',
-    path: '/admin/reportes',
+const AuthenticatedChatReservaIdRoute =
+  AuthenticatedChatReservaIdRouteImport.update({
+    id: '/chat/$reservaId',
+    path: '/chat/$reservaId',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const ApiPublicMercadopagoWebhookRoute =
@@ -348,46 +348,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/seguridad': {
-      id: '/seguridad'
-      path: '/seguridad'
-      fullPath: '/seguridad'
-      preLoaderRoute: typeof SeguridadRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/registro': {
-      id: '/registro'
-      path: '/registro'
-      fullPath: '/registro'
-      preLoaderRoute: typeof RegistroRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/forgot-password': {
-      id: '/forgot-password'
-      path: '/forgot-password'
-      fullPath: '/forgot-password'
-      preLoaderRoute: typeof ForgotPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/buscar': {
-      id: '/buscar'
-      path: '/buscar'
-      fullPath: '/buscar'
-      preLoaderRoute: typeof BuscarRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -397,88 +362,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/buscar': {
+      id: '/buscar'
+      path: '/buscar'
+      fullPath: '/buscar'
+      preLoaderRoute: typeof BuscarRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/servicio/$service': {
-      id: '/servicio/$service'
-      path: '/servicio/$service'
-      fullPath: '/servicio/$service'
-      preLoaderRoute: typeof ServicioServiceRouteImport
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/reservar/$id': {
-      id: '/reservar/$id'
-      path: '/reservar/$id'
-      fullPath: '/reservar/$id'
-      preLoaderRoute: typeof ReservarIdRouteImport
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/prestador/$id': {
-      id: '/prestador/$id'
-      path: '/prestador/$id'
-      fullPath: '/prestador/$id'
-      preLoaderRoute: typeof PrestadorIdRouteImport
+    '/registro': {
+      id: '/registro'
+      path: '/registro'
+      fullPath: '/registro'
+      preLoaderRoute: typeof RegistroRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/verificar-identidad': {
-      id: '/_authenticated/verificar-identidad'
-      path: '/verificar-identidad'
-      fullPath: '/verificar-identidad'
-      preLoaderRoute: typeof AuthenticatedVerificarIdentidadRouteImport
-      parentRoute: typeof AuthenticatedRoute
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/reservas': {
-      id: '/_authenticated/reservas'
-      path: '/reservas'
-      fullPath: '/reservas'
-      preLoaderRoute: typeof AuthenticatedReservasRouteImport
-      parentRoute: typeof AuthenticatedRoute
+    '/seguridad': {
+      id: '/seguridad'
+      path: '/seguridad'
+      fullPath: '/seguridad'
+      preLoaderRoute: typeof SeguridadRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/panel': {
-      id: '/_authenticated/panel'
-      path: '/panel'
-      fullPath: '/panel'
-      preLoaderRoute: typeof AuthenticatedPanelRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/onboarding-prestador': {
-      id: '/_authenticated/onboarding-prestador'
-      path: '/onboarding-prestador'
-      fullPath: '/onboarding-prestador'
-      preLoaderRoute: typeof AuthenticatedOnboardingPrestadorRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/notificaciones': {
-      id: '/_authenticated/notificaciones'
-      path: '/notificaciones'
-      fullPath: '/notificaciones'
-      preLoaderRoute: typeof AuthenticatedNotificacionesRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/notif-config': {
-      id: '/_authenticated/notif-config'
-      path: '/notif-config'
-      fullPath: '/notif-config'
-      preLoaderRoute: typeof AuthenticatedNotifConfigRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/favoritos': {
-      id: '/_authenticated/favoritos'
-      path: '/favoritos'
-      fullPath: '/favoritos'
-      preLoaderRoute: typeof AuthenticatedFavoritosRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/direcciones': {
-      id: '/_authenticated/direcciones'
-      path: '/direcciones'
-      fullPath: '/direcciones'
-      preLoaderRoute: typeof AuthenticatedDireccionesRouteImport
+    '/_authenticated/ayuda': {
+      id: '/_authenticated/ayuda'
+      path: '/ayuda'
+      fullPath: '/ayuda'
+      preLoaderRoute: typeof AuthenticatedAyudaRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/cuenta': {
@@ -488,18 +418,88 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCuentaRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/ayuda': {
-      id: '/_authenticated/ayuda'
-      path: '/ayuda'
-      fullPath: '/ayuda'
-      preLoaderRoute: typeof AuthenticatedAyudaRouteImport
+    '/_authenticated/direcciones': {
+      id: '/_authenticated/direcciones'
+      path: '/direcciones'
+      fullPath: '/direcciones'
+      preLoaderRoute: typeof AuthenticatedDireccionesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/chat/$reservaId': {
-      id: '/_authenticated/chat/$reservaId'
-      path: '/chat/$reservaId'
-      fullPath: '/chat/$reservaId'
-      preLoaderRoute: typeof AuthenticatedChatReservaIdRouteImport
+    '/_authenticated/favoritos': {
+      id: '/_authenticated/favoritos'
+      path: '/favoritos'
+      fullPath: '/favoritos'
+      preLoaderRoute: typeof AuthenticatedFavoritosRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/notif-config': {
+      id: '/_authenticated/notif-config'
+      path: '/notif-config'
+      fullPath: '/notif-config'
+      preLoaderRoute: typeof AuthenticatedNotifConfigRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/notificaciones': {
+      id: '/_authenticated/notificaciones'
+      path: '/notificaciones'
+      fullPath: '/notificaciones'
+      preLoaderRoute: typeof AuthenticatedNotificacionesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/onboarding-prestador': {
+      id: '/_authenticated/onboarding-prestador'
+      path: '/onboarding-prestador'
+      fullPath: '/onboarding-prestador'
+      preLoaderRoute: typeof AuthenticatedOnboardingPrestadorRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/panel': {
+      id: '/_authenticated/panel'
+      path: '/panel'
+      fullPath: '/panel'
+      preLoaderRoute: typeof AuthenticatedPanelRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/reservas': {
+      id: '/_authenticated/reservas'
+      path: '/reservas'
+      fullPath: '/reservas'
+      preLoaderRoute: typeof AuthenticatedReservasRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/verificar-identidad': {
+      id: '/_authenticated/verificar-identidad'
+      path: '/verificar-identidad'
+      fullPath: '/verificar-identidad'
+      preLoaderRoute: typeof AuthenticatedVerificarIdentidadRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/prestador/$id': {
+      id: '/prestador/$id'
+      path: '/prestador/$id'
+      fullPath: '/prestador/$id'
+      preLoaderRoute: typeof PrestadorIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reservar/$id': {
+      id: '/reservar/$id'
+      path: '/reservar/$id'
+      fullPath: '/reservar/$id'
+      preLoaderRoute: typeof ReservarIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/servicio/$service': {
+      id: '/servicio/$service'
+      path: '/servicio/$service'
+      fullPath: '/servicio/$service'
+      preLoaderRoute: typeof ServicioServiceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/admin/reportes': {
+      id: '/_authenticated/admin/reportes'
+      path: '/admin/reportes'
+      fullPath: '/admin/reportes'
+      preLoaderRoute: typeof AuthenticatedAdminReportesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/admin/verificaciones': {
@@ -509,11 +509,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminVerificacionesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/admin/reportes': {
-      id: '/_authenticated/admin/reportes'
-      path: '/admin/reportes'
-      fullPath: '/admin/reportes'
-      preLoaderRoute: typeof AuthenticatedAdminReportesRouteImport
+    '/_authenticated/chat/$reservaId': {
+      id: '/_authenticated/chat/$reservaId'
+      path: '/chat/$reservaId'
+      fullPath: '/chat/$reservaId'
+      preLoaderRoute: typeof AuthenticatedChatReservaIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/api/public/mercadopago/webhook': {
