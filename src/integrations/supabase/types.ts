@@ -243,50 +243,20 @@ export type Database = {
           },
         ]
       }
-      prestador_contacto: {
-        Row: { prestador_id: string; telefono: string | null; whatsapp: string | null; updated_at: string }
-        Insert: { prestador_id: string; telefono?: string | null; whatsapp?: string | null; updated_at?: string }
-        Update: { prestador_id?: string; telefono?: string | null; whatsapp?: string | null; updated_at?: string }
-        Relationships: []
-      }
-      reclamos: {
-        Row: { id: string; autor_id: string; tipo: string; reserva_id: string | null; asunto: string; detalle: string; estado: string; respuesta_admin: string | null; respondido_at: string | null; created_at: string }
-        Insert: { id?: string; autor_id: string; tipo: string; reserva_id?: string | null; asunto: string; detalle: string; estado?: string; respuesta_admin?: string | null; respondido_at?: string | null; created_at?: string }
-        Update: { id?: string; autor_id?: string; tipo?: string; reserva_id?: string | null; asunto?: string; detalle?: string; estado?: string; respuesta_admin?: string | null; respondido_at?: string | null; created_at?: string }
-        Relationships: []
-      }
-      palabras_bloqueadas: {
-        Row: { palabra: string }
-        Insert: { palabra: string }
-        Update: { palabra?: string }
-        Relationships: []
-      }
       prestador_servicios: {
         Row: {
-          precio_hasta: number
-          descripcion: string | null
-          foto_url: string | null
-          incluye: string | null
           id: string
           precio: number
           prestador_id: string
           servicio_id: string
         }
         Insert: {
-          precio_hasta: number
-          descripcion?: string | null
-          foto_url?: string | null
-          incluye?: string | null
           id?: string
           precio: number
           prestador_id: string
           servicio_id: string
         }
         Update: {
-          precio_hasta?: number
-          descripcion?: string | null
-          foto_url?: string | null
-          incluye?: string | null
           id?: string
           precio?: number
           prestador_id?: string
@@ -311,12 +281,6 @@ export type Database = {
       }
       prestadores: {
         Row: {
-          horario: Json
-          banner_url: string | null
-          color_perfil: string | null
-          titulo_profesional: string | null
-          anos_experiencia: number | null
-          comuna: string | null
           antecedentes_ok: boolean
           bio: string | null
           calificacion_promedio: number
@@ -344,12 +308,6 @@ export type Database = {
           verificado_identidad: boolean
         }
         Insert: {
-          horario?: Json
-          banner_url?: string | null
-          color_perfil?: string | null
-          titulo_profesional?: string | null
-          anos_experiencia?: number | null
-          comuna?: string | null
           antecedentes_ok?: boolean
           bio?: string | null
           calificacion_promedio?: number
@@ -377,12 +335,6 @@ export type Database = {
           verificado_identidad?: boolean
         }
         Update: {
-          horario?: Json
-          banner_url?: string | null
-          color_perfil?: string | null
-          titulo_profesional?: string | null
-          anos_experiencia?: number | null
-          comuna?: string | null
           antecedentes_ok?: boolean
           bio?: string | null
           calificacion_promedio?: number
@@ -760,8 +712,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      contacto_prestador: { Args: { _reserva_id: string }; Returns: { telefono: string | null; whatsapp: string | null }[] }
-      contiene_lenguaje_ofensivo: { Args: { _texto: string }; Returns: boolean }
       current_usuario_id: { Args: never; Returns: string }
       has_role: {
         Args: {
