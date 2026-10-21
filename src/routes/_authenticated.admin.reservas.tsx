@@ -10,7 +10,13 @@ import { formatCLP } from "@/data/services";
 import type { Database } from "@/integrations/supabase/types";
 
 export const Route = createFileRoute("/_authenticated/admin/reservas")({
-  head: () => ({ meta: [{ title: "Reservas — Admin Homie" }] }),
+  head: () => ({ meta: [
+    { name: "description", content: "Consulta y gestión administrativa de reservas de servicios en Homie." },
+    { property: "og:title", content: "Reservas — Admin Homie" },
+    { property: "og:description", content: "Consulta y gestión administrativa de reservas de servicios en Homie." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { title: "Reservas — Admin Homie" }] }),
   component: AdminReservas,
 });
 

@@ -8,7 +8,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/_authenticated/admin/verificaciones")({
-  head: () => ({ meta: [{ title: "Verificaciones — Admin" }] }),
+  head: () => ({ meta: [
+    { name: "description", content: "Revisión de identidad, antecedentes y certificados de profesionales en Homie." },
+    { property: "og:title", content: "Verificaciones — Admin Homie" },
+    { property: "og:description", content: "Revisión de identidad, antecedentes y certificados de profesionales en Homie." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { title: "Verificaciones — Admin Homie" }] }),
   component: AdminVerificaciones,
 });
 

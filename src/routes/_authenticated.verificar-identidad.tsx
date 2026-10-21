@@ -8,7 +8,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/_authenticated/verificar-identidad")({
-  head: () => ({ meta: [{ title: "Verificar identidad — Homie" }] }),
+  head: () => ({ meta: [
+    { name: "description", content: "Verificación de identidad y documentos de tu perfil profesional en Homie." },
+    { property: "og:title", content: "Verificar identidad — Homie" },
+    { property: "og:description", content: "Verificación de identidad y documentos de tu perfil profesional en Homie." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { title: "Verificar identidad — Homie" }] }),
   component: VerificarIdentidad,
 });
 

@@ -4,6 +4,11 @@ import { LegalPage } from "@/components/LegalPage";
 export const Route = createFileRoute("/privacidad")({
   head: () => ({
     meta: [
+    { property: "og:title", content: "Política de privacidad — Homie" },
+    { property: "og:description", content: "Cómo Homie recopila, usa, protege y conserva tus datos personales conforme a la Ley 19.628 y la Ley 21.719 de Chile, y cómo ejercer tus derechos." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    
       { title: "Política de privacidad — Homie" },
       { name: "description", content: "Cómo Homie recopila, usa, protege y conserva tus datos personales conforme a la Ley 19.628 y la Ley 21.719 de Chile, y cómo ejercer tus derechos." },
       { name: "robots", content: "index, follow" },

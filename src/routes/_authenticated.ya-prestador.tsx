@@ -10,7 +10,13 @@ import { distanciaKm } from "@/lib/geocode";
 import { getCategory } from "@/data/services";
 
 export const Route = createFileRoute("/_authenticated/ya-prestador")({
-  head: () => ({ meta: [{ title: "Homie Ya — urgencias en tu rubro — Homie" }] }),
+  head: () => ({ meta: [
+    { name: "description", content: "Urgencias disponibles para profesionales de tu rubro en Homie Ya." },
+    { property: "og:title", content: "Homie Ya — urgencias en tu rubro — Homie" },
+    { property: "og:description", content: "Urgencias disponibles para profesionales de tu rubro en Homie Ya." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { title: "Homie Ya — urgencias en tu rubro — Homie" }] }),
   component: YaPrestadorPage,
 });
 

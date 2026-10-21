@@ -9,6 +9,11 @@ import { FAQ_CLIENTES, FAQ_PROFESIONALES } from "@/data/faq";
 export const Route = createFileRoute("/como-funciona")({
   head: () => ({
     meta: [
+    { property: "og:title", content: "Cómo funciona Homie — verificación, precio garantizado y pago protegido" },
+    { property: "og:description", content: "Cómo reservar un profesional verificado a domicilio en Homie: busca, reserva con precio garantizado, paga protegido con Mercado Pago y confirma al terminar." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    
       { title: "Cómo funciona Homie — verificación, precio garantizado y pago protegido" },
       { name: "description", content: "Cómo reservar un profesional verificado a domicilio en Homie: busca, reserva con precio garantizado, paga protegido con Mercado Pago y confirma al terminar." },
     ],

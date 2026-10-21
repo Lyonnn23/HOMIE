@@ -5,7 +5,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/_authenticated/admin/reportes")({
-  head: () => ({ meta: [{ title: "Reportes — Admin Homie" }] }),
+  head: () => ({ meta: [
+    { name: "description", content: "Revisión de reportes relacionados con reservas y usuarios de Homie." },
+    { property: "og:title", content: "Reportes — Admin Homie" },
+    { property: "og:description", content: "Revisión de reportes relacionados con reservas y usuarios de Homie." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { title: "Reportes — Admin Homie" }] }),
   component: AdminReportes,
 });
 

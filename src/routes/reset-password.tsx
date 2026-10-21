@@ -3,7 +3,13 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/reset-password")({
-  head: () => ({ meta: [{ title: "Nueva contraseña — Homie" }] }),
+  head: () => ({ meta: [
+    { name: "description", content: "Actualiza la contraseña de tu cuenta Homie." },
+    { property: "og:title", content: "Nueva contraseña — Homie" },
+    { property: "og:description", content: "Actualiza la contraseña de tu cuenta Homie." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { title: "Nueva contraseña — Homie" }] }),
   component: ResetPasswordPage,
 });
 

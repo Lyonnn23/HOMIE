@@ -10,7 +10,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { groups, categoriesOfGroup, formatCLP } from "@/data/services";
 
 export const Route = createFileRoute("/_authenticated/solicitar")({
-  head: () => ({ meta: [{ title: "Pide cotizaciones — Homie" }] }),
+  head: () => ({ meta: [
+    { name: "description", content: "Solicita cotizaciones para un servicio de profesionales de Homie." },
+    { property: "og:title", content: "Pide cotizaciones — Homie" },
+    { property: "og:description", content: "Solicita cotizaciones para un servicio de profesionales de Homie." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { title: "Pide cotizaciones — Homie" }] }),
   component: SolicitarPage,
 });
 

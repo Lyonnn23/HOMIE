@@ -7,7 +7,13 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/notificaciones")({
-  head: () => ({ meta: [{ title: "Notificaciones — Homie" }] }),
+  head: () => ({ meta: [
+    { name: "description", content: "Avisos de reservas, cotizaciones y servicios de Homie." },
+    { property: "og:title", content: "Notificaciones — Homie" },
+    { property: "og:description", content: "Avisos de reservas, cotizaciones y servicios de Homie." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { title: "Notificaciones — Homie" }] }),
   component: NotificacionesPage,
 });
 

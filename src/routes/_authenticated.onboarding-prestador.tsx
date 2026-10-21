@@ -9,7 +9,13 @@ import { HorarioEditor, defaultHorario, validarHorario, type Horario } from "@/c
 import { geocodificar } from "@/lib/geocode";
 
 export const Route = createFileRoute("/_authenticated/onboarding-prestador")({
-  head: () => ({ meta: [{ title: "Completa tu perfil — Homie" }] }),
+  head: () => ({ meta: [
+    { name: "description", content: "Registro de información profesional, servicios y horarios en Homie." },
+    { property: "og:title", content: "Completa tu perfil — Homie" },
+    { property: "og:description", content: "Registro de información profesional, servicios y horarios en Homie." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { title: "Completa tu perfil — Homie" }] }),
   component: OnboardingPrestador,
 });
 

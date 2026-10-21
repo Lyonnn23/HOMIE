@@ -39,7 +39,13 @@ const searchSchema = z.object({
 
 export const Route = createFileRoute("/buscar")({
   validateSearch: zodValidator(searchSchema),
-  head: () => ({ meta: [{ title: "Buscar servicios — Homie" }] }),
+  head: () => ({ meta: [
+    { name: "description", content: "Encuentra profesionales de Homie por servicio, ubicación y disponibilidad." },
+    { property: "og:title", content: "Buscar servicios — Homie" },
+    { property: "og:description", content: "Encuentra profesionales de Homie por servicio, ubicación y disponibilidad." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { title: "Buscar servicios — Homie" }] }),
   component: Buscar,
 });
 

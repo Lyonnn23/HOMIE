@@ -5,7 +5,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { HomieLogo } from "@/components/Logo";
 
 export const Route = createFileRoute("/forgot-password")({
-  head: () => ({ meta: [{ title: "Recuperar contraseña — Homie" }] }),
+  head: () => ({ meta: [
+    { name: "description", content: "Recupera el acceso a tu cuenta de Homie." },
+    { property: "og:title", content: "Recuperar contraseña — Homie" },
+    { property: "og:description", content: "Recupera el acceso a tu cuenta de Homie." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { title: "Recuperar contraseña — Homie" }] }),
   component: ForgotPasswordPage,
 });
 

@@ -35,6 +35,9 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    
       { title: "Homie — Profesionales verificados a domicilio con precio garantizado" },
       {
         name: "description",

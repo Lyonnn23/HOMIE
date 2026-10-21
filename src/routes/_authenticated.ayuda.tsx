@@ -3,7 +3,13 @@ import { ChevronDown, Mail, Scale } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 
 export const Route = createFileRoute("/_authenticated/ayuda")({
-  head: () => ({ meta: [{ title: "Ayuda y soporte — Homie" }] }),
+  head: () => ({ meta: [
+    { name: "description", content: "Ayuda y soporte para clientes y profesionales de Homie." },
+    { property: "og:title", content: "Ayuda y soporte — Homie" },
+    { property: "og:description", content: "Ayuda y soporte para clientes y profesionales de Homie." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { title: "Ayuda y soporte — Homie" }] }),
   component: AyudaPage,
 });
 

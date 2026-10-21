@@ -4,6 +4,11 @@ import { LegalPage } from "@/components/LegalPage";
 export const Route = createFileRoute("/terminos")({
   head: () => ({
     meta: [
+    { property: "og:title", content: "Términos y condiciones — Homie" },
+    { property: "og:description", content: "Términos y condiciones de uso de Homie, marketplace de servicios a domicilio en Chile: rol de intermediario, comisión, pagos, cancelaciones, reclamos y mediación." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    
       { title: "Términos y condiciones — Homie" },
       { name: "description", content: "Términos y condiciones de uso de Homie, marketplace de servicios a domicilio en Chile: rol de intermediario, comisión, pagos, cancelaciones, reclamos y mediación." },
       { name: "robots", content: "index, follow" },

@@ -15,7 +15,13 @@ import { createProPreference } from "@/lib/mercadopago.functions";
 
 export const Route = createFileRoute("/_authenticated/pro")({
   validateSearch: z.object({ pago: z.enum(["exito", "pendiente", "error"]).optional() }),
-  head: () => ({ meta: [{ title: "Homie Pro — Homie" }] }),
+  head: () => ({ meta: [
+    { name: "description", content: "Planes Homie Pro, prueba gratuita y estado de tu suscripción profesional." },
+    { property: "og:title", content: "Homie Pro — Homie" },
+    { property: "og:description", content: "Planes Homie Pro, prueba gratuita y estado de tu suscripción profesional." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { title: "Homie Pro — Homie" }] }),
   component: ProPage,
 });
 

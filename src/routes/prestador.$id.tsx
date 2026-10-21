@@ -12,6 +12,14 @@ import { useReplyReview } from "@/store/bookings";
 
 export const Route = createFileRoute("/prestador/$id")({
   validateSearch: z.object({ service: z.string().optional() }),
+  head: () => ({ meta: [
+    { title: "Perfil del profesional — Homie" },
+    { name: "description", content: "Perfil, servicios, horarios y reseñas de un profesional de Homie." },
+    { property: "og:title", content: "Perfil del profesional — Homie" },
+    { property: "og:description", content: "Perfil, servicios, horarios y reseñas de un profesional de Homie." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: ProviderPage,
 });
 
