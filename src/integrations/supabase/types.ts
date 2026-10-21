@@ -243,52 +243,75 @@ export type Database = {
           },
         ]
       }
-      prestador_contacto: {
-        Row: { prestador_id: string; telefono: string | null; whatsapp: string | null; updated_at: string }
-        Insert: { prestador_id: string; telefono?: string | null; whatsapp?: string | null; updated_at?: string }
-        Update: { prestador_id?: string; telefono?: string | null; whatsapp?: string | null; updated_at?: string }
-        Relationships: []
-      }
-      reclamos: {
-        Row: { id: string; autor_id: string; tipo: string; reserva_id: string | null; asunto: string; detalle: string; estado: string; respuesta_admin: string | null; respondido_at: string | null; created_at: string }
-        Insert: { id?: string; autor_id: string; tipo: string; reserva_id?: string | null; asunto: string; detalle: string; estado?: string; respuesta_admin?: string | null; respondido_at?: string | null; created_at?: string }
-        Update: { id?: string; autor_id?: string; tipo?: string; reserva_id?: string | null; asunto?: string; detalle?: string; estado?: string; respuesta_admin?: string | null; respondido_at?: string | null; created_at?: string }
-        Relationships: []
-      }
       palabras_bloqueadas: {
-        Row: { palabra: string }
-        Insert: { palabra: string }
-        Update: { palabra?: string }
+        Row: {
+          palabra: string
+        }
+        Insert: {
+          palabra: string
+        }
+        Update: {
+          palabra?: string
+        }
         Relationships: []
+      }
+      prestador_contacto: {
+        Row: {
+          prestador_id: string
+          telefono: string | null
+          updated_at: string
+          whatsapp: string | null
+        }
+        Insert: {
+          prestador_id: string
+          telefono?: string | null
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          prestador_id?: string
+          telefono?: string | null
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prestador_contacto_prestador_id_fkey"
+            columns: ["prestador_id"]
+            isOneToOne: true
+            referencedRelation: "prestadores"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       prestador_servicios: {
         Row: {
-          precio_hasta: number
           descripcion: string | null
           foto_url: string | null
-          incluye: string | null
           id: string
+          incluye: string | null
           precio: number
+          precio_hasta: number
           prestador_id: string
           servicio_id: string
         }
         Insert: {
-          precio_hasta: number
           descripcion?: string | null
           foto_url?: string | null
-          incluye?: string | null
           id?: string
+          incluye?: string | null
           precio: number
+          precio_hasta: number
           prestador_id: string
           servicio_id: string
         }
         Update: {
-          precio_hasta?: number
           descripcion?: string | null
           foto_url?: string | null
-          incluye?: string | null
           id?: string
+          incluye?: string | null
           precio?: number
+          precio_hasta?: number
           prestador_id?: string
           servicio_id?: string
         }
@@ -311,24 +334,23 @@ export type Database = {
       }
       prestadores: {
         Row: {
-          horario: Json
-          banner_url: string | null
-          color_perfil: string | null
-          titulo_profesional: string | null
           anos_experiencia: number | null
-          comuna: string | null
           antecedentes_ok: boolean
+          banner_url: string | null
           bio: string | null
           calificacion_promedio: number
           categoria_id: string
           ciudad: string
+          color_perfil: string | null
           compartir_ubicacion: boolean
+          comuna: string | null
           direccion: string | null
           disponibilidad_texto: string | null
           disponible_ahora: boolean
           distancia_km: number | null
           foto_url: string | null
           gallery_urls: string[]
+          horario: Json
           id: string
           lat: number | null
           lng: number | null
@@ -338,30 +360,30 @@ export type Database = {
           precio_hasta: number
           resenas_count: number
           suspendido: boolean
+          titulo_profesional: string | null
           ubicacion_actualizada_at: string | null
           usuario_id: string
           verificado: boolean
           verificado_identidad: boolean
         }
         Insert: {
-          horario?: Json
-          banner_url?: string | null
-          color_perfil?: string | null
-          titulo_profesional?: string | null
           anos_experiencia?: number | null
-          comuna?: string | null
           antecedentes_ok?: boolean
+          banner_url?: string | null
           bio?: string | null
           calificacion_promedio?: number
           categoria_id: string
           ciudad?: string
+          color_perfil?: string | null
           compartir_ubicacion?: boolean
+          comuna?: string | null
           direccion?: string | null
           disponibilidad_texto?: string | null
           disponible_ahora?: boolean
           distancia_km?: number | null
           foto_url?: string | null
           gallery_urls?: string[]
+          horario?: Json
           id?: string
           lat?: number | null
           lng?: number | null
@@ -371,30 +393,30 @@ export type Database = {
           precio_hasta?: number
           resenas_count?: number
           suspendido?: boolean
+          titulo_profesional?: string | null
           ubicacion_actualizada_at?: string | null
           usuario_id: string
           verificado?: boolean
           verificado_identidad?: boolean
         }
         Update: {
-          horario?: Json
-          banner_url?: string | null
-          color_perfil?: string | null
-          titulo_profesional?: string | null
           anos_experiencia?: number | null
-          comuna?: string | null
           antecedentes_ok?: boolean
+          banner_url?: string | null
           bio?: string | null
           calificacion_promedio?: number
           categoria_id?: string
           ciudad?: string
+          color_perfil?: string | null
           compartir_ubicacion?: boolean
+          comuna?: string | null
           direccion?: string | null
           disponibilidad_texto?: string | null
           disponible_ahora?: boolean
           distancia_km?: number | null
           foto_url?: string | null
           gallery_urls?: string[]
+          horario?: Json
           id?: string
           lat?: number | null
           lng?: number | null
@@ -404,6 +426,7 @@ export type Database = {
           precio_hasta?: number
           resenas_count?: number
           suspendido?: boolean
+          titulo_profesional?: string | null
           ubicacion_actualizada_at?: string | null
           usuario_id?: string
           verificado?: boolean
@@ -422,6 +445,60 @@ export type Database = {
             columns: ["usuario_id"]
             isOneToOne: false
             referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reclamos: {
+        Row: {
+          asunto: string
+          autor_id: string
+          created_at: string
+          detalle: string
+          estado: string
+          id: string
+          reserva_id: string | null
+          respondido_at: string | null
+          respuesta_admin: string | null
+          tipo: string
+        }
+        Insert: {
+          asunto: string
+          autor_id: string
+          created_at?: string
+          detalle: string
+          estado?: string
+          id?: string
+          reserva_id?: string | null
+          respondido_at?: string | null
+          respuesta_admin?: string | null
+          tipo: string
+        }
+        Update: {
+          asunto?: string
+          autor_id?: string
+          created_at?: string
+          detalle?: string
+          estado?: string
+          id?: string
+          reserva_id?: string | null
+          respondido_at?: string | null
+          respuesta_admin?: string | null
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reclamos_autor_id_fkey"
+            columns: ["autor_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reclamos_reserva_id_fkey"
+            columns: ["reserva_id"]
+            isOneToOne: false
+            referencedRelation: "reservas"
             referencedColumns: ["id"]
           },
         ]
@@ -760,7 +837,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      contacto_prestador: { Args: { _reserva_id: string }; Returns: { telefono: string | null; whatsapp: string | null }[] }
+      contacto_prestador: {
+        Args: { _reserva_id: string }
+        Returns: {
+          telefono: string
+          whatsapp: string
+        }[]
+      }
       contiene_lenguaje_ofensivo: { Args: { _texto: string }; Returns: boolean }
       current_usuario_id: { Args: never; Returns: string }
       has_role: {
@@ -771,6 +854,7 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: never; Returns: boolean }
+      unaccent_safe: { Args: { _t: string }; Returns: string }
     }
     Enums: {
       app_role: "user" | "admin" | "superadmin"
