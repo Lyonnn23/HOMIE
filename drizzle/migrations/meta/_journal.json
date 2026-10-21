@@ -15,6 +15,13 @@
       "when": 1792552885658,
       "tag": "0001_20261021010000_homie_mejoras_v2",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792556309639,
+      "tag": "0002_20261021040000_homie_operacion",
+      "breakpoints": true
     }
   ]
 }

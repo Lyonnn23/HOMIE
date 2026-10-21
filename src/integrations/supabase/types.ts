@@ -14,6 +14,18 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_emails: {
+        Row: {
+          email: string
+        }
+        Insert: {
+          email: string
+        }
+        Update: {
+          email?: string
+        }
+        Relationships: []
+      }
       categorias: {
         Row: {
           color_fondo: string
@@ -127,6 +139,60 @@ export type Database = {
         }
         Relationships: []
       }
+      liquidaciones: {
+        Row: {
+          created_at: string
+          id: string
+          medio: string | null
+          monto: number
+          nota: string | null
+          pagada_at: string
+          pagada_por: string | null
+          prestador_id: string
+          referencia: string | null
+          reservas: string[]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          medio?: string | null
+          monto: number
+          nota?: string | null
+          pagada_at?: string
+          pagada_por?: string | null
+          prestador_id: string
+          referencia?: string | null
+          reservas?: string[]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          medio?: string | null
+          monto?: number
+          nota?: string | null
+          pagada_at?: string
+          pagada_por?: string | null
+          prestador_id?: string
+          referencia?: string | null
+          reservas?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "liquidaciones_prestador_id_fkey"
+            columns: ["prestador_id"]
+            isOneToOne: false
+            referencedRelation: "prestadores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "liquidaciones_prestador_id_fkey"
+            columns: ["prestador_id"]
+            isOneToOne: false
+            referencedRelation: "saldos_prestadores"
+            referencedColumns: ["prestador_id"]
+          },
+        ]
+      }
       mensajes: {
         Row: {
           contenido: string
@@ -196,11 +262,13 @@ export type Database = {
           created_at: string
           estado: string
           id: string
+          liquidacion_id: string | null
           moneda: string
           monto_prestador: number
           monto_total: number
           mp_payment_id: string | null
           mp_preference_id: string | null
+          reembolsado_at: string | null
           reserva_id: string
           stripe_session_id: string | null
           updated_at: string
@@ -210,11 +278,13 @@ export type Database = {
           created_at?: string
           estado?: string
           id?: string
+          liquidacion_id?: string | null
           moneda?: string
           monto_prestador: number
           monto_total: number
           mp_payment_id?: string | null
           mp_preference_id?: string | null
+          reembolsado_at?: string | null
           reserva_id: string
           stripe_session_id?: string | null
           updated_at?: string
@@ -224,16 +294,25 @@ export type Database = {
           created_at?: string
           estado?: string
           id?: string
+          liquidacion_id?: string | null
           moneda?: string
           monto_prestador?: number
           monto_total?: number
           mp_payment_id?: string | null
           mp_preference_id?: string | null
+          reembolsado_at?: string | null
           reserva_id?: string
           stripe_session_id?: string | null
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "pagos_liquidacion_id_fkey"
+            columns: ["liquidacion_id"]
+            isOneToOne: false
+            referencedRelation: "liquidaciones"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "pagos_reserva_id_fkey"
             columns: ["reserva_id"]
@@ -257,20 +336,35 @@ export type Database = {
       }
       prestador_contacto: {
         Row: {
+          banco: string | null
+          numero_cuenta: string | null
           prestador_id: string
+          rut: string | null
           telefono: string | null
+          tipo_cuenta: string | null
+          titular: string | null
           updated_at: string
           whatsapp: string | null
         }
         Insert: {
+          banco?: string | null
+          numero_cuenta?: string | null
           prestador_id: string
+          rut?: string | null
           telefono?: string | null
+          tipo_cuenta?: string | null
+          titular?: string | null
           updated_at?: string
           whatsapp?: string | null
         }
         Update: {
+          banco?: string | null
+          numero_cuenta?: string | null
           prestador_id?: string
+          rut?: string | null
           telefono?: string | null
+          tipo_cuenta?: string | null
+          titular?: string | null
           updated_at?: string
           whatsapp?: string | null
         }
@@ -281,6 +375,13 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "prestadores"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prestador_contacto_prestador_id_fkey"
+            columns: ["prestador_id"]
+            isOneToOne: true
+            referencedRelation: "saldos_prestadores"
+            referencedColumns: ["prestador_id"]
           },
         ]
       }
@@ -322,6 +423,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "prestadores"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prestador_servicios_prestador_id_fkey"
+            columns: ["prestador_id"]
+            isOneToOne: false
+            referencedRelation: "saldos_prestadores"
+            referencedColumns: ["prestador_id"]
           },
           {
             foreignKeyName: "prestador_servicios_servicio_id_fkey"
@@ -617,6 +725,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "resenas_prestador_id_fkey"
+            columns: ["prestador_id"]
+            isOneToOne: false
+            referencedRelation: "saldos_prestadores"
+            referencedColumns: ["prestador_id"]
+          },
+          {
             foreignKeyName: "resenas_reserva_id_fkey"
             columns: ["reserva_id"]
             isOneToOne: false
@@ -625,18 +740,47 @@ export type Database = {
           },
         ]
       }
+      reserva_codigos: {
+        Row: {
+          codigo: string
+          intentos: number
+          reserva_id: string
+        }
+        Insert: {
+          codigo: string
+          intentos?: number
+          reserva_id: string
+        }
+        Update: {
+          codigo?: string
+          intentos?: number
+          reserva_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reserva_codigos_reserva_id_fkey"
+            columns: ["reserva_id"]
+            isOneToOne: true
+            referencedRelation: "reservas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reservas: {
         Row: {
+          cancelada_por: string | null
           cliente_foto_url: string | null
           cliente_id: string
           cliente_nombre: string | null
           comision: number
+          completada_at: string | null
           created_at: string
           direccion: string
           estado: Database["public"]["Enums"]["reserva_estado"]
           fecha: string
           hora: string
           id: string
+          motivo_cancelacion: string | null
           nota: string | null
           prestador_foto_url: string | null
           prestador_id: string
@@ -646,16 +790,19 @@ export type Database = {
           total: number
         }
         Insert: {
+          cancelada_por?: string | null
           cliente_foto_url?: string | null
           cliente_id: string
           cliente_nombre?: string | null
           comision?: number
+          completada_at?: string | null
           created_at?: string
           direccion: string
           estado?: Database["public"]["Enums"]["reserva_estado"]
           fecha: string
           hora: string
           id?: string
+          motivo_cancelacion?: string | null
           nota?: string | null
           prestador_foto_url?: string | null
           prestador_id: string
@@ -665,16 +812,19 @@ export type Database = {
           total: number
         }
         Update: {
+          cancelada_por?: string | null
           cliente_foto_url?: string | null
           cliente_id?: string
           cliente_nombre?: string | null
           comision?: number
+          completada_at?: string | null
           created_at?: string
           direccion?: string
           estado?: Database["public"]["Enums"]["reserva_estado"]
           fecha?: string
           hora?: string
           id?: string
+          motivo_cancelacion?: string | null
           nota?: string | null
           prestador_foto_url?: string | null
           prestador_id?: string
@@ -697,6 +847,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "prestadores"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservas_prestador_id_fkey"
+            columns: ["prestador_id"]
+            isOneToOne: false
+            referencedRelation: "saldos_prestadores"
+            referencedColumns: ["prestador_id"]
           },
           {
             foreignKeyName: "reservas_servicio_id_fkey"
@@ -834,9 +991,48 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      saldos_prestadores: {
+        Row: {
+          comision_homie: number | null
+          monto_pendiente: number | null
+          nombre: string | null
+          prestador_id: string | null
+          reserva_ids: string[] | null
+          reservas_pendientes: number | null
+          usuario_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prestadores_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
+      admin_resumen: {
+        Args: never
+        Returns: {
+          clientes: number
+          comision_mes: number
+          ingresos_mes: number
+          por_liquidar: number
+          prestadores_verificados: number
+          reclamos_abiertos: number
+          reservas_hoy: number
+          reservas_mes: number
+          reservas_pendientes: number
+          verificaciones_pendientes: number
+        }[]
+      }
+      asignar_admin_por_email: { Args: { _email: string }; Returns: undefined }
+      completar_con_codigo: {
+        Args: { _codigo: string; _reserva_id: string }
+        Returns: boolean
+      }
       contacto_prestador: {
         Args: { _reserva_id: string }
         Returns: {
@@ -846,6 +1042,10 @@ export type Database = {
       }
       contiene_lenguaje_ofensivo: { Args: { _texto: string }; Returns: boolean }
       current_usuario_id: { Args: never; Returns: string }
+      distancia_km: {
+        Args: { lat1: number; lat2: number; lng1: number; lng2: number }
+        Returns: number
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -853,7 +1053,22 @@ export type Database = {
         }
         Returns: boolean
       }
+      horas_ocupadas: {
+        Args: { _fecha: string; _prestador_id: string }
+        Returns: {
+          hora: string
+        }[]
+      }
       is_admin: { Args: never; Returns: boolean }
+      registrar_liquidacion: {
+        Args: {
+          _medio: string
+          _nota: string
+          _prestador_id: string
+          _referencia: string
+        }
+        Returns: string
+      }
       unaccent_safe: { Args: { _t: string }; Returns: string }
     }
     Enums: {
