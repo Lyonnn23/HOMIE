@@ -1,6 +1,8 @@
 import {
   Scissors, Home, Wrench, HeartPulse, PawPrint, Truck, Laptop, Camera,
   Car, Flower2, Gift, Baby, PartyPopper,
+  Scale, Calculator, DraftingCompass, GraduationCap, Stethoscope,
+  Sparkles, Briefcase,
   type LucideIcon,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -8,11 +10,36 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type CategoryId =
   | "beauty" | "home" | "tech-fix" | "health" | "pets" | "moving" | "tech" | "events"
-  | "auto" | "garden" | "gifts" | "care" | "party";
+  | "auto" | "garden" | "gifts" | "care" | "party"
+  | "legal" | "finanzas" | "ingenieria" | "educacion" | "salud-pro";
+
+export type GroupId = "hogar" | "personas" | "profesionales" | "vehiculos" | "mascotas" | "celebraciones" | "tecnologia";
+
+export interface Group {
+  id: GroupId;
+  name: string;
+  tagline: string;
+  bg: string;
+  icon: LucideIcon;
+}
+
+/** Grupos de primer nivel: la portada muestra 7 grupos en vez de 18 categorías. */
+export const groups: Group[] = [
+  { id: "hogar", name: "Hogar", tagline: "Limpieza, técnicos, jardín, mudanzas", bg: "#00B4D8", icon: Home },
+  { id: "personas", name: "Belleza y bienestar", tagline: "Estética, salud, cuidado de personas", bg: "#FF3B6B", icon: Sparkles },
+  { id: "profesionales", name: "Profesionales", tagline: "Abogados, contadores, ingenieros, salud, clases", bg: "#111827", icon: Briefcase },
+  { id: "vehiculos", name: "Vehículos", tagline: "Mecánica y lavado a domicilio", bg: "#2563EB", icon: Car },
+  { id: "mascotas", name: "Mascotas", tagline: "Paseo, baño, veterinario", bg: "#A855F7", icon: PawPrint },
+  { id: "celebraciones", name: "Eventos y regalos", tagline: "Fiestas, fotografía, sorpresas", bg: "#EC4899", icon: PartyPopper },
+  { id: "tecnologia", name: "Tecnología", tagline: "Computación, redes, celulares", bg: "#EF9F27", icon: Laptop },
+];
+export function getGroup(id: string) { return groups.find((g) => g.id === id); }
+export function categoriesOfGroup(id: GroupId) { return categories.filter((c) => c.group === id); }
 
 export interface Category {
   id: CategoryId;
   name: string;
+  group: GroupId;
   bg: string;
   tokenVar: string;
   icon: LucideIcon;
@@ -23,32 +50,43 @@ export interface Category {
 // se sirve desde Supabase mediante useCategoryServices, pero estos arrays
 // permiten renderizar el grid de inicio y la búsqueda sin esperar la red.
 export const categories: Category[] = [
-  { id: "beauty", name: "Belleza y estética", bg: "#FF3B6B", tokenVar: "--cat-beauty", icon: Scissors,
+  { id: "beauty", group: "personas", name: "Belleza y estética", bg: "#FF3B6B", tokenVar: "--cat-beauty", icon: Scissors,
     services: ["Manicure y pedicure","Peluquería","Maquillaje","Extensiones de pestañas","Depilación","Spa y masajes","Tintes y tratamientos","Micropigmentación"] },
-  { id: "home", name: "Hogar y limpieza", bg: "#00B4D8", tokenVar: "--cat-home", icon: Home,
+  { id: "home", group: "hogar", name: "Hogar y limpieza", bg: "#00B4D8", tokenVar: "--cat-home", icon: Home,
     services: ["Aseo del hogar","Lavandería","Planchado","Lavado de ventanas","Limpieza de muebles","Limpieza post-obra","Jardinería","Retiro de escombros"] },
-  { id: "tech-fix", name: "Técnicos y gasfitería", bg: "#FF6B00", tokenVar: "--cat-tech-fix", icon: Wrench,
+  { id: "tech-fix", group: "hogar", name: "Técnicos y gasfitería", bg: "#FF6B00", tokenVar: "--cat-tech-fix", icon: Wrench,
     services: ["Electricista","Gasfíter","Climatización","Cerrajero","Pintor","Instalación de TV/Rack","Yeso y albañilería","Plomería"] },
-  { id: "health", name: "Salud y bienestar", bg: "#00C288", tokenVar: "--cat-health", icon: HeartPulse,
-    services: ["Enfermería a domicilio","Entrenador personal","Kinesiólogo","Nutricionista","Psicólogo online","Terapeuta/Reiki","Enfermera pediátrica","Cuidador de adultos"] },
-  { id: "pets", name: "Mascotas", bg: "#A855F7", tokenVar: "--cat-pets", icon: PawPrint,
+  { id: "health", group: "personas", name: "Salud y bienestar", bg: "#00C288", tokenVar: "--cat-health", icon: HeartPulse,
+    services: ["Entrenador personal","Masajista","Terapeuta/Reiki","Yoga y pilates","Coach de bienestar","Cuidador de adultos"] },
+  { id: "pets", group: "mascotas", name: "Mascotas", bg: "#A855F7", tokenVar: "--cat-pets", icon: PawPrint,
     services: ["Peluquería canina","Paseo de perros","Pet sitting","Vet a domicilio","Baño y aseo","Vacunación"] },
-  { id: "moving", name: "Muebles y mudanzas", bg: "#64748B", tokenVar: "--cat-moving", icon: Truck,
+  { id: "moving", group: "hogar", name: "Muebles y mudanzas", bg: "#64748B", tokenVar: "--cat-moving", icon: Truck,
     services: ["Mudanzas","Armado de muebles","Organización del hogar","Embalaje","Instalación de estanterías","Decoración de interiores"] },
-  { id: "tech", name: "Tecnología y digital", bg: "#EF9F27", tokenVar: "--cat-tech", icon: Laptop,
+  { id: "tech", group: "tecnologia", name: "Tecnología y digital", bg: "#EF9F27", tokenVar: "--cat-tech", icon: Laptop,
     services: ["Reparación de PC","Instalación de red/WiFi","Instalación de cámaras","Soporte impresoras","Reparación celulares","Clases de computación"] },
-  { id: "events", name: "Eventos y fotografía", bg: "#EC4899", tokenVar: "--cat-events", icon: Camera,
+  { id: "events", group: "celebraciones", name: "Eventos y fotografía", bg: "#EC4899", tokenVar: "--cat-events", icon: Camera,
     services: ["Fotógrafo","Videógrafo","Decorador de eventos","Chef a domicilio","DJ/sonido","Repostería"] },
-  { id: "auto", name: "Automotriz a domicilio", bg: "#2563EB", tokenVar: "--cat-auto", icon: Car,
+  { id: "auto", group: "vehiculos", name: "Automotriz a domicilio", bg: "#2563EB", tokenVar: "--cat-auto", icon: Car,
     services: ["Mecánico a domicilio","Lavado de autos","Cambio de batería","Cambio de neumáticos","Scanner y diagnóstico","Pulido y encerado"] },
-  { id: "garden", name: "Jardín y piscinas", bg: "#16A34A", tokenVar: "--cat-garden", icon: Flower2,
+  { id: "garden", group: "hogar", name: "Jardín y piscinas", bg: "#16A34A", tokenVar: "--cat-garden", icon: Flower2,
     services: ["Jardinería","Corte de pasto","Poda de árboles","Limpieza de piscinas","Mantención de piscinas","Diseño de jardines"] },
-  { id: "gifts", name: "Regalos y sorpresas", bg: "#DB2777", tokenVar: "--cat-gifts", icon: Gift,
+  { id: "gifts", group: "celebraciones", name: "Regalos y sorpresas", bg: "#DB2777", tokenVar: "--cat-gifts", icon: Gift,
     services: ["Florería","Desayunos sorpresa","Regalos de cumpleaños","Paquetería y envoltura","Cajas de regalo","Globos y decoración"] },
-  { id: "care", name: "Cuidado y asesoría", bg: "#0D9488", tokenVar: "--cat-care", icon: Baby,
+  { id: "care", group: "personas", name: "Cuidado y asesoría", bg: "#0D9488", tokenVar: "--cat-care", icon: Baby,
     services: ["Cuidadora de niños","Asesora del hogar","Limpieza por día","Cuidado de adulto mayor","Acompañamiento","Apoyo escolar"] },
-  { id: "party", name: "Fiestas y diversión", bg: "#F59E0B", tokenVar: "--cat-party", icon: PartyPopper,
+  { id: "party", group: "celebraciones", name: "Fiestas y diversión", bg: "#F59E0B", tokenVar: "--cat-party", icon: PartyPopper,
     services: ["Juegos inflables","DJ para fiestas","Food truck","Animación infantil","Cumpleaños completo","Carrito de algodón y palomitas","Bartender","Fotocabina"] },
+  // ---- Profesionales ----
+  { id: "legal", group: "profesionales", name: "Abogados", bg: "#1E3A8A", tokenVar: "--cat-legal", icon: Scale,
+    services: ["Abogado de familia","Abogado laboral","Abogado civil","Abogado penal","Abogado inmobiliario","Abogado tributario","Abogado comercial","Abogado de extranjería","Abogado de consumo","Abogado de herencias","Abogado de tránsito","Asesoría legal online"] },
+  { id: "finanzas", group: "profesionales", name: "Contadores y empresas", bg: "#0F766E", tokenVar: "--cat-finanzas", icon: Calculator,
+    services: ["Contador","Contador auditor","Declaración de renta","Inicio de actividades","Asesoría tributaria","Administrador de empresas","Asesoría financiera","Remuneraciones y RRHH","Gestión de pymes","Constitución de empresas"] },
+  { id: "ingenieria", group: "profesionales", name: "Arquitectura e ingeniería", bg: "#7C2D12", tokenVar: "--cat-ingenieria", icon: DraftingCompass,
+    services: ["Arquitecto","Ingeniero civil","Ingeniero eléctrico","Ingeniero estructural","Constructor civil","Diseño de planos","Regularización de construcciones","Topógrafo","Prevencionista de riesgos","Inspección técnica de obras","Diseñador de interiores","Ingeniero en climatización"] },
+  { id: "salud-pro", group: "profesionales", name: "Salud profesional", bg: "#047857", tokenVar: "--cat-salud-pro", icon: Stethoscope,
+    services: ["Enfermera a domicilio","Matrona","Médico a domicilio","Kinesiólogo","Nutricionista","Psicólogo","Fonoaudiólogo","Terapeuta ocupacional","Podólogo","Técnico en enfermería (TENS)","Toma de exámenes a domicilio","Cuidados paliativos"] },
+  { id: "educacion", group: "profesionales", name: "Clases y educación", bg: "#9333EA", tokenVar: "--cat-educacion", icon: GraduationCap,
+    services: ["Profesor particular","Preparación PAES","Clases de inglés","Clases de matemáticas","Psicopedagogo","Educadora diferencial","Clases de música","Clases de computación","Clases de manejo","Asesoría de tesis"] },
 ];
 
 

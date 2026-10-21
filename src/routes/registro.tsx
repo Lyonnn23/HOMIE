@@ -4,7 +4,7 @@ import { Eye, EyeOff, Home, Briefcase, Camera } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { HomieLogo } from "@/components/Logo";
-import { categories } from "@/data/services";
+import { groups, categoriesOfGroup } from "@/data/services";
 
 export const Route = createFileRoute("/registro")({
   validateSearch: (s: Record<string, unknown>): { tipo?: "prestador" } => (s.tipo === "prestador" ? { tipo: "prestador" } : {}),
@@ -211,7 +211,9 @@ function RegistroPage() {
                   Categoría principal
                 </label>
                 <div className="grid grid-cols-2 gap-2">
-                  {categories.map((c) => {
+                  {groups.flatMap((g) => [
+                    <div key={`h-${g.id}`} className="col-span-2 text-[10px] font-semibold uppercase tracking-wide text-gray-400 mt-1">{g.name}</div>,
+                    ...categoriesOfGroup(g.id).map((c) => {
                     const active = categoriaId === c.id;
                     return (
                       <button
@@ -235,7 +237,8 @@ function RegistroPage() {
                         </span>
                       </button>
                     );
-                  })}
+                  }),
+                  ])}
                 </div>
               </div>
 

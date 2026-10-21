@@ -8,7 +8,7 @@ import { AppShell } from "@/components/AppShell";
 import { MapaPrestadores } from "@/components/MapaPrestadores";
 import { ProviderAvatar } from "@/components/Avatar";
 import { Slider } from "@/components/ui/slider";
-import { categories, formatCLP, type CategoryId } from "@/data/services";
+import { categories, groups, categoriesOfGroup, formatCLP, type CategoryId } from "@/data/services";
 import { supabase } from "@/integrations/supabase/client";
 
 const searchSchema = z.object({
@@ -253,21 +253,26 @@ function Buscar() {
                     !cat ? "bg-[#111827] text-white border-[#111827]" : "bg-white border-border"
                   }`}
                 >Todas</button>
-                {categories.map((c) => {
-                  const active = cat === c.id;
-                  return (
-                    <button
-                      key={c.id}
-                      onClick={() => navigate({ search: (p: z.infer<typeof searchSchema>) => ({ ...p, cat: p.cat === c.id ? "" : c.id }) })}
-                      className="px-3 py-1.5 rounded-full text-xs border transition"
-                      style={{
-                        backgroundColor: active ? c.bg : `${c.bg}1F`,
-                        color: active ? "#fff" : c.bg,
-                        borderColor: c.bg,
-                      }}
-                    >{c.name}</button>
-                  );
-                })}
+                {groups.map((g) => (
+                  <span key={g.id} className="contents">
+                    <span className="basis-full text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mt-1">{g.name}</span>
+                {categoriesOfGroup(g.id).map((c) => {
+                      const active = cat === c.id;
+                      return (
+                        <button
+                          key={c.id}
+                          onClick={() => navigate({ search: (p: z.infer<typeof searchSchema>) => ({ ...p, cat: p.cat === c.id ? "" : c.id }) })}
+                          className="px-3 py-1.5 rounded-full text-xs border transition"
+                          style={{
+                            backgroundColor: active ? c.bg : `${c.bg}1F`,
+                            color: active ? "#fff" : c.bg,
+                            borderColor: c.bg,
+                          }}
+                        >{c.name}</button>
+                      );
+                    })}
+                  </span>
+                ))}
               </div>
             </div>
 

@@ -50,6 +50,11 @@
   --color-cat-gifts: var(--cat-gifts);
   --color-cat-care: var(--cat-care);
   --color-cat-party: var(--cat-party);
+  --color-cat-legal: var(--cat-legal);
+  --color-cat-finanzas: var(--cat-finanzas);
+  --color-cat-ingenieria: var(--cat-ingenieria);
+  --color-cat-salud-pro: var(--cat-salud-pro);
+  --color-cat-educacion: var(--cat-educacion);
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
 
@@ -97,6 +102,11 @@
   --cat-gifts: #DB2777;
   --cat-care: #0D9488;
   --cat-party: #F59E0B;
+  --cat-legal: #1E3A8A;
+  --cat-finanzas: #0F766E;
+  --cat-ingenieria: #7C2D12;
+  --cat-salud-pro: #047857;
+  --cat-educacion: #9333EA;
 }
 
 @layer base {

@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { Search, ChevronRight, X, BadgeCheck, ShieldCheck, Wallet, Star, Flame } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { AppShell } from "@/components/AppShell";
-import { categories, type CategoryId } from "@/data/services";
+import { categories, groups, categoriesOfGroup, type CategoryId, type GroupId } from "@/data/services";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -37,6 +37,7 @@ function Home() {
   const navigate = useNavigate();
   const { usuario } = useAuth();
   const [query, setQuery] = useState("");
+  const [openGroup, setOpenGroup] = useState<GroupId | null>(null);
   const [openCat, setOpenCat] = useState<CategoryId | null>(null);
 
   const allServices = useMemo(
@@ -48,6 +49,8 @@ function Home() {
     : [];
 
   const active = openCat ? categories.find((c) => c.id === openCat) : null;
+  const activeGroup = openGroup ? groups.find((g) => g.id === openGroup) : null;
+  const groupCats = openGroup ? categoriesOfGroup(openGroup) : [];
   const firstName = usuario?.nombre?.split(" ")[0];
 
   return (
@@ -134,41 +137,37 @@ function Home() {
         </Link>
       </section>
 
-      {/* CATEGORÍAS */}
+      {/* GRUPOS */}
       <section className="px-5 mt-8">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="section-title">Categorías</h2>
-          <span className="text-xs text-[#6B7280]">{categories.length} disponibles</span>
+          <h2 className="section-title">¿Qué tipo de servicio buscas?</h2>
+          <span className="text-xs text-[#6B7280]">{categories.length} categorías</span>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {categories.map((c) => {
-            const Icon = c.icon;
-            const isOpen = openCat === c.id;
+        <div className="grid grid-cols-2 gap-3">
+          {groups.map((g) => {
+            const Icon = g.icon;
+            const cats = categoriesOfGroup(g.id);
+            const n = cats.reduce((a, c) => a + c.services.length, 0);
             return (
               <button
-                key={c.id}
-                onClick={() => setOpenCat(isOpen ? null : c.id)}
-                className={`group relative text-left rounded-2xl border border-[#E5E7EB] transition-transform active:scale-[0.98] overflow-hidden min-h-[160px] flex flex-col ${
-                  isOpen ? "ring-2 ring-[#EF9F27]/40" : ""
-                }`}
-                style={{ backgroundColor: `${c.bg}0F` }}
+                key={g.id}
+                onClick={() => setOpenGroup(g.id)}
+                className="group relative text-left rounded-2xl border border-[#E5E7EB] transition-transform active:scale-[0.98] overflow-hidden min-h-[150px] flex flex-col"
+                style={{ backgroundColor: `${g.bg}0F` }}
               >
-                {/* Franja superior sólida */}
-                <div className="h-2 w-full" style={{ backgroundColor: c.bg }} />
+                <div className="h-2 w-full" style={{ backgroundColor: g.bg }} />
                 <div className="p-4 flex-1 flex flex-col">
                   <div className="flex items-start justify-between gap-2">
-                    <div
-                      className="size-12 rounded-full flex items-center justify-center shrink-0"
-                      style={{ backgroundColor: c.bg }}
-                    >
+                    <div className="size-12 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: g.bg }}>
                       <Icon className="size-6 text-white" />
                     </div>
-                    <ChevronRight className="size-5" style={{ color: c.bg }} />
+                    <ChevronRight className="size-5" style={{ color: g.bg }} />
                   </div>
                   <div className="mt-auto pt-4">
-                    <div className="text-[15px] font-bold leading-tight text-[#111827]">{c.name}</div>
-                    <div className="text-xs text-[#6B7280] mt-0.5">{c.services.length} servicios</div>
+                    <div className="text-[15px] font-bold leading-tight text-[#111827]">{g.name}</div>
+                    <div className="text-xs text-[#6B7280] mt-0.5 line-clamp-2">{g.tagline}</div>
+                    <div className="text-[11px] text-[#9CA3AF] mt-1">{cats.length} categorías · {n} servicios</div>
                   </div>
                 </div>
               </button>
@@ -176,6 +175,53 @@ function Home() {
           })}
         </div>
       </section>
+
+      {/* MODAL grupo → categorías */}
+      {activeGroup && !active && (
+        <div
+          className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center p-0 sm:p-6 animate-fade-in"
+          onClick={() => setOpenGroup(null)}
+        >
+          <div
+            className="w-full max-w-2xl bg-white rounded-t-3xl sm:rounded-3xl p-5 max-h-[85vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-4 mb-4">
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold" style={{ backgroundColor: `${activeGroup.bg}26`, color: activeGroup.bg }}>
+                  <activeGroup.icon className="size-3.5" /> {activeGroup.name}
+                </div>
+                <h3 className="mt-2 text-2xl font-bold">{activeGroup.tagline}</h3>
+              </div>
+              <button onClick={() => setOpenGroup(null)} className="p-2 rounded-full hover:bg-muted" aria-label="Cerrar">
+                <X className="size-5" />
+              </button>
+            </div>
+            <div className="space-y-2">
+              {groupCats.map((c) => {
+                const Icon = c.icon;
+                return (
+                  <button
+                    key={c.id}
+                    onClick={() => setOpenCat(c.id)}
+                    className="w-full flex items-center gap-3 p-3 rounded-2xl border border-[#E5E7EB] text-left hover:bg-muted/40"
+                  >
+                    <span className="size-11 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: c.bg }}>
+                      <Icon className="size-5 text-white" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block font-semibold text-sm text-[#111827]">{c.name}</span>
+                      <span className="block text-xs text-[#6B7280] truncate">{c.services.slice(0, 4).join(" · ")}{c.services.length > 4 ? " …" : ""}</span>
+                    </span>
+                    <span className="text-[11px] text-[#9CA3AF] shrink-0">{c.services.length}</span>
+                    <ChevronRight className="size-4 text-[#9CA3AF]" />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ÚNETE COMO PROFESIONAL */}
       {usuario?.tipo !== "prestador" && (
@@ -228,7 +274,7 @@ function Home() {
                 </div>
                 <h3 className="mt-2 text-2xl font-bold">{active.name}</h3>
               </div>
-              <button onClick={() => setOpenCat(null)} className="p-2 rounded-full hover:bg-muted">
+              <button onClick={() => setOpenCat(null)} className="p-2 rounded-full hover:bg-muted" aria-label="Volver">
                 <X className="size-5" />
               </button>
             </div>

@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { Camera, Check, ChevronDown, ChevronLeft, ChevronRight, ImagePlus, Loader2, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { categories, formatCLP } from "@/data/services";
+import { categories, groups, categoriesOfGroup, formatCLP } from "@/data/services";
 import { HorarioEditor, defaultHorario, validarHorario, type Horario } from "@/components/HorarioEditor";
 
 export const Route = createFileRoute("/_authenticated/onboarding-prestador")({
@@ -287,8 +287,12 @@ function OnboardingPrestador() {
                 onChange={(e) => { setCategoriaId(e.target.value); setServicios([]); setAbierto(null); }}
                 className="w-full h-12 px-4 rounded-2xl bg-white border border-border outline-none focus:border-foreground/30"
               >
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
+                {groups.map((g) => (
+                  <optgroup key={g.id} label={g.name}>
+                    {categoriesOfGroup(g.id).map((c) => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
             </Field>

@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       categorias: {
         Row: {
+          grupo: string | null
           color_fondo: string
           color_hex: string | null
           icono: string
@@ -24,6 +25,7 @@ export type Database = {
           slug: string | null
         }
         Insert: {
+          grupo?: string | null
           color_fondo: string
           color_hex?: string | null
           icono: string
@@ -32,6 +34,7 @@ export type Database = {
           slug?: string | null
         }
         Update: {
+          grupo?: string | null
           color_fondo?: string
           color_hex?: string | null
           icono?: string
