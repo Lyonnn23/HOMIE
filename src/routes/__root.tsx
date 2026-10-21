@@ -92,8 +92,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary" },
       { name: "twitter:title", content: "Homie — Tu hogar, en buenas manos" },
       { name: "twitter:description", content: "Homie conecta tu hogar con prestadores de confianza: limpieza, técnicos, belleza, mascotas y más." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2ebba536-45b4-4c5f-b4e8-33133e67a0ac/id-preview-13c42ebe--6d3e7bae-deb6-447c-bb46-930305e8cbef.lovable.app-1779261669939.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2ebba536-45b4-4c5f-b4e8-33133e67a0ac/id-preview-13c42ebe--6d3e7bae-deb6-447c-bb46-930305e8cbef.lovable.app-1779261669939.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
