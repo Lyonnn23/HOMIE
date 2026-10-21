@@ -53,6 +53,64 @@ export type Database = {
         }
         Relationships: []
       }
+      cotizaciones: {
+        Row: {
+          created_at: string
+          disponible_desde: string | null
+          estado: string
+          id: string
+          mensaje: string
+          precio: number
+          precio_hasta: number
+          prestador_id: string
+          solicitud_id: string
+        }
+        Insert: {
+          created_at?: string
+          disponible_desde?: string | null
+          estado?: string
+          id?: string
+          mensaje: string
+          precio: number
+          precio_hasta: number
+          prestador_id: string
+          solicitud_id: string
+        }
+        Update: {
+          created_at?: string
+          disponible_desde?: string | null
+          estado?: string
+          id?: string
+          mensaje?: string
+          precio?: number
+          precio_hasta?: number
+          prestador_id?: string
+          solicitud_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cotizaciones_prestador_id_fkey"
+            columns: ["prestador_id"]
+            isOneToOne: false
+            referencedRelation: "prestadores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cotizaciones_prestador_id_fkey"
+            columns: ["prestador_id"]
+            isOneToOne: false
+            referencedRelation: "saldos_prestadores"
+            referencedColumns: ["prestador_id"]
+          },
+          {
+            foreignKeyName: "cotizaciones_solicitud_id_fkey"
+            columns: ["solicitud_id"]
+            isOneToOne: false
+            referencedRelation: "solicitudes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       creditos: {
         Row: {
           created_at: string
@@ -430,6 +488,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "saldos_prestadores"
             referencedColumns: ["prestador_id"]
+          },
+          {
+            foreignKeyName: "prestador_servicios_servicio_id_fkey"
+            columns: ["servicio_id"]
+            isOneToOne: false
+            referencedRelation: "guia_precios"
+            referencedColumns: ["servicio_id"]
           },
           {
             foreignKeyName: "prestador_servicios_servicio_id_fkey"
@@ -859,6 +924,13 @@ export type Database = {
             foreignKeyName: "reservas_servicio_id_fkey"
             columns: ["servicio_id"]
             isOneToOne: false
+            referencedRelation: "guia_precios"
+            referencedColumns: ["servicio_id"]
+          },
+          {
+            foreignKeyName: "reservas_servicio_id_fkey"
+            columns: ["servicio_id"]
+            isOneToOne: false
             referencedRelation: "servicios"
             referencedColumns: ["id"]
           },
@@ -889,6 +961,92 @@ export type Database = {
             columns: ["categoria_id"]
             isOneToOne: false
             referencedRelation: "categorias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      solicitudes: {
+        Row: {
+          categoria_id: string
+          cliente_id: string
+          comuna: string | null
+          cotizacion_aceptada_id: string | null
+          created_at: string
+          detalle: string
+          direccion: string | null
+          estado: string
+          expira_at: string
+          fecha_deseada: string | null
+          fotos: string[]
+          id: string
+          presupuesto_max: number | null
+          servicio_id: string | null
+          titulo: string
+          urgente: boolean
+        }
+        Insert: {
+          categoria_id: string
+          cliente_id: string
+          comuna?: string | null
+          cotizacion_aceptada_id?: string | null
+          created_at?: string
+          detalle: string
+          direccion?: string | null
+          estado?: string
+          expira_at?: string
+          fecha_deseada?: string | null
+          fotos?: string[]
+          id?: string
+          presupuesto_max?: number | null
+          servicio_id?: string | null
+          titulo: string
+          urgente?: boolean
+        }
+        Update: {
+          categoria_id?: string
+          cliente_id?: string
+          comuna?: string | null
+          cotizacion_aceptada_id?: string | null
+          created_at?: string
+          detalle?: string
+          direccion?: string | null
+          estado?: string
+          expira_at?: string
+          fecha_deseada?: string | null
+          fotos?: string[]
+          id?: string
+          presupuesto_max?: number | null
+          servicio_id?: string | null
+          titulo?: string
+          urgente?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "solicitudes_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "categorias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "solicitudes_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "solicitudes_servicio_id_fkey"
+            columns: ["servicio_id"]
+            isOneToOne: false
+            referencedRelation: "guia_precios"
+            referencedColumns: ["servicio_id"]
+          },
+          {
+            foreignKeyName: "solicitudes_servicio_id_fkey"
+            columns: ["servicio_id"]
+            isOneToOne: false
+            referencedRelation: "servicios"
             referencedColumns: ["id"]
           },
         ]
@@ -991,6 +1149,26 @@ export type Database = {
       }
     }
     Views: {
+      guia_precios: {
+        Row: {
+          categoria_id: string | null
+          precio_max: number | null
+          precio_mediana: number | null
+          precio_min: number | null
+          profesionales: number | null
+          servicio: string | null
+          servicio_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "servicios_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "categorias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       saldos_prestadores: {
         Row: {
           comision_homie: number | null
@@ -1013,6 +1191,15 @@ export type Database = {
       }
     }
     Functions: {
+      aceptar_cotizacion: {
+        Args: {
+          _cotizacion_id: string
+          _direccion: string
+          _fecha: string
+          _hora: string
+        }
+        Returns: string
+      }
       admin_resumen: {
         Args: never
         Returns: {
@@ -1068,6 +1255,15 @@ export type Database = {
           _referencia: string
         }
         Returns: string
+      }
+      stats_publicas: {
+        Args: never
+        Returns: {
+          calificacion: number
+          profesionales: number
+          resenas: number
+          servicios_completados: number
+        }[]
       }
       unaccent_safe: { Args: { _t: string }; Returns: string }
     }
