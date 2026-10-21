@@ -23,7 +23,12 @@ interface ServicioForm {
   descripcion: string;
   foto: File | null;
   fotoPreview: string | null;
+  modalidades: string[];
 }
+
+const MODALIDADES: { id: string; label: string }[] = [
+  { id: "domicilio", label: "A domicilio" }, { id: "online", label: "Online" }, { id: "local", label: "En mi local" },
+];
 
 function sugerirHasta(desde: number) {
   return Math.round((desde * 1.3) / 1000) * 1000;
@@ -90,7 +95,7 @@ function OnboardingPrestador() {
       if (existe) return prev.filter((s) => s.nombre !== nombreSrv);
       const nuevo: ServicioForm = {
         nombre: nombreSrv, precio: 15000, precioHasta: sugerirHasta(15000),
-        descripcion: "", foto: null, fotoPreview: null,
+        descripcion: "", foto: null, fotoPreview: null, modalidades: ["domicilio"],
       };
       setAbierto(nombreSrv);
       return [...prev, nuevo];
@@ -121,6 +126,7 @@ function OnboardingPrestador() {
         if (!s.precio || s.precio < 1000) return `Ingresa un precio desde válido para "${s.nombre}" (mínimo $1.000).`;
         if (!s.precioHasta || s.precioHasta < s.precio) return `El precio hasta de "${s.nombre}" no puede ser menor que el precio desde.`;
         if (s.precioHasta > maxHasta(s.precio)) return `El precio hasta de "${s.nombre}" no puede superar el 50% sobre el precio desde.`;
+        if (s.modalidades.length === 0) return `Elige al menos una modalidad para "${s.nombre}".`;
         if (s.descripcion.length > MAX_DESC) return `La descripción de "${s.nombre}" supera los ${MAX_DESC} caracteres.`;
       }
     }
@@ -219,6 +225,7 @@ function OnboardingPrestador() {
             precio_hasta: form.precioHasta,
             descripcion: form.descripcion.trim() || null,
             foto_url: srvFoto,
+            modalidades: form.modalidades.length > 0 ? form.modalidades : ["domicilio"],
           });
         }
         const { error: psErr } = await supabase.from("prestador_servicios").insert(filas);
@@ -575,6 +582,28 @@ function ServicioCard({
             />
             <span className="block text-right text-[11px] text-muted-foreground mt-1">{s.descripcion.length}/{MAX_DESC}</span>
           </label>
+
+          <div>
+            <span className="block text-xs font-medium mb-2">Modalidad</span>
+            <div className="flex flex-wrap gap-2">
+              {MODALIDADES.map((m) => {
+                const on = s.modalidades.includes(m.id);
+                return (
+                  <label key={m.id} className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl border text-sm cursor-pointer transition ${
+                    on ? "bg-[#111827] text-white border-[#111827]" : "bg-white border-border"
+                  }`}>
+                    <input
+                      type="checkbox" className="sr-only" checked={on}
+                      onChange={() => onChange({ modalidades: on ? s.modalidades.filter((x) => x !== m.id) : [...s.modalidades, m.id] })}
+                    />
+                    {on && <Check className="size-3.5" />}
+                    {m.label}
+                  </label>
+                );
+              })}
+            </div>
+            <p className="text-[11px] text-muted-foreground mt-1">Si eliges Online, el cliente no necesita indicar dirección.</p>
+          </div>
 
           <div className="flex items-center gap-3">
             <button

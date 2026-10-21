@@ -6,9 +6,10 @@ import { z } from "zod";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { AppShell } from "@/components/AppShell";
 import { MapaPrestadores } from "@/components/MapaPrestadores";
+import { HomieYaBanner } from "@/components/HomieYaBanner";
 import { ProviderAvatar } from "@/components/Avatar";
 import { Slider } from "@/components/ui/slider";
-import { categories, groups, categoriesOfGroup, formatCLP, type CategoryId } from "@/data/services";
+import { categories, groups, categoriesOfGroup, formatCLP, esPro, type CategoryId } from "@/data/services";
 import { supabase } from "@/integrations/supabase/client";
 import { distanciaKm, type GeoPoint } from "@/lib/geocode";
 
@@ -56,6 +57,7 @@ interface ResultRow {
   matchedService?: string;
   bio: string;
   distanceKm: number;
+  pro: boolean;
 }
 
 const PRICE_MIN = 0;
@@ -72,7 +74,7 @@ function useSearchProviders(params: { q: string; cat: string; min: number; max: 
         .from("prestadores")
         .select(`
           id, categoria_id, nombre, foto_url, bio, calificacion_promedio, resenas_count,
-          precio_desde, disponible_ahora, distancia_km, lat, lng,
+          precio_desde, disponible_ahora, distancia_km, lat, lng, pro_hasta,
           prestador_servicios ( servicios ( nombre ) )
         `);
 
@@ -90,7 +92,7 @@ function useSearchProviders(params: { q: string; cat: string; min: number; max: 
         nombre: string | null; foto_url: string | null;
         calificacion_promedio: number; resenas_count: number;
         precio_desde: number; disponible_ahora: boolean; distancia_km: number | null;
-        lat: number | null; lng: number | null;
+        lat: number | null; lng: number | null; pro_hasta: string | null;
         prestador_servicios: { servicios: { nombre: string } | null }[] | null;
       };
 
@@ -144,6 +146,7 @@ function useSearchProviders(params: { q: string; cat: string; min: number; max: 
           distanceKm,
           lat,
           lng,
+          pro: esPro(r.pro_hasta),
           score,
         };
       }).filter(Boolean) as (ResultRow & { score: number })[];
@@ -161,6 +164,7 @@ function useSearchProviders(params: { q: string; cat: string; min: number; max: 
           default:
             // Prioridad: disponibles ahora, luego relevancia, luego los mejor calificados
             if (a.disponibleAhora !== b.disponibleAhora) return a.disponibleAhora ? -1 : 1;
+            if (a.pro !== b.pro) return a.pro ? -1 : 1;
             if (b.score !== a.score) return b.score - a.score;
             if (b.rating !== a.rating) return b.rating - a.rating;
             return b.reviewsCount - a.reviewsCount;
@@ -233,6 +237,10 @@ function Buscar() {
             </button>
           )}
         </div>
+      </div>
+
+      <div className="px-5 mt-3">
+        <HomieYaBanner />
       </div>
 
       <div className="px-5 mt-3">
@@ -411,6 +419,9 @@ function Buscar() {
                           <span className={`size-1.5 rounded-full ${r.disponibleAhora ? "bg-[#00C288]" : "bg-[#FF3B6B]"}`} />
                           {r.disponibleAhora ? "Disponible" : "Ocupado"}
                         </span>
+                        {r.pro && (
+                          <span className="shrink-0 px-1.5 py-0.5 rounded-full bg-[#111827] text-[#EF9F27] text-[10px] font-bold" title="Profesional Homie Pro">PRO</span>
+                        )}
                         {r.rating >= 4.8 && r.reviewsCount >= 5 && (
                           <span className="shrink-0 px-1.5 py-0.5 rounded-full bg-[#EF9F27] text-[#111827] text-[10px] font-bold">TOP</span>
                         )}

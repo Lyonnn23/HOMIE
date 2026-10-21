@@ -150,9 +150,11 @@ export interface ProviderService {
   priceTo: number;      // precio HASTA: tope que el profesional no puede superar
   description: string | null;
   photoUrl: string | null;
+  modalidades: string[]; // ⊆ {domicilio, online, local}
 }
 
 export interface ProviderDetail extends ProviderListItem {
+  proHasta: string | null;
   bio: string;
   usuarioId: string | null;
   gallery: string[];
@@ -173,6 +175,12 @@ export interface ProviderDetail extends ProviderListItem {
 
 
 // ---------- Helpers ----------
+/** true si el profesional tiene Homie Pro vigente. */
+export function esPro(proHasta: string | null | undefined): boolean {
+  return !!proHasta && new Date(proHasta).getTime() > Date.now();
+}
+export const MODALIDAD_LABEL: Record<string, string> = { domicilio: "A domicilio", online: "Online", local: "En local" };
+
 function timeAgoEs(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
   const weeks = Math.max(1, Math.floor(diff / (1000 * 60 * 60 * 24 * 7)));
@@ -238,8 +246,8 @@ export function useProvider(id: string) {
           id, categoria_id, nombre, foto_url, bio, calificacion_promedio, resenas_count,
           precio_desde, precio_hasta, disponible_ahora, disponibilidad_texto, distancia_km,
           direccion, gallery_urls, usuario_id, comuna, banner_url, color_perfil,
-          titulo_profesional, anos_experiencia, horario, verificado, verificado_identidad, antecedentes_ok,
-          prestador_servicios ( precio, precio_hasta, descripcion, foto_url, servicios ( id, nombre ) ),
+          titulo_profesional, anos_experiencia, horario, verificado, verificado_identidad, antecedentes_ok, pro_hasta,
+          prestador_servicios ( precio, precio_hasta, descripcion, foto_url, modalidades, servicios ( id, nombre ) ),
           resenas ( id, calificacion, comentario, created_at, foto_url, verificada, respuesta_prestador, respuesta_fecha, cliente_id, cliente_nombre )
         `)
         .eq("id", id)
@@ -257,7 +265,8 @@ export function useProvider(id: string) {
         comuna: string | null; banner_url: string | null; color_perfil: string | null;
         titulo_profesional: string | null; anos_experiencia: number | null; horario: Horario | null;
         verificado: boolean | null; verificado_identidad: boolean | null; antecedentes_ok: boolean | null;
-        prestador_servicios: { precio: number; precio_hasta: number | null; descripcion: string | null; foto_url: string | null; servicios: { id: string; nombre: string } }[];
+        pro_hasta: string | null;
+        prestador_servicios: { precio: number; precio_hasta: number | null; descripcion: string | null; foto_url: string | null; modalidades: string[] | null; servicios: { id: string; nombre: string } }[];
         resenas: {
           id: string; calificacion: number; comentario: string | null; created_at: string;
           foto_url: string | null; verificada: boolean | null;
@@ -291,6 +300,7 @@ export function useProvider(id: string) {
         verificado: !!r.verificado,
         verificadoIdentidad: !!r.verificado_identidad,
         antecedentesOk: !!r.antecedentes_ok,
+        proHasta: r.pro_hasta ?? null,
         priceTo: r.precio_hasta ?? r.precio_desde,
         services: (r.prestador_servicios ?? []).map((ps) => ({
           id: ps.servicios.id,
@@ -299,6 +309,7 @@ export function useProvider(id: string) {
           priceTo: ps.precio_hasta ?? ps.precio,
           description: ps.descripcion,
           photoUrl: ps.foto_url,
+          modalidades: ps.modalidades && ps.modalidades.length > 0 ? ps.modalidades : ["domicilio"],
         })),
         reviews: (r.resenas ?? []).map((rv) => {
           const author = rv.cliente_nombre ?? "Anónimo";

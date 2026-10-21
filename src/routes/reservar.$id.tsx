@@ -7,7 +7,7 @@ import { z } from "zod";
 import { AppShell } from "@/components/AppShell";
 import { ProviderAvatar } from "@/components/Avatar";
 import { useQuery } from "@tanstack/react-query";
-import { useProvider, formatCLP, DIAS, type Horario, type DiaKey } from "@/data/services";
+import { useProvider, formatCLP, DIAS, esPro, MODALIDAD_LABEL, type Horario, type DiaKey } from "@/data/services";
 import { useAddBooking } from "@/store/bookings";
 import { createPaymentPreference } from "@/lib/mercadopago.functions";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,6 +35,7 @@ function nextDays(n: number) {
 }
 
 const DIA_KEYS: DiaKey[] = ["dom", "lun", "mar", "mie", "jue", "vie", "sab"];
+type Modalidad = "domicilio" | "online" | "local";
 
 /** Clave del día (lun..dom) para una fecha YYYY-MM-DD, en hora local. */
 function diaKeyDe(fecha: string): DiaKey {
@@ -96,6 +97,7 @@ function BookingPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slots, ocupadasQ.data]);
   const [serviceName, setServiceName] = useState<string | undefined>(incoming);
+  const [modalidad, setModalidad] = useState<Modalidad>("domicilio");
   const [address, setAddress] = useState("");
   const [note, setNote] = useState("");
   const [paying, setPaying] = useState(false);
@@ -111,16 +113,25 @@ function BookingPage() {
   if (!p) return <AppShell><div className="p-8">Prestador no encontrado</div></AppShell>;
 
   const selected = p.services.find((s) => s.name === serviceName) ?? p.services[0];
+  const pro = esPro(p.proHasta);
+  const tasa = pro ? 0.12 : 0.15;
   const base = selected?.price ?? 0;
-  const fee = Math.round(base * 0.15);
+  const fee = Math.round(base * tasa);
   const total = base + fee;
+
+  const modalidadesServicio = (selected?.modalidades ?? ["domicilio"]) as Modalidad[];
+  const elegirModalidad = modalidadesServicio.includes("online") && modalidadesServicio.length > 1;
+  // Modalidad efectiva: la elegida si el servicio la ofrece; si no, la única/primera del servicio.
+  const modalidadEfectiva: Modalidad = modalidadesServicio.includes(modalidad) ? modalidad : modalidadesServicio[0];
+  const esOnline = modalidadEfectiva === "online";
+  const direccionOk = esOnline || !!address.trim();
 
   const horarioHint = DIAS.filter((d) => p.horario[d.key]?.activo)
     .map((d) => `${d.corto} ${p.horario[d.key].desde}–${p.horario[d.key].hasta}`)
     .join(" · ");
 
   async function confirm() {
-    if (!address.trim() || !selected || !p || !time) return;
+    if (!direccionOk || !selected || !p || !time) return;
     setPaying(true);
     let reservaId: string | null = null;
     try {
@@ -128,7 +139,8 @@ function BookingPage() {
         providerId: p.id,
         serviceId: selected.id,
         service: selected.name,
-        date, time, address, note, price: total,
+        date, time, address: esOnline ? "Online" : address.trim(), note, price: total,
+        modalidad: modalidadEfectiva,
       });
       reservaId = reserva.id;
     } catch (err) {
@@ -232,9 +244,31 @@ function BookingPage() {
         </p>
       </section>
 
+      {elegirModalidad && (
+        <section className="px-5 mt-6">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Modalidad</h2>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {modalidadesServicio.map((m) => (
+              <label key={m} className={`inline-flex items-center gap-2 px-3 py-2 rounded-full text-sm border cursor-pointer transition ${
+                modalidadEfectiva === m ? "bg-foreground text-background border-foreground" : "bg-white border-border"
+              }`}>
+                <input type="radio" name="modalidad" className="sr-only" value={m} checked={modalidadEfectiva === m} onChange={() => setModalidad(m)} />
+                {MODALIDAD_LABEL[m] ?? m}
+              </label>
+            ))}
+          </div>
+        </section>
+      )}
+
       <section className="px-5 mt-6">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Dirección</h2>
-        <input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Calle, número, comuna"
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+          Dirección {esOnline && <span className="normal-case font-normal">(opcional, servicio online)</span>}
+        </h2>
+        {!elegirModalidad && modalidadEfectiva !== "domicilio" && (
+          <p className="mt-1 text-xs text-muted-foreground">Este servicio es {MODALIDAD_LABEL[modalidadEfectiva]?.toLowerCase()}.</p>
+        )}
+        <input value={address} onChange={(e) => setAddress(e.target.value)}
+          placeholder={esOnline ? "No es necesaria para un servicio online" : modalidadEfectiva === "local" ? "Tu dirección de contacto (el servicio es en el local del profesional)" : "Calle, número, comuna"}
           className="mt-2 w-full h-12 px-4 rounded-2xl bg-white border border-border outline-none focus:border-foreground/30" />
       </section>
 
@@ -247,7 +281,7 @@ function BookingPage() {
       <section className="px-5 mt-6">
         <div className="p-4 rounded-2xl bg-[#F5F5F0] border border-border space-y-2 text-sm">
           <Row label={selected?.name ?? ""} value={formatCLP(base)} />
-          <Row label="Comisión de servicio (15%)" value={formatCLP(fee)} />
+          <Row label={`Comisión de servicio (${Math.round(tasa * 100)}%)${pro ? " · Pro" : ""}`} value={formatCLP(fee)} />
           {selected && selected.priceTo > selected.price && (
             <div className="mt-1 p-3 rounded-xl bg-white border border-border text-xs text-[#374151]">
               <div className="font-semibold text-[#111827]">Estimado del trabajo: {formatCLP(selected.price)} – {formatCLP(selected.priceTo)}</div>
@@ -267,7 +301,7 @@ function BookingPage() {
       <div className="fixed bottom-0 inset-x-0 z-30 border-t border-border bg-background/95 backdrop-blur">
         <div className="mx-auto max-w-2xl px-5 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           <button
-            disabled={!address.trim() || !time || paying || addBooking.isPending}
+            disabled={!direccionOk || !time || paying || addBooking.isPending}
             onClick={confirm}
             className="w-full py-3.5 rounded-2xl bg-foreground text-background font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
           >

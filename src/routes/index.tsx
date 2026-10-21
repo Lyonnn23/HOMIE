@@ -15,6 +15,7 @@ import {
   Lock,
   MessageSquareQuote,
   Quote,
+  Zap,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { AppShell } from "@/components/AppShell";
@@ -468,9 +469,28 @@ function Home() {
         </div>
       </section>
 
-      {/* GAS DE EMERGENCIA (app) */}
+      {/* HOMIE YA + GAS (app) */}
       {!visitante && (
-        <section className="px-5 mt-6">
+        <section className="px-5 mt-6 space-y-3">
+          {usuario?.tipo === "prestador" ? (
+            <Link to="/pro" className="card card-link flex items-center gap-4 p-4 md:p-5 bg-[#111827] text-white border-transparent">
+              <span className="size-11 rounded-full bg-[#EF9F27] flex items-center justify-center shrink-0"><Star className="size-5 text-[#111827]" /></span>
+              <span className="min-w-0 flex-1">
+                <span className="block font-bold text-sm">Homie Pro: 30 días gratis</span>
+                <span className="block text-xs text-white/70">Comisión 12%, perfil destacado y estadísticas de tu negocio.</span>
+              </span>
+              <ChevronRight className="size-5 text-[#EF9F27]" />
+            </Link>
+          ) : (
+            <Link to="/ya" className="card card-link flex items-center gap-4 p-4 md:p-5 bg-[#FF3B6B] text-white border-transparent">
+              <span className="size-11 rounded-full bg-white/20 flex items-center justify-center shrink-0"><Zap className="size-5 text-white" /></span>
+              <span className="min-w-0 flex-1">
+                <span className="block font-bold text-sm">¿Es urgente? Homie Ya</span>
+                <span className="block text-xs text-white/85">Cerrajero, fuga de agua, corte de luz: un profesional disponible acepta en minutos.</span>
+              </span>
+              <ChevronRight className="size-5 text-white" />
+            </Link>
+          )}
           <GasCard />
         </section>
       )}

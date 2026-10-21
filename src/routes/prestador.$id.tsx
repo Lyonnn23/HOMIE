@@ -1,12 +1,13 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { ArrowLeft, Star, Clock, ShieldCheck, BadgeCheck, ChevronRight } from "lucide-react";
-import { useState } from "react";
+import { ArrowLeft, Star, Clock, ShieldCheck, BadgeCheck, ChevronRight, Crown } from "lucide-react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import { AppShell } from "@/components/AppShell";
 import { ProviderAvatar } from "@/components/Avatar";
 import { FavoriteButton } from "@/components/FavoriteButton";
-import { getCategory, useProvider, formatCLP, DIAS, type ProviderReview } from "@/data/services";
+import { getCategory, useProvider, formatCLP, DIAS, esPro, MODALIDAD_LABEL, type ProviderReview } from "@/data/services";
 import { useAuth } from "@/hooks/use-auth";
+import { supabase } from "@/integrations/supabase/client";
 import { useReplyReview } from "@/store/bookings";
 
 export const Route = createFileRoute("/prestador/$id")({
@@ -19,8 +20,22 @@ function ProviderPage() {
   const { id } = Route.useParams();
   const { service } = Route.useSearch();
   const router = useRouter();
-  const { usuario } = useAuth();
+  const { usuario, loading: authLoading } = useAuth();
   const { data: p, isLoading } = useProvider(id);
+
+  // Cuenta una vista del perfil (una vez por montaje; no cuenta las visitas del dueño).
+  const ownerId = p?.usuarioId ?? null;
+  useEffect(() => {
+    if (!p || authLoading) return;
+    if (usuario && ownerId && usuario.id === ownerId) return;
+    const key = `homie-vista-${p.id}`;
+    try {
+      if (sessionStorage.getItem(key)) return;
+      sessionStorage.setItem(key, "1");
+    } catch { /* sin storage: igual contamos */ }
+    supabase.rpc("registrar_vista", { _prestador_id: p.id }).then(() => {}, () => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [p?.id, authLoading, ownerId]);
 
   if (isLoading) {
     return (
@@ -44,6 +59,8 @@ function ProviderPage() {
   const cat = getCategory(p.categoryId)!;
   const color = p.colorPerfil || cat.bg;
   const isOwner = !!usuario && !!p.usuarioId && usuario.id === p.usuarioId;
+  const pro = esPro(p.proHasta);
+  const tasaPct = pro ? 12 : 15;
   const selectedService = service && p.services.some((s) => s.name === service)
     ? service
     : p.services[0]?.name;
@@ -90,7 +107,14 @@ function ProviderPage() {
       <div className="px-5 pt-16">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h1 className="text-2xl font-bold text-[#111827] leading-tight">{p.name}</h1>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-2xl font-bold text-[#111827] leading-tight">{p.name}</h1>
+              {pro && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#111827] text-[#EF9F27] text-[11px] font-bold" title="Profesional Homie Pro">
+                  <Crown className="size-3" /> PRO
+                </span>
+              )}
+            </div>
             <div className="text-sm font-medium mt-0.5" style={{ color }}>{p.tituloProfesional || cat.name}</div>
             <div className="text-xs text-[#6B7280] mt-0.5">
               {cat.name}{p.comuna ? ` · ${p.comuna}` : ""}{p.anosExperiencia ? ` · ${p.anosExperiencia} años de experiencia` : ""}
@@ -161,13 +185,20 @@ function ProviderPage() {
                   {s.description && (
                     <p className="text-xs text-[#6B7280] mt-0.5 line-clamp-2">{s.description}</p>
                   )}
+                  <div className="mt-1.5 flex flex-wrap gap-1">
+                    {s.modalidades.map((m) => (
+                      <span key={m} className="px-1.5 py-0.5 rounded-full bg-[#F5F5F0] border border-[#E5E7EB] text-[10px] font-medium text-[#374151]">
+                        {MODALIDAD_LABEL[m] ?? m}
+                      </span>
+                    ))}
+                  </div>
                   <div className="mt-2 flex items-baseline gap-1.5">
                     <span className="text-base font-bold text-[#111827]">{formatCLP(s.price)}</span>
                     {s.priceTo > s.price && (
                       <span className="text-xs text-[#6B7280]">– {formatCLP(s.priceTo)}</span>
                     )}
                     <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${color}1A`, color }}>
-                      + 15% servicio Homie
+                      + {tasaPct}% servicio Homie
                     </span>
                   </div>
                 </div>

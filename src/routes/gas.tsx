@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Flame, Phone, Navigation, Clock, MapPin, RefreshCw, AlertTriangle } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { HomieYaBanner } from "@/components/HomieYaBanner";
 
 export const Route = createFileRoute("/gas")({
   head: () => ({ meta: [{ title: "Gas cerca de ti — Homie" }, { name: "description", content: "Distribuidoras de gas abiertas cerca de tu ubicación, para pedidos de última hora." }] }),
@@ -52,6 +53,9 @@ function GasPage() {
 
   return (
     <AppShell>
+      <div className="px-5 pt-4">
+        <HomieYaBanner />
+      </div>
       <header className="px-5 pt-6">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FF6B00]/15 text-[#C2410C] text-xs font-bold">
           <Flame className="size-3.5" /> Servicio de emergencia

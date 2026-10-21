@@ -26,16 +26,20 @@ import { Route as AuthenticatedAyudaRouteImport } from './routes/_authenticated.
 import { Route as AuthenticatedCotizarRouteImport } from './routes/_authenticated.cotizar'
 import { Route as AuthenticatedCuentaRouteImport } from './routes/_authenticated.cuenta'
 import { Route as AuthenticatedDireccionesRouteImport } from './routes/_authenticated.direcciones'
+import { Route as AuthenticatedEstadisticasRouteImport } from './routes/_authenticated.estadisticas'
 import { Route as AuthenticatedFavoritosRouteImport } from './routes/_authenticated.favoritos'
 import { Route as AuthenticatedNotifConfigRouteImport } from './routes/_authenticated.notif-config'
 import { Route as AuthenticatedNotificacionesRouteImport } from './routes/_authenticated.notificaciones'
 import { Route as AuthenticatedOnboardingPrestadorRouteImport } from './routes/_authenticated.onboarding-prestador'
 import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated.panel'
+import { Route as AuthenticatedProRouteImport } from './routes/_authenticated.pro'
 import { Route as AuthenticatedReclamosRouteImport } from './routes/_authenticated.reclamos'
 import { Route as AuthenticatedReservasRouteImport } from './routes/_authenticated.reservas'
 import { Route as AuthenticatedSolicitarRouteImport } from './routes/_authenticated.solicitar'
 import { Route as AuthenticatedSolicitudesRouteImport } from './routes/_authenticated.solicitudes'
 import { Route as AuthenticatedVerificarIdentidadRouteImport } from './routes/_authenticated.verificar-identidad'
+import { Route as AuthenticatedYaRouteImport } from './routes/_authenticated.ya'
+import { Route as AuthenticatedYaPrestadorRouteImport } from './routes/_authenticated.ya-prestador'
 import { Route as PrestadorIdRouteImport } from './routes/prestador.$id'
 import { Route as ReservarIdRouteImport } from './routes/reservar.$id'
 import { Route as ServicioServiceRouteImport } from './routes/servicio.$service'
@@ -47,6 +51,7 @@ import { Route as AuthenticatedAdminReportesRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminReservasRouteImport } from './routes/_authenticated.admin.reservas'
 import { Route as AuthenticatedAdminVerificacionesRouteImport } from './routes/_authenticated.admin.verificaciones'
 import { Route as AuthenticatedChatReservaIdRouteImport } from './routes/_authenticated.chat.$reservaId'
+import { Route as AuthenticatedComprobanteReservaIdRouteImport } from './routes/_authenticated.comprobante.$reservaId'
 import { Route as AuthenticatedSolicitudesIdRouteImport } from './routes/_authenticated.solicitudes.$id'
 import { Route as ApiPublicMercadopagoWebhookRouteImport } from './routes/api/public/mercadopago/webhook'
 
@@ -135,6 +140,12 @@ const AuthenticatedDireccionesRoute =
     path: '/direcciones',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedEstadisticasRoute =
+  AuthenticatedEstadisticasRouteImport.update({
+    id: '/estadisticas',
+    path: '/estadisticas',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedFavoritosRoute = AuthenticatedFavoritosRouteImport.update({
   id: '/favoritos',
   path: '/favoritos',
@@ -163,6 +174,11 @@ const AuthenticatedPanelRoute = AuthenticatedPanelRouteImport.update({
   path: '/panel',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedProRoute = AuthenticatedProRouteImport.update({
+  id: '/pro',
+  path: '/pro',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedReclamosRoute = AuthenticatedReclamosRouteImport.update({
   id: '/reclamos',
   path: '/reclamos',
@@ -188,6 +204,17 @@ const AuthenticatedVerificarIdentidadRoute =
   AuthenticatedVerificarIdentidadRouteImport.update({
     id: '/verificar-identidad',
     path: '/verificar-identidad',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedYaRoute = AuthenticatedYaRouteImport.update({
+  id: '/ya',
+  path: '/ya',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedYaPrestadorRoute =
+  AuthenticatedYaPrestadorRouteImport.update({
+    id: '/ya-prestador',
+    path: '/ya-prestador',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const PrestadorIdRoute = PrestadorIdRouteImport.update({
@@ -252,6 +279,12 @@ const AuthenticatedChatReservaIdRoute =
     path: '/chat/$reservaId',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedComprobanteReservaIdRoute =
+  AuthenticatedComprobanteReservaIdRouteImport.update({
+    id: '/comprobante/$reservaId',
+    path: '/comprobante/$reservaId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedSolicitudesIdRoute =
   AuthenticatedSolicitudesIdRouteImport.update({
     id: '/$id',
@@ -282,16 +315,20 @@ export interface FileRoutesByFullPath {
   '/cotizar': typeof AuthenticatedCotizarRoute
   '/cuenta': typeof AuthenticatedCuentaRoute
   '/direcciones': typeof AuthenticatedDireccionesRoute
+  '/estadisticas': typeof AuthenticatedEstadisticasRoute
   '/favoritos': typeof AuthenticatedFavoritosRoute
   '/notif-config': typeof AuthenticatedNotifConfigRoute
   '/notificaciones': typeof AuthenticatedNotificacionesRoute
   '/onboarding-prestador': typeof AuthenticatedOnboardingPrestadorRoute
   '/panel': typeof AuthenticatedPanelRoute
+  '/pro': typeof AuthenticatedProRoute
   '/reclamos': typeof AuthenticatedReclamosRoute
   '/reservas': typeof AuthenticatedReservasRoute
   '/solicitar': typeof AuthenticatedSolicitarRoute
   '/solicitudes': typeof AuthenticatedSolicitudesRouteWithChildren
   '/verificar-identidad': typeof AuthenticatedVerificarIdentidadRoute
+  '/ya': typeof AuthenticatedYaRoute
+  '/ya-prestador': typeof AuthenticatedYaPrestadorRoute
   '/prestador/$id': typeof PrestadorIdRoute
   '/reservar/$id': typeof ReservarIdRoute
   '/servicio/$service': typeof ServicioServiceRoute
@@ -302,6 +339,7 @@ export interface FileRoutesByFullPath {
   '/admin/reservas': typeof AuthenticatedAdminReservasRoute
   '/admin/verificaciones': typeof AuthenticatedAdminVerificacionesRoute
   '/chat/$reservaId': typeof AuthenticatedChatReservaIdRoute
+  '/comprobante/$reservaId': typeof AuthenticatedComprobanteReservaIdRoute
   '/solicitudes/$id': typeof AuthenticatedSolicitudesIdRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/api/public/mercadopago/webhook': typeof ApiPublicMercadopagoWebhookRoute
@@ -323,16 +361,20 @@ export interface FileRoutesByTo {
   '/cotizar': typeof AuthenticatedCotizarRoute
   '/cuenta': typeof AuthenticatedCuentaRoute
   '/direcciones': typeof AuthenticatedDireccionesRoute
+  '/estadisticas': typeof AuthenticatedEstadisticasRoute
   '/favoritos': typeof AuthenticatedFavoritosRoute
   '/notif-config': typeof AuthenticatedNotifConfigRoute
   '/notificaciones': typeof AuthenticatedNotificacionesRoute
   '/onboarding-prestador': typeof AuthenticatedOnboardingPrestadorRoute
   '/panel': typeof AuthenticatedPanelRoute
+  '/pro': typeof AuthenticatedProRoute
   '/reclamos': typeof AuthenticatedReclamosRoute
   '/reservas': typeof AuthenticatedReservasRoute
   '/solicitar': typeof AuthenticatedSolicitarRoute
   '/solicitudes': typeof AuthenticatedSolicitudesRouteWithChildren
   '/verificar-identidad': typeof AuthenticatedVerificarIdentidadRoute
+  '/ya': typeof AuthenticatedYaRoute
+  '/ya-prestador': typeof AuthenticatedYaPrestadorRoute
   '/prestador/$id': typeof PrestadorIdRoute
   '/reservar/$id': typeof ReservarIdRoute
   '/servicio/$service': typeof ServicioServiceRoute
@@ -343,6 +385,7 @@ export interface FileRoutesByTo {
   '/admin/reservas': typeof AuthenticatedAdminReservasRoute
   '/admin/verificaciones': typeof AuthenticatedAdminVerificacionesRoute
   '/chat/$reservaId': typeof AuthenticatedChatReservaIdRoute
+  '/comprobante/$reservaId': typeof AuthenticatedComprobanteReservaIdRoute
   '/solicitudes/$id': typeof AuthenticatedSolicitudesIdRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/api/public/mercadopago/webhook': typeof ApiPublicMercadopagoWebhookRoute
@@ -366,16 +409,20 @@ export interface FileRoutesById {
   '/_authenticated/cotizar': typeof AuthenticatedCotizarRoute
   '/_authenticated/cuenta': typeof AuthenticatedCuentaRoute
   '/_authenticated/direcciones': typeof AuthenticatedDireccionesRoute
+  '/_authenticated/estadisticas': typeof AuthenticatedEstadisticasRoute
   '/_authenticated/favoritos': typeof AuthenticatedFavoritosRoute
   '/_authenticated/notif-config': typeof AuthenticatedNotifConfigRoute
   '/_authenticated/notificaciones': typeof AuthenticatedNotificacionesRoute
   '/_authenticated/onboarding-prestador': typeof AuthenticatedOnboardingPrestadorRoute
   '/_authenticated/panel': typeof AuthenticatedPanelRoute
+  '/_authenticated/pro': typeof AuthenticatedProRoute
   '/_authenticated/reclamos': typeof AuthenticatedReclamosRoute
   '/_authenticated/reservas': typeof AuthenticatedReservasRoute
   '/_authenticated/solicitar': typeof AuthenticatedSolicitarRoute
   '/_authenticated/solicitudes': typeof AuthenticatedSolicitudesRouteWithChildren
   '/_authenticated/verificar-identidad': typeof AuthenticatedVerificarIdentidadRoute
+  '/_authenticated/ya': typeof AuthenticatedYaRoute
+  '/_authenticated/ya-prestador': typeof AuthenticatedYaPrestadorRoute
   '/prestador/$id': typeof PrestadorIdRoute
   '/reservar/$id': typeof ReservarIdRoute
   '/servicio/$service': typeof ServicioServiceRoute
@@ -386,6 +433,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/reservas': typeof AuthenticatedAdminReservasRoute
   '/_authenticated/admin/verificaciones': typeof AuthenticatedAdminVerificacionesRoute
   '/_authenticated/chat/$reservaId': typeof AuthenticatedChatReservaIdRoute
+  '/_authenticated/comprobante/$reservaId': typeof AuthenticatedComprobanteReservaIdRoute
   '/_authenticated/solicitudes/$id': typeof AuthenticatedSolicitudesIdRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/api/public/mercadopago/webhook': typeof ApiPublicMercadopagoWebhookRoute
@@ -409,16 +457,20 @@ export interface FileRouteTypes {
     | '/cotizar'
     | '/cuenta'
     | '/direcciones'
+    | '/estadisticas'
     | '/favoritos'
     | '/notif-config'
     | '/notificaciones'
     | '/onboarding-prestador'
     | '/panel'
+    | '/pro'
     | '/reclamos'
     | '/reservas'
     | '/solicitar'
     | '/solicitudes'
     | '/verificar-identidad'
+    | '/ya'
+    | '/ya-prestador'
     | '/prestador/$id'
     | '/reservar/$id'
     | '/servicio/$service'
@@ -429,6 +481,7 @@ export interface FileRouteTypes {
     | '/admin/reservas'
     | '/admin/verificaciones'
     | '/chat/$reservaId'
+    | '/comprobante/$reservaId'
     | '/solicitudes/$id'
     | '/admin/'
     | '/api/public/mercadopago/webhook'
@@ -450,16 +503,20 @@ export interface FileRouteTypes {
     | '/cotizar'
     | '/cuenta'
     | '/direcciones'
+    | '/estadisticas'
     | '/favoritos'
     | '/notif-config'
     | '/notificaciones'
     | '/onboarding-prestador'
     | '/panel'
+    | '/pro'
     | '/reclamos'
     | '/reservas'
     | '/solicitar'
     | '/solicitudes'
     | '/verificar-identidad'
+    | '/ya'
+    | '/ya-prestador'
     | '/prestador/$id'
     | '/reservar/$id'
     | '/servicio/$service'
@@ -470,6 +527,7 @@ export interface FileRouteTypes {
     | '/admin/reservas'
     | '/admin/verificaciones'
     | '/chat/$reservaId'
+    | '/comprobante/$reservaId'
     | '/solicitudes/$id'
     | '/admin'
     | '/api/public/mercadopago/webhook'
@@ -492,16 +550,20 @@ export interface FileRouteTypes {
     | '/_authenticated/cotizar'
     | '/_authenticated/cuenta'
     | '/_authenticated/direcciones'
+    | '/_authenticated/estadisticas'
     | '/_authenticated/favoritos'
     | '/_authenticated/notif-config'
     | '/_authenticated/notificaciones'
     | '/_authenticated/onboarding-prestador'
     | '/_authenticated/panel'
+    | '/_authenticated/pro'
     | '/_authenticated/reclamos'
     | '/_authenticated/reservas'
     | '/_authenticated/solicitar'
     | '/_authenticated/solicitudes'
     | '/_authenticated/verificar-identidad'
+    | '/_authenticated/ya'
+    | '/_authenticated/ya-prestador'
     | '/prestador/$id'
     | '/reservar/$id'
     | '/servicio/$service'
@@ -512,6 +574,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/reservas'
     | '/_authenticated/admin/verificaciones'
     | '/_authenticated/chat/$reservaId'
+    | '/_authenticated/comprobante/$reservaId'
     | '/_authenticated/solicitudes/$id'
     | '/_authenticated/admin/'
     | '/api/public/mercadopago/webhook'
@@ -658,6 +721,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDireccionesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/estadisticas': {
+      id: '/_authenticated/estadisticas'
+      path: '/estadisticas'
+      fullPath: '/estadisticas'
+      preLoaderRoute: typeof AuthenticatedEstadisticasRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/favoritos': {
       id: '/_authenticated/favoritos'
       path: '/favoritos'
@@ -693,6 +763,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPanelRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/pro': {
+      id: '/_authenticated/pro'
+      path: '/pro'
+      fullPath: '/pro'
+      preLoaderRoute: typeof AuthenticatedProRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/reclamos': {
       id: '/_authenticated/reclamos'
       path: '/reclamos'
@@ -726,6 +803,20 @@ declare module '@tanstack/react-router' {
       path: '/verificar-identidad'
       fullPath: '/verificar-identidad'
       preLoaderRoute: typeof AuthenticatedVerificarIdentidadRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/ya': {
+      id: '/_authenticated/ya'
+      path: '/ya'
+      fullPath: '/ya'
+      preLoaderRoute: typeof AuthenticatedYaRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/ya-prestador': {
+      id: '/_authenticated/ya-prestador'
+      path: '/ya-prestador'
+      fullPath: '/ya-prestador'
+      preLoaderRoute: typeof AuthenticatedYaPrestadorRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/prestador/$id': {
@@ -805,6 +896,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedChatReservaIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/comprobante/$reservaId': {
+      id: '/_authenticated/comprobante/$reservaId'
+      path: '/comprobante/$reservaId'
+      fullPath: '/comprobante/$reservaId'
+      preLoaderRoute: typeof AuthenticatedComprobanteReservaIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/solicitudes/$id': {
       id: '/_authenticated/solicitudes/$id'
       path: '/$id'
@@ -841,16 +939,20 @@ interface AuthenticatedRouteChildren {
   AuthenticatedCotizarRoute: typeof AuthenticatedCotizarRoute
   AuthenticatedCuentaRoute: typeof AuthenticatedCuentaRoute
   AuthenticatedDireccionesRoute: typeof AuthenticatedDireccionesRoute
+  AuthenticatedEstadisticasRoute: typeof AuthenticatedEstadisticasRoute
   AuthenticatedFavoritosRoute: typeof AuthenticatedFavoritosRoute
   AuthenticatedNotifConfigRoute: typeof AuthenticatedNotifConfigRoute
   AuthenticatedNotificacionesRoute: typeof AuthenticatedNotificacionesRoute
   AuthenticatedOnboardingPrestadorRoute: typeof AuthenticatedOnboardingPrestadorRoute
   AuthenticatedPanelRoute: typeof AuthenticatedPanelRoute
+  AuthenticatedProRoute: typeof AuthenticatedProRoute
   AuthenticatedReclamosRoute: typeof AuthenticatedReclamosRoute
   AuthenticatedReservasRoute: typeof AuthenticatedReservasRoute
   AuthenticatedSolicitarRoute: typeof AuthenticatedSolicitarRoute
   AuthenticatedSolicitudesRoute: typeof AuthenticatedSolicitudesRouteWithChildren
   AuthenticatedVerificarIdentidadRoute: typeof AuthenticatedVerificarIdentidadRoute
+  AuthenticatedYaRoute: typeof AuthenticatedYaRoute
+  AuthenticatedYaPrestadorRoute: typeof AuthenticatedYaPrestadorRoute
   AuthenticatedAdminLiquidacionesRoute: typeof AuthenticatedAdminLiquidacionesRoute
   AuthenticatedAdminPrestadoresRoute: typeof AuthenticatedAdminPrestadoresRoute
   AuthenticatedAdminReclamosRoute: typeof AuthenticatedAdminReclamosRoute
@@ -858,6 +960,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedAdminReservasRoute: typeof AuthenticatedAdminReservasRoute
   AuthenticatedAdminVerificacionesRoute: typeof AuthenticatedAdminVerificacionesRoute
   AuthenticatedChatReservaIdRoute: typeof AuthenticatedChatReservaIdRoute
+  AuthenticatedComprobanteReservaIdRoute: typeof AuthenticatedComprobanteReservaIdRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
 
@@ -866,16 +969,20 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedCotizarRoute: AuthenticatedCotizarRoute,
   AuthenticatedCuentaRoute: AuthenticatedCuentaRoute,
   AuthenticatedDireccionesRoute: AuthenticatedDireccionesRoute,
+  AuthenticatedEstadisticasRoute: AuthenticatedEstadisticasRoute,
   AuthenticatedFavoritosRoute: AuthenticatedFavoritosRoute,
   AuthenticatedNotifConfigRoute: AuthenticatedNotifConfigRoute,
   AuthenticatedNotificacionesRoute: AuthenticatedNotificacionesRoute,
   AuthenticatedOnboardingPrestadorRoute: AuthenticatedOnboardingPrestadorRoute,
   AuthenticatedPanelRoute: AuthenticatedPanelRoute,
+  AuthenticatedProRoute: AuthenticatedProRoute,
   AuthenticatedReclamosRoute: AuthenticatedReclamosRoute,
   AuthenticatedReservasRoute: AuthenticatedReservasRoute,
   AuthenticatedSolicitarRoute: AuthenticatedSolicitarRoute,
   AuthenticatedSolicitudesRoute: AuthenticatedSolicitudesRouteWithChildren,
   AuthenticatedVerificarIdentidadRoute: AuthenticatedVerificarIdentidadRoute,
+  AuthenticatedYaRoute: AuthenticatedYaRoute,
+  AuthenticatedYaPrestadorRoute: AuthenticatedYaPrestadorRoute,
   AuthenticatedAdminLiquidacionesRoute: AuthenticatedAdminLiquidacionesRoute,
   AuthenticatedAdminPrestadoresRoute: AuthenticatedAdminPrestadoresRoute,
   AuthenticatedAdminReclamosRoute: AuthenticatedAdminReclamosRoute,
@@ -883,6 +990,8 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminReservasRoute: AuthenticatedAdminReservasRoute,
   AuthenticatedAdminVerificacionesRoute: AuthenticatedAdminVerificacionesRoute,
   AuthenticatedChatReservaIdRoute: AuthenticatedChatReservaIdRoute,
+  AuthenticatedComprobanteReservaIdRoute:
+    AuthenticatedComprobanteReservaIdRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
 }
 

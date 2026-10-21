@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { CalendarCheck, MapPin, MessageCircle, Star, Shield, RotateCcw, Award, Scale, CreditCard, Loader2, KeyRound, CheckCircle2 } from "lucide-react";
+import { CalendarCheck, MapPin, MessageCircle, Star, Shield, RotateCcw, Award, Scale, CreditCard, Loader2, KeyRound, CheckCircle2, FileText } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -240,6 +240,15 @@ function BookingCard({ b, timesHired }: { b: Booking; timesHired: number }) {
           )}
           {b.status === "completado" && b.hasReview && (
             <span className="text-xs text-muted-foreground">✓ Reseña enviada</span>
+          )}
+          {b.status === "completado" && (
+            <Link
+              to="/comprobante/$reservaId"
+              params={{ reservaId: b.id }}
+              className="inline-flex items-center gap-1 px-3 py-2 rounded-xl border border-border text-xs font-semibold hover:bg-muted"
+            >
+              <FileText className="size-3.5" /> Comprobante
+            </Link>
           )}
         </div>
       </div>

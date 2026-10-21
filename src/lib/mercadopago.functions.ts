@@ -178,3 +178,52 @@ export const refundReserva = createServerFn({ method: "POST" })
       .eq("id", pago.id);
     return { reembolsado: monto, motivo: porcentaje < 1 ? ("tardia" as const) : ("total" as const) };
   });
+
+const proSchema = z.object({ planId: z.enum(["mensual", "anual"]) });
+
+/** Pago de Homie Pro (mensual/anual). La activación la hace el webhook al confirmar el pago. */
+export const createProPreference = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => proSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
+    if (!accessToken) throw new Error("MERCADOPAGO_ACCESS_TOKEN no configurado");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: usuario } = await context.supabase.from("usuarios").select("id, email, nombre").eq("user_id", context.userId).maybeSingle();
+    if (!usuario) throw new Error("Usuario no encontrado");
+    const { data: prestador } = await context.supabase.from("prestadores").select("id, verificado").eq("usuario_id", usuario.id).maybeSingle();
+    if (!prestador) throw new Error("No tienes perfil de profesional");
+    if (!prestador.verificado) throw new Error("Homie Pro se activa cuando tu perfil está verificado");
+    const { data: plan } = await supabaseAdmin.from("planes_pro").select("*").eq("id", data.planId).eq("activo", true).maybeSingle();
+    if (!plan) throw new Error("Plan no disponible");
+
+    const { data: sus, error: sErr } = await supabaseAdmin
+      .from("suscripciones_pro")
+      .insert({ prestador_id: prestador.id, plan_id: plan.id, monto: plan.precio, estado: "pendiente" })
+      .select("id").single();
+    if (sErr || !sus) throw new Error("No se pudo crear la suscripción");
+
+    const forwardedProto = getRequestHeader("x-forwarded-proto") ?? "https";
+    const host = getRequestHeader("x-forwarded-host") ?? getRequestHeader("host");
+    const origin = `${forwardedProto}://${host}`;
+    const res = await fetch("https://api.mercadopago.com/checkout/preferences", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        items: [{ id: `pro-${plan.id}`, title: plan.nombre, quantity: 1, currency_id: "CLP", unit_price: plan.precio }],
+        payer: usuario.email ? { email: usuario.email, name: usuario.nombre ?? undefined } : undefined,
+        external_reference: `pro:${sus.id}`,
+        back_urls: {
+          success: `${origin}/pro?pago=exito`, pending: `${origin}/pro?pago=pendiente`, failure: `${origin}/pro?pago=error`,
+        },
+        auto_return: "approved",
+        notification_url: `${origin}/api/public/mercadopago/webhook`,
+        statement_descriptor: "HOMIE PRO",
+      }),
+    });
+    if (!res.ok) throw new Error(`Mercado Pago rechazó la preferencia (${res.status})`);
+    const pref = (await res.json()) as { id: string; init_point: string; sandbox_init_point: string };
+    await supabaseAdmin.from("suscripciones_pro").update({ mp_preference_id: pref.id }).eq("id", sus.id);
+    return { initPoint: accessToken.startsWith("TEST-") ? pref.sandbox_init_point : pref.init_point };
+  });

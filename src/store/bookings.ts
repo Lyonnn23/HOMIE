@@ -172,6 +172,7 @@ export interface NewBookingInput {
   address: string;
   note?: string;
   price: number;
+  modalidad?: "domicilio" | "online" | "local";
 }
 
 export function useAddBooking() {
@@ -192,6 +193,7 @@ export function useAddBooking() {
           nota: b.note || null,
           total: b.price,
           estado: "pendiente",
+          ...(b.modalidad ? { modalidad: b.modalidad } : {}),
         })
         .select()
         .single();

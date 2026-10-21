@@ -15,6 +15,7 @@ const COLUMNS: { title: string; links: { label: string; to: string; search?: Rec
     title: "Clientes",
     links: [
       { label: "Buscar un servicio", to: "/buscar" },
+      { label: "Homie Ya (urgencias)", to: "/ya" },
       { label: "Pedir cotizaciones", to: "/solicitar" },
       { label: "Centro de ayuda", to: "/ayuda" },
       { label: "Reclamos", to: "/reclamos" },
@@ -26,6 +27,7 @@ const COLUMNS: { title: string; links: { label: string; to: string; search?: Rec
       { label: "Ofrecer mis servicios", to: "/registro", search: { tipo: "prestador" } },
       { label: "Requisitos y verificación", to: "/como-funciona" },
       { label: "Comisión y pagos", to: "/como-funciona" },
+      { label: "Homie Pro", to: "/pro" },
     ],
   },
   {

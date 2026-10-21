@@ -1,8 +1,9 @@
 import { requisitosDe } from "@/data/requisitos";
+import { fuentesOficialesDe } from "@/data/verificacion-oficial";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { Check, X, ShieldCheck, Loader2 } from "lucide-react";
+import { Check, X, ShieldCheck, Loader2, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -95,6 +96,13 @@ function AdminVerificaciones() {
 function VerifCard({ v, onResolved }: { v: VerifRow; onResolved: () => void }) {
   const [showRechazo, setShowRechazo] = useState(false);
   const [motivo, setMotivo] = useState("");
+  const [checks, setChecks] = useState<Record<string, boolean>>({});
+  const CHECKLIST = [
+    { id: "identidad", label: "Identidad coincide con selfie" },
+    { id: "antecedentes", label: "Antecedentes sin observaciones" },
+    { id: "certificado", label: "Certificado válido en fuente oficial" },
+  ];
+  const todosOk = CHECKLIST.every((c) => checks[c.id]);
 
   const aprobar = useMutation({
     mutationFn: async () => {
@@ -149,6 +157,34 @@ function VerifCard({ v, onResolved }: { v: VerifRow; onResolved: () => void }) {
           </div>
         );
       })()}
+
+      {/* Verificación oficial asistida */}
+      <div className="mt-3 p-3 rounded-xl bg-[#111827] text-xs text-white">
+        <div className="font-semibold text-[#EF9F27]">Verificar en fuentes oficiales</div>
+        <ul className="mt-2 space-y-2">
+          {fuentesOficialesDe(v.prestadores?.categoria_id).map((f) => (
+            <li key={f.label + f.url}>
+              <a href={f.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-semibold underline underline-offset-2 hover:text-[#EF9F27]">
+                {f.label} <ExternalLink className="size-3" />
+              </a>
+              <div className="text-white/60 mt-0.5">{f.instruccion}</div>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-3 pt-3 border-t border-white/10 space-y-1.5">
+          {CHECKLIST.map((c) => (
+            <label key={c.id} className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={!!checks[c.id]}
+                onChange={(e) => setChecks((prev) => ({ ...prev, [c.id]: e.target.checked }))}
+                className="size-4 accent-[#00C288]"
+              />
+              <span className={checks[c.id] ? "text-white" : "text-white/80"}>{c.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
       {v.certificados.length > 0 && (
         <div className="mt-3">
           <div className="text-xs font-semibold text-[#6B7280] uppercase mb-2">Certificados</div>
@@ -188,7 +224,10 @@ function VerifCard({ v, onResolved }: { v: VerifRow; onResolved: () => void }) {
               <X className="size-4" /> Rechazar
             </button>
             <button
-              onClick={() => aprobar.mutate()}
+              onClick={() => {
+                if (!todosOk && !confirm("No marcaste toda la lista de verificación. ¿Aprobar de todas formas?")) return;
+                aprobar.mutate();
+              }}
               disabled={aprobar.isPending}
               className="flex-1 h-11 rounded-xl bg-[#00C288] text-white text-sm font-semibold flex items-center justify-center gap-1 disabled:opacity-50"
             >

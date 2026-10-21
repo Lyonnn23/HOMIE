@@ -4,7 +4,8 @@ import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   CalendarCheck, MapPin, Check, X, Truck, CheckCircle2, Star, DollarSign, MessageCircle,
-  LayoutDashboard, ListTodo, History, UserCog, Loader2, ChevronDown, ImagePlus, Clock, Palette, ExternalLink, MessageSquareQuote, ChevronRight,
+  LayoutDashboard, ListTodo, History, UserCog, Loader2, ChevronDown, ImagePlus, Clock, Palette, ExternalLink, MessageSquareQuote, ChevronRight, Zap,
+  Crown, FileText, Images, Trash2,
 } from "lucide-react";
 import { HorarioEditor, parseHorario, validarHorario, type Horario } from "@/components/HorarioEditor";
 import { AppShell } from "@/components/AppShell";
@@ -14,7 +15,8 @@ import {
   type Booking, type DbEstado,
 } from "@/store/bookings";
 import { geocodificar } from "@/lib/geocode";
-import { formatCLP, categories } from "@/data/services";
+import { formatCLP, categories, esPro, MODALIDAD_LABEL } from "@/data/services";
+import { comprimirImagen } from "@/lib/imagen";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -139,6 +141,7 @@ function Resumen({ bookings }: { bookings: Booking[] }) {
 
   return (
     <div className="space-y-5">
+      <ProBanner />
       <AvailabilityToggle />
 
       <Link
@@ -153,6 +156,21 @@ function Resumen({ bookings }: { bookings: Booking[] }) {
           <div className="text-xs text-white/70">Cotiza y consigue clientes nuevos</div>
         </div>
         <ChevronRight className="size-4 text-white/60 shrink-0" />
+      </Link>
+
+      {/* Homie Ya: urgencias en tu rubro */}
+      <Link
+        to="/ya-prestador"
+        className="flex items-center gap-3 p-4 rounded-2xl bg-white border-2 border-[#FF3B6B] hover:bg-[#FF3B6B]/5 transition"
+      >
+        <div className="size-10 rounded-xl bg-[#FF3B6B] flex items-center justify-center shrink-0">
+          <Zap className="size-5 text-white fill-white" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="font-semibold text-sm text-[#111827]">Homie Ya: urgencias en tu rubro</div>
+          <div className="text-xs text-muted-foreground">El primero en aceptar se la queda</div>
+        </div>
+        <ChevronRight className="size-4 text-[#FF3B6B] shrink-0" />
       </Link>
 
       <div className="grid grid-cols-2 gap-3">
@@ -286,6 +304,15 @@ function ProviderBookingCard({ b }: { b: Booking }) {
       <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
         <span className="font-semibold text-sm">{formatCLP(b.price)}</span>
         <div className="flex gap-2 flex-wrap">
+          {b.status === "completado" && (
+            <Link
+              to="/comprobante/$reservaId"
+              params={{ reservaId: b.id }}
+              className="inline-flex items-center gap-1 px-3 py-2 rounded-xl border border-border text-xs font-semibold hover:bg-muted"
+            >
+              <FileText className="size-3.5" /> Comprobante
+            </Link>
+          )}
           {(b.status === "confirmada" || b.status === "en camino") && (
             <Link
               to="/chat/$reservaId"
@@ -346,7 +373,7 @@ function usePrestadorRow() {
     queryFn: async () => {
       const { data } = await supabase
         .from("prestadores")
-        .select("id, bio, direccion, precio_desde, disponible_ahora, categoria_id, calificacion_promedio, resenas_count, verificado, horario, banner_url, color_perfil, titulo_profesional, anos_experiencia, comuna")
+        .select("id, bio, direccion, precio_desde, disponible_ahora, categoria_id, calificacion_promedio, resenas_count, verificado, horario, banner_url, color_perfil, titulo_profesional, anos_experiencia, comuna, pro_hasta, pro_trial_usado, gallery_urls")
         .eq("usuario_id", usuario!.id)
         .maybeSingle();
       return data;
@@ -403,6 +430,41 @@ function AvailabilityToggle() {
   );
 }
 
+function ProBanner() {
+  const row = usePrestadorRow();
+  if (!row) return null;
+  const pro = esPro(row.pro_hasta);
+  if (pro) {
+    const hasta = new Date(row.pro_hasta!).toLocaleDateString("es-CL", { day: "2-digit", month: "2-digit", year: "numeric" });
+    return (
+      <div className="p-4 rounded-2xl bg-[#111827] text-white flex items-center gap-3">
+        <span className="inline-flex size-10 rounded-xl bg-[#EF9F27] items-center justify-center shrink-0">
+          <Crown className="size-5 text-[#111827]" />
+        </span>
+        <div className="flex-1 min-w-0">
+          <div className="font-semibold text-sm">PRO hasta {hasta}</div>
+          <div className="text-xs text-white/70">Comisión 12% · destacado en tu rubro</div>
+        </div>
+        <Link to="/estadisticas" className="shrink-0 px-3 py-2 rounded-xl bg-white text-[#111827] text-xs font-bold">
+          Estadísticas
+        </Link>
+      </div>
+    );
+  }
+  return (
+    <Link to="/pro" className="flex items-center gap-3 p-4 rounded-2xl bg-[#FAC775] text-[#111827] hover:bg-[#F7BB5E] transition">
+      <span className="inline-flex size-10 rounded-xl bg-[#111827] items-center justify-center shrink-0">
+        <Crown className="size-5 text-[#EF9F27]" />
+      </span>
+      <div className="flex-1 min-w-0">
+        <div className="font-semibold text-sm">{row.pro_trial_usado ? "Vuelve a ser Homie Pro" : "Prueba Homie Pro 30 días gratis"}</div>
+        <div className="text-xs text-[#854F0B]">Comisión 12%, primero en tu rubro, sello PRO y estadísticas</div>
+      </div>
+      <ChevronRight className="size-4 shrink-0" />
+    </Link>
+  );
+}
+
 // ---------- EDITOR PERFIL ----------
 interface ServicioRow {
   id: string; // prestador_servicios.id
@@ -412,7 +474,13 @@ interface ServicioRow {
   precio_hasta: number;
   descripcion: string | null;
   foto_url: string | null;
+  modalidades: string[];
 }
+
+type ServicioPatch = { precio: number; precio_hasta: number; descripcion: string | null; foto_url: string | null; modalidades: string[] };
+const MODALIDADES: { id: string; label: string }[] = [
+  { id: "domicilio", label: "A domicilio" }, { id: "online", label: "Online" }, { id: "local", label: "En mi local" },
+];
 
 const MAX_DESC = 600;
 const PRESET_COLORS = [
@@ -465,15 +533,17 @@ function EditorPerfil() {
     queryFn: async (): Promise<ServicioRow[]> => {
       const { data } = await supabase
         .from("prestador_servicios")
-        .select("id, precio, precio_hasta, descripcion, foto_url, servicio_id, servicios ( id, nombre )")
+        .select("id, precio, precio_hasta, descripcion, foto_url, modalidades, servicio_id, servicios ( id, nombre )")
         .eq("prestador_id", row!.id);
       type R = {
         id: string; precio: number; precio_hasta: number; descripcion: string | null; foto_url: string | null;
+        modalidades: string[] | null;
         servicio_id: string; servicios: { id: string; nombre: string } | null;
       };
       return ((data ?? []) as unknown as R[]).map((r) => ({
         id: r.id, servicio_id: r.servicio_id, nombre: r.servicios?.nombre ?? "?",
         precio: r.precio, precio_hasta: r.precio_hasta, descripcion: r.descripcion, foto_url: r.foto_url,
+        modalidades: r.modalidades && r.modalidades.length > 0 ? r.modalidades : ["domicilio"],
       }));
     },
   });
@@ -547,7 +617,7 @@ function EditorPerfil() {
     qc.invalidateQueries({ queryKey: ["mis-servicios"] });
   }
 
-  async function updateServicio(id: string, patch: { precio: number; precio_hasta: number; descripcion: string | null; foto_url: string | null }) {
+  async function updateServicio(id: string, patch: ServicioPatch) {
     const { error } = await supabase.from("prestador_servicios").update(patch).eq("id", id);
     if (error) throw error;
     await syncRangoPrestador(misServicios.map((s) => (s.id === id ? { ...s, ...patch } : s)));
@@ -638,6 +708,9 @@ function EditorPerfil() {
           anos_experiencia: row.anos_experiencia, comuna: row.comuna,
         }}
       />
+
+      {/* Galería de trabajos */}
+      <GaleriaCard prestadorId={row.id} userId={user?.id ?? ""} initial={row.gallery_urls ?? []} />
 
       {/* Datos bancarios para liquidaciones */}
       <DatosBancariosCard prestadorId={row.id} />
@@ -795,11 +868,12 @@ function MisLiquidacionesCard({ prestadorId }: { prestadorId: string }) {
 
 function ServicioEditCard({
   s, userId, onSave,
-}: { s: ServicioRow; userId: string; onSave: (p: { precio: number; precio_hasta: number; descripcion: string | null; foto_url: string | null }) => Promise<void> }) {
+}: { s: ServicioRow; userId: string; onSave: (p: ServicioPatch) => Promise<void> }) {
   const [open, setOpen] = useState(false);
   const [precio, setPrecio] = useState(s.precio);
   const [hasta, setHasta] = useState(s.precio_hasta);
   const [desc, setDesc] = useState(s.descripcion ?? "");
+  const [modalidades, setModalidades] = useState<string[]>(s.modalidades);
   const [fotoUrl, setFotoUrl] = useState<string | null>(s.foto_url);
   const [fotoFile, setFotoFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(s.foto_url);
@@ -809,7 +883,12 @@ function ServicioEditCard({
   useEffect(() => {
     setPrecio(s.precio); setHasta(s.precio_hasta); setDesc(s.descripcion ?? "");
     setFotoUrl(s.foto_url); setPreview(s.foto_url); setFotoFile(null);
+    setModalidades(s.modalidades);
   }, [s]);
+
+  function toggleModalidad(id: string) {
+    setModalidades((prev) => (prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id]));
+  }
 
   const max = maxHasta(precio);
   const invalido = !precio || precio < 1000 || hasta < precio || hasta > max;
@@ -819,11 +898,12 @@ function ServicioEditCard({
     if (hasta < precio) { toast.error("El precio hasta no puede ser menor que el precio desde."); return; }
     if (hasta > max) { toast.error("El precio hasta no puede superar el 50% sobre el precio desde."); return; }
     if (desc.length > MAX_DESC) { toast.error(`La descripción supera los ${MAX_DESC} caracteres.`); return; }
+    if (modalidades.length === 0) { toast.error("Elige al menos una modalidad."); return; }
     setSaving(true);
     try {
       let url = fotoUrl;
       if (fotoFile && userId) url = await subirAPerfiles(userId, fotoFile, `servicio-${s.servicio_id}`);
-      await onSave({ precio, precio_hasta: hasta, descripcion: desc.trim() || null, foto_url: url });
+      await onSave({ precio, precio_hasta: hasta, descripcion: desc.trim() || null, foto_url: url, modalidades });
       setFotoUrl(url); setFotoFile(null);
       toast.success(`"${s.nombre}" actualizado`);
       setOpen(false);
@@ -844,7 +924,9 @@ function ServicioEditCard({
         )}
         <div className="min-w-0 flex-1">
           <div className="font-semibold text-sm truncate">{s.nombre}</div>
-          <div className="text-xs text-muted-foreground">{formatCLP(s.precio)} – {formatCLP(s.precio_hasta)}</div>
+          <div className="text-xs text-muted-foreground">
+            {formatCLP(s.precio)} – {formatCLP(s.precio_hasta)} · {s.modalidades.map((m) => MODALIDAD_LABEL[m] ?? m).join(", ")}
+          </div>
         </div>
         <ChevronDown className={`size-4 text-muted-foreground transition ${open ? "rotate-180" : ""}`} />
       </button>
@@ -879,6 +961,25 @@ function ServicioEditCard({
             <span className="block text-right text-[11px] text-muted-foreground mt-1">{desc.length}/{MAX_DESC}</span>
           </label>
 
+          <div>
+            <span className="block text-xs font-medium mb-2">Modalidad</span>
+            <div className="flex flex-wrap gap-2">
+              {MODALIDADES.map((m) => {
+                const on = modalidades.includes(m.id);
+                return (
+                  <label key={m.id} className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl border text-sm cursor-pointer transition ${
+                    on ? "bg-[#111827] text-white border-[#111827]" : "bg-white border-border"
+                  }`}>
+                    <input type="checkbox" className="sr-only" checked={on} onChange={() => toggleModalidad(m.id)} />
+                    {on && <Check className="size-3.5" />}
+                    {m.label}
+                  </label>
+                );
+              })}
+            </div>
+            <p className="text-[11px] text-muted-foreground mt-1">Si eliges Online, el cliente no necesita indicar dirección.</p>
+          </div>
+
           <div className="flex items-center gap-3">
             <button type="button" onClick={() => ref.current?.click()}
               className="size-16 rounded-xl overflow-hidden bg-[#F5F5F0] border-2 border-dashed border-[#E5E7EB] flex items-center justify-center shrink-0">
@@ -902,6 +1003,100 @@ function ServicioEditCard({
           </button>
         </div>
       )}
+    </div>
+  );
+}
+
+const MAX_GALERIA = 12;
+
+function GaleriaCard({ prestadorId, userId, initial }: { prestadorId: string; userId: string; initial: string[] }) {
+  const qc = useQueryClient();
+  const [urls, setUrls] = useState<string[]>(initial);
+  const [subiendo, setSubiendo] = useState(false);
+  const [guardando, setGuardando] = useState(false);
+  const ref = useRef<HTMLInputElement>(null);
+
+  useEffect(() => { setUrls(initial); }, [initial]);
+
+  async function persistir(next: string[]) {
+    setGuardando(true);
+    try {
+      const { error } = await supabase.from("prestadores").update({ gallery_urls: next }).eq("id", prestadorId);
+      if (error) throw error;
+      setUrls(next);
+      qc.invalidateQueries({ queryKey: ["prestador-row"] });
+      qc.invalidateQueries({ queryKey: ["provider"] });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo guardar la galería");
+    } finally {
+      setGuardando(false);
+    }
+  }
+
+  async function onPick(files: FileList | null) {
+    if (!files || files.length === 0 || !userId) return;
+    const libres = MAX_GALERIA - urls.length;
+    if (libres <= 0) { toast.error(`Máximo ${MAX_GALERIA} fotos.`); return; }
+    const lista = Array.from(files).slice(0, libres);
+    if (lista.length < files.length) toast.info(`Solo se subirán ${lista.length} fotos (máximo ${MAX_GALERIA}).`);
+    setSubiendo(true);
+    const nuevas: string[] = [];
+    try {
+      for (const f of lista) {
+        const comp = await comprimirImagen(f);
+        nuevas.push(await subirAPerfiles(userId, comp, "galeria"));
+      }
+      await persistir([...urls, ...nuevas]);
+      toast.success(nuevas.length === 1 ? "Foto agregada" : `${nuevas.length} fotos agregadas`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo subir la foto");
+      if (nuevas.length > 0) await persistir([...urls, ...nuevas]);
+    } finally {
+      setSubiendo(false);
+    }
+  }
+
+  async function quitar(url: string) {
+    await persistir(urls.filter((u) => u !== url));
+  }
+
+  return (
+    <div>
+      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-1.5">
+        <Images className="size-3.5" /> Galería de trabajos
+      </h3>
+      <div className="rounded-2xl bg-white border border-border p-4">
+        <p className="text-sm text-muted-foreground">
+          Muestra hasta {MAX_GALERIA} fotos de trabajos reales. Se ven en tu perfil público y aumentan la confianza.
+        </p>
+        <div className="mt-3 grid grid-cols-3 sm:grid-cols-4 gap-2">
+          {urls.map((u) => (
+            <div key={u} className="relative aspect-square rounded-xl overflow-hidden bg-[#F5F5F0] group">
+              <img src={u} alt="" loading="lazy" className="size-full object-cover" />
+              <button
+                type="button" onClick={() => quitar(u)} disabled={guardando} aria-label="Quitar foto"
+                className="absolute top-1.5 right-1.5 size-7 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-[#FF3B6B] disabled:opacity-50"
+              >
+                <Trash2 className="size-3.5" />
+              </button>
+            </div>
+          ))}
+          {urls.length < MAX_GALERIA && (
+            <button
+              type="button" onClick={() => ref.current?.click()} disabled={subiendo || !userId}
+              className="aspect-square rounded-xl bg-[#F5F5F0] border-2 border-dashed border-[#E5E7EB] flex flex-col items-center justify-center gap-1 text-xs text-muted-foreground hover:border-[#EF9F27] disabled:opacity-50"
+            >
+              {subiendo ? <Loader2 className="size-5 animate-spin text-[#EF9F27]" /> : <ImagePlus className="size-5 text-[#EF9F27]" />}
+              {subiendo ? "Subiendo..." : "Agregar"}
+            </button>
+          )}
+        </div>
+        <div className="mt-2 text-[11px] text-muted-foreground text-right">{urls.length}/{MAX_GALERIA}</div>
+        <input
+          ref={ref} type="file" accept="image/*" multiple className="hidden"
+          onChange={(e) => { onPick(e.target.files); e.target.value = ""; }}
+        />
+      </div>
     </div>
   );
 }

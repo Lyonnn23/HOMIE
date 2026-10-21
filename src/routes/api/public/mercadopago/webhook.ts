@@ -83,6 +83,19 @@ export const Route = createFileRoute("/api/public/mercadopago/webhook")({
           transaction_amount?: number;
         };
 
+        const extRef = payment.external_reference ?? "";
+        // Pagos de Homie Pro: external_reference = "pro:<suscripcion_id>"
+        if (extRef.startsWith("pro:")) {
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const susId = extRef.slice(4);
+          if (payment.status === "approved") {
+            await supabaseAdmin.rpc("activar_pro_pagado", { _suscripcion_id: susId, _mp_payment_id: String(payment.id) });
+          } else if (payment.status === "rejected" || payment.status === "cancelled") {
+            await supabaseAdmin.from("suscripciones_pro").update({ estado: "rechazada", mp_payment_id: String(payment.id) }).eq("id", susId).eq("estado", "pendiente");
+          }
+          return new Response("ok", { status: 200 });
+        }
+
         const reservaId = payment.external_reference;
         if (!reservaId) {
           return new Response("Missing external_reference", { status: 202 });
