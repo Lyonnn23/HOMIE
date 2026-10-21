@@ -22,6 +22,13 @@
       "when": 1792556309639,
       "tag": "0002_20261021040000_homie_operacion",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792556336195,
+      "tag": "0003_homie_operacion_permisos_y_correo_verificado",
+      "breakpoints": true
     }
   ]
 }
