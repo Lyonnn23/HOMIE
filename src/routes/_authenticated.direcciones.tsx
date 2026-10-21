@@ -8,7 +8,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/_authenticated/direcciones")({
-  head: () => ({ meta: [{ title: "Direcciones guardadas — Homie" }] }),
+  head: () => ({ meta: [
+    { name: "description", content: "Tus direcciones guardadas para reservar servicios con Homie." },
+    { property: "og:title", content: "Direcciones guardadas — Homie" },
+    { property: "og:description", content: "Tus direcciones guardadas para reservar servicios con Homie." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { title: "Direcciones guardadas — Homie" }] }),
   component: DireccionesPage,
 });
 

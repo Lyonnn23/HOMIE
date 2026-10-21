@@ -6,6 +6,14 @@ import { ProviderAvatar } from "@/components/Avatar";
 import { getCategoryByService, useProvidersForService, formatCLP, type ProviderListItem } from "@/data/services";
 
 export const Route = createFileRoute("/servicio/$service")({
+  head: () => ({ meta: [
+    { title: "Profesionales por servicio — Homie" },
+    { name: "description", content: "Profesionales disponibles y precios para este servicio en Homie." },
+    { property: "og:title", content: "Profesionales por servicio — Homie" },
+    { property: "og:description", content: "Profesionales disponibles y precios para este servicio en Homie." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: ServicePage,
 });
 

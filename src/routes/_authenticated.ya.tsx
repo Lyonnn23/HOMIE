@@ -16,7 +16,13 @@ import { getCategory, type CategoryId } from "@/data/services";
 
 export const Route = createFileRoute("/_authenticated/ya")({
   validateSearch: (s: Record<string, unknown>): { id?: string } => (typeof s.id === "string" && s.id ? { id: s.id } : {}),
-  head: () => ({ meta: [{ title: "Homie Ya — urgencias — Homie" }] }),
+  head: () => ({ meta: [
+    { name: "description", content: "Solicita asistencia urgente de profesionales con Homie Ya." },
+    { property: "og:title", content: "Homie Ya — urgencias — Homie" },
+    { property: "og:description", content: "Solicita asistencia urgente de profesionales con Homie Ya." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { title: "Homie Ya — urgencias — Homie" }] }),
   component: YaPage,
 });
 

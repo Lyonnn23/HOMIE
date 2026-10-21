@@ -12,7 +12,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { getCategory, formatCLP } from "@/data/services";
 
 export const Route = createFileRoute("/_authenticated/solicitudes/$id")({
-  head: () => ({ meta: [{ title: "Solicitud — Homie" }] }),
+  head: () => ({ meta: [
+    { name: "description", content: "Detalle de tu solicitud y las cotizaciones recibidas en Homie." },
+    { property: "og:title", content: "Solicitud — Homie" },
+    { property: "og:description", content: "Detalle de tu solicitud y las cotizaciones recibidas en Homie." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { title: "Solicitud — Homie" }] }),
   component: SolicitudDetalle,
 });
 

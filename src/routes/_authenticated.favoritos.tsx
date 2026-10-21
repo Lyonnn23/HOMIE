@@ -6,7 +6,13 @@ import { useFavoritos, useToggleFavorito } from "@/hooks/use-favoritos";
 import { formatCLP } from "@/data/services";
 
 export const Route = createFileRoute("/_authenticated/favoritos")({
-  head: () => ({ meta: [{ title: "Mis favoritos — Homie" }] }),
+  head: () => ({ meta: [
+    { name: "description", content: "Tus profesionales favoritos para contratar servicios en Homie." },
+    { property: "og:title", content: "Mis favoritos — Homie" },
+    { property: "og:description", content: "Tus profesionales favoritos para contratar servicios en Homie." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { title: "Mis favoritos — Homie" }] }),
   component: FavoritosPage,
 });
 

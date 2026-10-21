@@ -9,7 +9,13 @@ import { useAuth } from "@/hooks/use-auth";
 import { getCategory } from "@/data/services";
 
 export const Route = createFileRoute("/_authenticated/admin/prestadores")({
-  head: () => ({ meta: [{ title: "Profesionales — Admin Homie" }] }),
+  head: () => ({ meta: [
+    { name: "description", content: "Administración de profesionales, verificación y estado de perfiles en Homie." },
+    { property: "og:title", content: "Profesionales — Admin Homie" },
+    { property: "og:description", content: "Administración de profesionales, verificación y estado de perfiles en Homie." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { title: "Profesionales — Admin Homie" }] }),
   component: AdminPrestadores,
 });
 

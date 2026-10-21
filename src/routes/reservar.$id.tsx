@@ -14,6 +14,14 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/reservar/$id")({
   validateSearch: z.object({ service: z.string().optional() }),
+  head: () => ({ meta: [
+    { title: "Reservar servicio — Homie" },
+    { name: "description", content: "Reserva un servicio de Homie eligiendo fecha, hora y modalidad." },
+    { property: "og:title", content: "Reservar servicio — Homie" },
+    { property: "og:description", content: "Reserva un servicio de Homie eligiendo fecha, hora y modalidad." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: BookingPage,
 });
 

@@ -21,7 +21,13 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/panel")({
-  head: () => ({ meta: [{ title: "Panel del prestador — Homie" }] }),
+  head: () => ({ meta: [
+    { name: "description", content: "Gestión de servicios, disponibilidad y reservas de tu perfil profesional Homie." },
+    { property: "og:title", content: "Panel del prestador — Homie" },
+    { property: "og:description", content: "Gestión de servicios, disponibilidad y reservas de tu perfil profesional Homie." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { title: "Panel del prestador — Homie" }] }),
   component: PanelPage,
 });
 

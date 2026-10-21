@@ -9,7 +9,13 @@ import { useAccesibilidad } from "@/hooks/use-accesibilidad";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/cuenta")({
-  head: () => ({ meta: [{ title: "Mi cuenta — Homie" }] }),
+  head: () => ({ meta: [
+    { name: "description", content: "Información y preferencias de tu cuenta en Homie." },
+    { property: "og:title", content: "Mi cuenta — Homie" },
+    { property: "og:description", content: "Información y preferencias de tu cuenta en Homie." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { title: "Mi cuenta — Homie" }] }),
   component: Cuenta,
 });
 

@@ -16,7 +16,13 @@ import { createPaymentPreference, refundReserva } from "@/lib/mercadopago.functi
 
 
 export const Route = createFileRoute("/_authenticated/reservas")({
-  head: () => ({ meta: [{ title: "Mis reservas — Homie" }] }),
+  head: () => ({ meta: [
+    { name: "description", content: "Consulta tus reservas y el estado de tus servicios en Homie." },
+    { property: "og:title", content: "Mis reservas — Homie" },
+    { property: "og:description", content: "Consulta tus reservas y el estado de tus servicios en Homie." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { title: "Mis reservas — Homie" }] }),
   component: Reservas,
 });
 

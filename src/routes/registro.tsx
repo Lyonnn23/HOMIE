@@ -9,7 +9,13 @@ import { groups, categoriesOfGroup } from "@/data/services";
 
 export const Route = createFileRoute("/registro")({
   validateSearch: (s: Record<string, unknown>): { tipo?: "prestador" } => (s.tipo === "prestador" ? { tipo: "prestador" } : {}),
-  head: () => ({ meta: [{ title: "Crear cuenta — Homie" }] }),
+  head: () => ({ meta: [
+    { name: "description", content: "Crea tu cuenta de cliente o profesional en Homie." },
+    { property: "og:title", content: "Crear cuenta — Homie" },
+    { property: "og:description", content: "Crea tu cuenta de cliente o profesional en Homie." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { title: "Crear cuenta — Homie" }] }),
   component: RegistroPage,
 });
 

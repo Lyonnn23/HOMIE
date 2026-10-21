@@ -10,7 +10,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatCLP, esPro } from "@/data/services";
 
 export const Route = createFileRoute("/_authenticated/estadisticas")({
-  head: () => ({ meta: [{ title: "Estadísticas — Homie" }] }),
+  head: () => ({ meta: [
+    { name: "description", content: "Estadísticas de reservas, ingresos y cotizaciones de tu perfil profesional en Homie." },
+    { property: "og:title", content: "Estadísticas — Homie" },
+    { property: "og:description", content: "Estadísticas de reservas, ingresos y cotizaciones de tu perfil profesional en Homie." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { title: "Estadísticas — Homie" }] }),
   component: EstadisticasPage,
 });
 

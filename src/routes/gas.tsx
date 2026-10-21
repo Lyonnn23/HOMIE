@@ -6,7 +6,12 @@ import { AppShell } from "@/components/AppShell";
 import { HomieYaBanner } from "@/components/HomieYaBanner";
 
 export const Route = createFileRoute("/gas")({
-  head: () => ({ meta: [{ title: "Gas cerca de ti — Homie" }, { name: "description", content: "Distribuidoras de gas abiertas cerca de tu ubicación, para pedidos de última hora." }] }),
+  head: () => ({ meta: [
+    { property: "og:title", content: "Gas cerca de ti — Homie" },
+    { property: "og:description", content: "Distribuidoras de gas abiertas cerca de tu ubicación, para pedidos de última hora." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { title: "Gas cerca de ti — Homie" }, { name: "description", content: "Distribuidoras de gas abiertas cerca de tu ubicación, para pedidos de última hora." }] }),
   component: GasPage,
 });
 

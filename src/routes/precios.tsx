@@ -10,6 +10,9 @@ import { categories, groups, categoriesOfGroup, formatCLP } from "@/data/service
 export const Route = createFileRoute("/precios")({
   head: () => ({
     meta: [
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    
       { title: "Guía de precios de servicios a domicilio en Chile — Homie" },
       { name: "description", content: "Cuánto cuesta un gasfíter, electricista, aseo del hogar, manicure o paseo de perros a domicilio. Rangos reales publicados por profesionales verificados en Homie." },
       { property: "og:title", content: "Guía de precios — Homie" },

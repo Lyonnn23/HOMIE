@@ -7,7 +7,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/_authenticated/admin/reclamos")({
-  head: () => ({ meta: [{ title: "Reclamos — Admin Homie" }] }),
+  head: () => ({ meta: [
+    { name: "description", content: "Revisión y respuesta a reclamos de clientes y profesionales en Homie." },
+    { property: "og:title", content: "Reclamos — Admin Homie" },
+    { property: "og:description", content: "Revisión y respuesta a reclamos de clientes y profesionales en Homie." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { title: "Reclamos — Admin Homie" }] }),
   component: AdminReclamos,
 });
 

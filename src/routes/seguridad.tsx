@@ -4,6 +4,11 @@ import { ShieldCheck, ChevronLeft, IdCard, Camera, FileCheck, UserCheck, AlertTr
 export const Route = createFileRoute("/seguridad")({
   head: () => ({
     meta: [
+    { property: "og:title", content: "Seguridad y confianza — Homie" },
+    { property: "og:description", content: "Cómo Homie verifica a sus prestadores, política de antecedentes y qué hacer si algo sale mal." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    
       { title: "Seguridad y confianza — Homie" },
       { name: "description", content: "Cómo Homie verifica a sus prestadores, política de antecedentes y qué hacer si algo sale mal." },
     ],

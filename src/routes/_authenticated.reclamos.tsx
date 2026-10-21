@@ -9,7 +9,13 @@ import { useAuth } from "@/hooks/use-auth";
 import { useBookings, useProviderBookings, type Booking } from "@/store/bookings";
 
 export const Route = createFileRoute("/_authenticated/reclamos")({
-  head: () => ({ meta: [{ title: "Reclamos y sugerencias — Homie" }] }),
+  head: () => ({ meta: [
+    { name: "description", content: "Tus reclamos, sugerencias y respuestas del equipo Homie." },
+    { property: "og:title", content: "Reclamos y sugerencias — Homie" },
+    { property: "og:description", content: "Tus reclamos, sugerencias y respuestas del equipo Homie." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { title: "Reclamos y sugerencias — Homie" }] }),
   component: ReclamosPage,
 });
 

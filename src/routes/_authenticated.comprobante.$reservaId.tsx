@@ -7,7 +7,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatCLP, MODALIDAD_LABEL } from "@/data/services";
 
 export const Route = createFileRoute("/_authenticated/comprobante/$reservaId")({
-  head: () => ({ meta: [{ title: "Comprobante de servicio — Homie" }] }),
+  head: () => ({ meta: [
+    { name: "description", content: "Detalle y comprobante de un servicio reservado a través de Homie." },
+    { property: "og:title", content: "Comprobante de servicio — Homie" },
+    { property: "og:description", content: "Detalle y comprobante de un servicio reservado a través de Homie." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { title: "Comprobante de servicio — Homie" }] }),
   component: ComprobantePage,
 });
 

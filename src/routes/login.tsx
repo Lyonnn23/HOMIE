@@ -7,7 +7,13 @@ import { useAuth } from "@/hooks/use-auth";
 import { HomieLogo } from "@/components/Logo";
 
 export const Route = createFileRoute("/login")({
-  head: () => ({ meta: [{ title: "Ingresar — Homie" }] }),
+  head: () => ({ meta: [
+    { name: "description", content: "Ingresa a tu cuenta de Homie para gestionar reservas y servicios." },
+    { property: "og:title", content: "Ingresar — Homie" },
+    { property: "og:description", content: "Ingresa a tu cuenta de Homie para gestionar reservas y servicios." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { title: "Ingresar — Homie" }] }),
   component: LoginPage,
 });
 

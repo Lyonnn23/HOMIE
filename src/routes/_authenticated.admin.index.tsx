@@ -9,7 +9,13 @@ import { useAuth } from "@/hooks/use-auth";
 import { formatCLP } from "@/data/services";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
-  head: () => ({ meta: [{ title: "Panel de administración — Homie" }] }),
+  head: () => ({ meta: [
+    { name: "description", content: "Resumen de reservas, ingresos y pendientes de administración en Homie." },
+    { property: "og:title", content: "Panel de administración — Homie" },
+    { property: "og:description", content: "Resumen de reservas, ingresos y pendientes de administración en Homie." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { title: "Panel de administración — Homie" }] }),
   component: AdminHome,
 });
 

@@ -12,7 +12,13 @@ import {
 } from "@/hooks/use-notif-config";
 
 export const Route = createFileRoute("/_authenticated/notif-config")({
-  head: () => ({ meta: [{ title: "Notificaciones — Configuración" }] }),
+  head: () => ({ meta: [
+    { name: "description", content: "Preferencias de avisos de reservas y novedades de tu cuenta Homie." },
+    { property: "og:title", content: "Preferencias de notificaciones — Homie" },
+    { property: "og:description", content: "Preferencias de avisos de reservas y novedades de tu cuenta Homie." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { title: "Preferencias de notificaciones — Homie" }] }),
   component: NotifConfigPage,
 });
 

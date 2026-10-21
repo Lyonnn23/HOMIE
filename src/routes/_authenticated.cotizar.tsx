@@ -11,7 +11,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { getCategory, formatCLP, RANGO_MAX_FACTOR } from "@/data/services";
 
 export const Route = createFileRoute("/_authenticated/cotizar")({
-  head: () => ({ meta: [{ title: "Cotizar solicitudes — Homie" }] }),
+  head: () => ({ meta: [
+    { name: "description", content: "Solicitudes de servicios y cotizaciones para profesionales de Homie." },
+    { property: "og:title", content: "Cotizar solicitudes — Homie" },
+    { property: "og:description", content: "Solicitudes de servicios y cotizaciones para profesionales de Homie." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { title: "Cotizar solicitudes — Homie" }] }),
   component: CotizarPage,
 });
 
