@@ -1,3 +1,4 @@
+import { requisitosDe } from "@/data/requisitos";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
@@ -132,6 +133,22 @@ function VerifCard({ v, onResolved }: { v: VerifRow; onResolved: () => void }) {
         <SignedImg path={v.foto_selfie} label="Selfie" />
       </div>
 
+      {(() => {
+        const req = requisitosDe(v.prestadores?.categoria_id);
+        return (
+          <div className="mt-3 p-3 rounded-xl bg-[#F5F5F0] text-xs">
+            <div className="font-semibold text-[#111827]">Debe acreditar ({req.titulo}):</div>
+            <ul className="mt-1 space-y-0.5">
+              {req.documentos.map((d) => (
+                <li key={d.nombre} className="flex gap-1.5">
+                  <span className={`shrink-0 font-bold ${d.obligatorio ? "text-[#B3123F]" : "text-[#9CA3AF]"}`}>{d.obligatorio ? "●" : "○"}</span>
+                  <span className="text-[#374151]">{d.nombre}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        );
+      })()}
       {v.certificados.length > 0 && (
         <div className="mt-3">
           <div className="text-xs font-semibold text-[#6B7280] uppercase mb-2">Certificados</div>

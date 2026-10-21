@@ -1,3 +1,4 @@
+import { requisitosDe } from "@/data/requisitos";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -198,7 +199,7 @@ function VerificarIdentidad() {
           />
         )}
         {step === 4 && (
-          <StepCertificados certs={certs} setCerts={setCerts} />
+          <StepCertificados certs={certs} setCerts={setCerts} categoriaId={prestadorQ.data.categoria_id} />
         )}
 
         {err && (
@@ -275,10 +276,16 @@ function StepFoto({
 }
 
 function StepCertificados({
-  certs, setCerts,
-}: { certs: CertSlot[]; setCerts: (c: CertSlot[]) => void }) {
+  certs, setCerts, categoriaId,
+}: { certs: CertSlot[]; setCerts: (c: CertSlot[]) => void; categoriaId: string | null }) {
+  const req = requisitosDe(categoriaId);
   function update(i: number, patch: Partial<CertSlot>) {
     setCerts(certs.map((c, idx) => (idx === i ? { ...c, ...patch } : c)));
+  }
+  function agregarConTipo(tipo: string) {
+    const vacio = certs.findIndex((c) => !c.tipo && !c.file);
+    if (vacio >= 0) update(vacio, { tipo });
+    else if (certs.length < MAX_CERTS) setCerts([...certs, { tipo, file: null }]);
   }
   function remove(i: number) {
     const next = certs.filter((_, idx) => idx !== i);
@@ -290,9 +297,34 @@ function StepCertificados({
       <p className="mt-1 text-sm text-[#6B7280]">
         <strong className="text-[#111827]">Obligatorio.</strong> Homie solo acepta profesionales con certificación o estudios comprobables.
       </p>
-      <p className="mt-2 text-xs text-[#6B7280] bg-[#FAC775]/30 p-3 rounded-xl">
-        Sube al menos uno: título, diploma, curso, certificado SEC, licencia, etc. Puedes agregar hasta {MAX_CERTS}.
-      </p>
+      <div className="mt-3 p-4 rounded-2xl bg-[#111827] text-white">
+        <div className="text-xs font-semibold text-[#EF9F27] uppercase tracking-wide">Documentos para {req.titulo}</div>
+        <p className="mt-1 text-xs text-white/75">{req.intro}</p>
+        <ul className="mt-3 space-y-2">
+          {req.documentos.map((d) => (
+            <li key={d.nombre} className="flex items-start gap-2">
+              <button
+                type="button"
+                onClick={() => agregarConTipo(d.nombre)}
+                className="mt-0.5 shrink-0 size-5 rounded-full border border-[#EF9F27] text-[#EF9F27] flex items-center justify-center"
+                aria-label={`Agregar ${d.nombre}`}
+              >
+                <Plus className="size-3" />
+              </button>
+              <div className="min-w-0">
+                <div className="text-sm font-medium leading-tight">
+                  {d.nombre}
+                  <span className={`ml-2 px-1.5 py-0.5 rounded-full text-[10px] font-bold ${d.obligatorio ? "bg-[#FF3B6B] text-white" : "bg-white/15 text-white/80"}`}>
+                    {d.obligatorio ? "Obligatorio" : "Opcional"}
+                  </span>
+                </div>
+                <div className="text-[11px] text-white/60 mt-0.5">Dónde obtenerlo: {d.donde}</div>
+              </div>
+            </li>
+          ))}
+        </ul>
+        <p className="mt-3 text-[11px] text-white/60">Toca el + para agregar ese documento. Puedes subir hasta {MAX_CERTS}. PDF o imagen.</p>
+      </div>
 
       <div className="mt-5 space-y-4">
         {certs.map((c, i) => (
