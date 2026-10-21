@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1792548941293,
+      "tag": "0000_20261021000000_homie_hardening_estados_y_verificados",
+      "breakpoints": true
+    }
+  ]
+}
