@@ -392,6 +392,30 @@ export type Database = {
         }
         Relationships: []
       }
+      planes_pro: {
+        Row: {
+          activo: boolean
+          dias: number
+          id: string
+          nombre: string
+          precio: number
+        }
+        Insert: {
+          activo?: boolean
+          dias: number
+          id: string
+          nombre: string
+          precio: number
+        }
+        Update: {
+          activo?: boolean
+          dias?: number
+          id?: string
+          nombre?: string
+          precio?: number
+        }
+        Relationships: []
+      }
       prestador_contacto: {
         Row: {
           banco: string | null
@@ -449,6 +473,7 @@ export type Database = {
           foto_url: string | null
           id: string
           incluye: string | null
+          modalidades: string[]
           precio: number
           precio_hasta: number
           prestador_id: string
@@ -459,6 +484,7 @@ export type Database = {
           foto_url?: string | null
           id?: string
           incluye?: string | null
+          modalidades?: string[]
           precio: number
           precio_hasta: number
           prestador_id: string
@@ -469,6 +495,7 @@ export type Database = {
           foto_url?: string | null
           id?: string
           incluye?: string | null
+          modalidades?: string[]
           precio?: number
           precio_hasta?: number
           prestador_id?: string
@@ -531,6 +558,8 @@ export type Database = {
           plan: string
           precio_desde: number
           precio_hasta: number
+          pro_hasta: string | null
+          pro_trial_usado: boolean
           resenas_count: number
           suspendido: boolean
           titulo_profesional: string | null
@@ -538,6 +567,7 @@ export type Database = {
           usuario_id: string
           verificado: boolean
           verificado_identidad: boolean
+          vistas: number
         }
         Insert: {
           anos_experiencia?: number | null
@@ -564,6 +594,8 @@ export type Database = {
           plan?: string
           precio_desde?: number
           precio_hasta?: number
+          pro_hasta?: string | null
+          pro_trial_usado?: boolean
           resenas_count?: number
           suspendido?: boolean
           titulo_profesional?: string | null
@@ -571,6 +603,7 @@ export type Database = {
           usuario_id: string
           verificado?: boolean
           verificado_identidad?: boolean
+          vistas?: number
         }
         Update: {
           anos_experiencia?: number | null
@@ -597,6 +630,8 @@ export type Database = {
           plan?: string
           precio_desde?: number
           precio_hasta?: number
+          pro_hasta?: string | null
+          pro_trial_usado?: boolean
           resenas_count?: number
           suspendido?: boolean
           titulo_profesional?: string | null
@@ -604,6 +639,7 @@ export type Database = {
           usuario_id?: string
           verificado?: boolean
           verificado_identidad?: boolean
+          vistas?: number
         }
         Relationships: [
           {
@@ -845,6 +881,7 @@ export type Database = {
           fecha: string
           hora: string
           id: string
+          modalidad: string
           motivo_cancelacion: string | null
           nota: string | null
           prestador_foto_url: string | null
@@ -867,6 +904,7 @@ export type Database = {
           fecha: string
           hora: string
           id?: string
+          modalidad?: string
           motivo_cancelacion?: string | null
           nota?: string | null
           prestador_foto_url?: string | null
@@ -889,6 +927,7 @@ export type Database = {
           fecha?: string
           hora?: string
           id?: string
+          modalidad?: string
           motivo_cancelacion?: string | null
           nota?: string | null
           prestador_foto_url?: string | null
@@ -1051,6 +1090,171 @@ export type Database = {
           },
         ]
       }
+      suscripciones_pro: {
+        Row: {
+          created_at: string
+          estado: string
+          id: string
+          monto: number
+          mp_payment_id: string | null
+          mp_preference_id: string | null
+          periodo_desde: string | null
+          periodo_hasta: string | null
+          plan_id: string
+          prestador_id: string
+        }
+        Insert: {
+          created_at?: string
+          estado?: string
+          id?: string
+          monto: number
+          mp_payment_id?: string | null
+          mp_preference_id?: string | null
+          periodo_desde?: string | null
+          periodo_hasta?: string | null
+          plan_id: string
+          prestador_id: string
+        }
+        Update: {
+          created_at?: string
+          estado?: string
+          id?: string
+          monto?: number
+          mp_payment_id?: string | null
+          mp_preference_id?: string | null
+          periodo_desde?: string | null
+          periodo_hasta?: string | null
+          plan_id?: string
+          prestador_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "suscripciones_pro_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "planes_pro"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "suscripciones_pro_prestador_id_fkey"
+            columns: ["prestador_id"]
+            isOneToOne: false
+            referencedRelation: "prestadores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "suscripciones_pro_prestador_id_fkey"
+            columns: ["prestador_id"]
+            isOneToOne: false
+            referencedRelation: "saldos_prestadores"
+            referencedColumns: ["prestador_id"]
+          },
+        ]
+      }
+      urgencias: {
+        Row: {
+          categoria_id: string
+          cliente_id: string
+          created_at: string
+          descripcion: string
+          direccion: string
+          estado: string
+          eta_min: number | null
+          expira_at: string
+          id: string
+          lat: number | null
+          lng: number | null
+          prestador_id: string | null
+          reserva_id: string | null
+          servicio_id: string | null
+          telefono: string | null
+        }
+        Insert: {
+          categoria_id: string
+          cliente_id: string
+          created_at?: string
+          descripcion: string
+          direccion: string
+          estado?: string
+          eta_min?: number | null
+          expira_at?: string
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          prestador_id?: string | null
+          reserva_id?: string | null
+          servicio_id?: string | null
+          telefono?: string | null
+        }
+        Update: {
+          categoria_id?: string
+          cliente_id?: string
+          created_at?: string
+          descripcion?: string
+          direccion?: string
+          estado?: string
+          eta_min?: number | null
+          expira_at?: string
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          prestador_id?: string | null
+          reserva_id?: string | null
+          servicio_id?: string | null
+          telefono?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "urgencias_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "categorias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "urgencias_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "urgencias_prestador_id_fkey"
+            columns: ["prestador_id"]
+            isOneToOne: false
+            referencedRelation: "prestadores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "urgencias_prestador_id_fkey"
+            columns: ["prestador_id"]
+            isOneToOne: false
+            referencedRelation: "saldos_prestadores"
+            referencedColumns: ["prestador_id"]
+          },
+          {
+            foreignKeyName: "urgencias_reserva_id_fkey"
+            columns: ["reserva_id"]
+            isOneToOne: false
+            referencedRelation: "reservas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "urgencias_servicio_id_fkey"
+            columns: ["servicio_id"]
+            isOneToOne: false
+            referencedRelation: "guia_precios"
+            referencedColumns: ["servicio_id"]
+          },
+          {
+            foreignKeyName: "urgencias_servicio_id_fkey"
+            columns: ["servicio_id"]
+            isOneToOne: false
+            referencedRelation: "servicios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1200,6 +1404,15 @@ export type Database = {
         }
         Returns: string
       }
+      aceptar_urgencia: {
+        Args: { _eta_min: number; _urgencia_id: string }
+        Returns: string
+      }
+      activar_pro_pagado: {
+        Args: { _mp_payment_id: string; _suscripcion_id: string }
+        Returns: undefined
+      }
+      activar_prueba_pro: { Args: never; Returns: string }
       admin_resumen: {
         Args: never
         Returns: {
@@ -1233,6 +1446,7 @@ export type Database = {
         Args: { lat1: number; lat2: number; lng1: number; lng2: number }
         Returns: number
       }
+      es_pro: { Args: { _prestador_id: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1256,6 +1470,7 @@ export type Database = {
         }
         Returns: string
       }
+      registrar_vista: { Args: { _prestador_id: string }; Returns: undefined }
       solicitud_es_del_cliente_actual: {
         Args: { _solicitud_id: string }
         Returns: boolean
@@ -1263,6 +1478,21 @@ export type Database = {
       solicitud_tiene_cotizacion_del_prestador_actual: {
         Args: { _solicitud_id: string }
         Returns: boolean
+      }
+      stats_prestador: {
+        Args: { _prestador_id: string }
+        Returns: {
+          calificacion: number
+          cotizaciones_enviadas: number
+          cotizaciones_ganadas: number
+          ingresos_mes: number
+          ingresos_total: number
+          resenas: number
+          reservas_mes: number
+          servicios_completados: number
+          tasa_aceptacion: number
+          vistas_perfil: number
+        }[]
       }
       stats_publicas: {
         Args: never
@@ -1273,6 +1503,7 @@ export type Database = {
           servicios_completados: number
         }[]
       }
+      tasa_comision: { Args: { _prestador_id: string }; Returns: number }
       unaccent_safe: { Args: { _t: string }; Returns: string }
     }
     Enums: {
