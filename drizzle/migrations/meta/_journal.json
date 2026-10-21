@@ -50,6 +50,13 @@
       "when": 1792556465465,
       "tag": "0006_perfiles_lectura_de_objetos_solo_dueno",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792556711904,
+      "tag": "0007_homie_cotizaciones_lectura_sin_recursion",
+      "breakpoints": true
     }
   ]
 }

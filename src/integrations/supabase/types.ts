@@ -1256,6 +1256,14 @@ export type Database = {
         }
         Returns: string
       }
+      solicitud_es_del_cliente_actual: {
+        Args: { _solicitud_id: string }
+        Returns: boolean
+      }
+      solicitud_tiene_cotizacion_del_prestador_actual: {
+        Args: { _solicitud_id: string }
+        Returns: boolean
+      }
       stats_publicas: {
         Args: never
         Returns: {
