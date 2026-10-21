@@ -287,6 +287,21 @@ export type Database = {
           },
         ]
       }
+      solicitudes: {
+        Row: { id: string; cliente_id: string; categoria_id: string; servicio_id: string | null; titulo: string; detalle: string; fotos: string[]; comuna: string | null; direccion: string | null; fecha_deseada: string | null; urgente: boolean; presupuesto_max: number | null; estado: string; cotizacion_aceptada_id: string | null; created_at: string; expira_at: string }
+        Insert: { id?: string; cliente_id: string; categoria_id: string; servicio_id?: string | null; titulo: string; detalle: string; fotos?: string[]; comuna?: string | null; direccion?: string | null; fecha_deseada?: string | null; urgente?: boolean; presupuesto_max?: number | null; estado?: string; cotizacion_aceptada_id?: string | null; created_at?: string; expira_at?: string }
+        Update: { id?: string; cliente_id?: string; categoria_id?: string; servicio_id?: string | null; titulo?: string; detalle?: string; fotos?: string[]; comuna?: string | null; direccion?: string | null; fecha_deseada?: string | null; urgente?: boolean; presupuesto_max?: number | null; estado?: string; cotizacion_aceptada_id?: string | null; created_at?: string; expira_at?: string }
+        Relationships: []
+      }
+      cotizaciones: {
+        Row: { id: string; solicitud_id: string; prestador_id: string; precio: number; precio_hasta: number; mensaje: string; disponible_desde: string | null; estado: string; created_at: string }
+        Insert: { id?: string; solicitud_id: string; prestador_id: string; precio: number; precio_hasta: number; mensaje: string; disponible_desde?: string | null; estado?: string; created_at?: string }
+        Update: { id?: string; solicitud_id?: string; prestador_id?: string; precio?: number; precio_hasta?: number; mensaje?: string; disponible_desde?: string | null; estado?: string; created_at?: string }
+        Relationships: [
+          { foreignKeyName: "cotizaciones_prestador_id_fkey"; columns: ["prestador_id"]; isOneToOne: false; referencedRelation: "prestadores"; referencedColumns: ["id"] },
+          { foreignKeyName: "cotizaciones_solicitud_id_fkey"; columns: ["solicitud_id"]; isOneToOne: false; referencedRelation: "solicitudes"; referencedColumns: ["id"] }
+        ]
+      }
       prestador_servicios: {
         Row: {
           descripcion: string | null
@@ -837,9 +852,14 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      guia_precios: {
+        Row: { servicio_id: string; servicio: string; categoria_id: string; profesionales: number; precio_min: number; precio_mediana: number; precio_max: number }
+        Relationships: []
+      }
     }
     Functions: {
+      aceptar_cotizacion: { Args: { _cotizacion_id: string; _fecha: string; _hora: string; _direccion: string | null }; Returns: string }
+      stats_publicas: { Args: Record<string, never>; Returns: { profesionales: number; servicios_completados: number; calificacion: number; resenas: number }[] }
       contacto_prestador: {
         Args: { _reserva_id: string }
         Returns: {

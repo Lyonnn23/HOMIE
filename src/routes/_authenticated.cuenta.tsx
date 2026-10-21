@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronRight, Bell, CreditCard, HelpCircle, MapPin, Shield, LogOut, Heart, Scale, Accessibility, ShieldCheck } from "lucide-react";
+import { ChevronRight, Bell, CreditCard, HelpCircle, MapPin, Shield, LogOut, Heart, Scale, Accessibility, ShieldCheck, MessageSquareQuote } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { useBookings } from "@/store/bookings";
 import { useFavoritos } from "@/hooks/use-favoritos";
@@ -41,6 +41,9 @@ function Cuenta() {
     .toUpperCase();
 
   const items: Array<{ icon: typeof Bell; label: string; to?: string; badge?: string }> = [
+    usuario?.tipo === "prestador"
+      ? { icon: MessageSquareQuote, label: "Cotizar solicitudes", to: "/cotizar" }
+      : { icon: MessageSquareQuote, label: "Mis solicitudes de cotización", to: "/solicitudes" },
     { icon: MapPin, label: "Direcciones guardadas", to: "/direcciones" },
     { icon: CreditCard, label: "Métodos de pago", badge: "Próximamente" },
     { icon: Heart, label: "Mis favoritos", to: "/favoritos", badge: favs.length ? String(favs.length) : undefined },

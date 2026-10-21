@@ -4,7 +4,7 @@ import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   CalendarCheck, MapPin, Check, X, Truck, CheckCircle2, Star, DollarSign, MessageCircle,
-  LayoutDashboard, ListTodo, History, UserCog, Loader2, ChevronDown, ImagePlus, Clock, Palette, ExternalLink,
+  LayoutDashboard, ListTodo, History, UserCog, Loader2, ChevronDown, ImagePlus, Clock, Palette, ExternalLink, MessageSquareQuote, ChevronRight,
 } from "lucide-react";
 import { HorarioEditor, parseHorario, validarHorario, type Horario } from "@/components/HorarioEditor";
 import { AppShell } from "@/components/AppShell";
@@ -139,6 +139,20 @@ function Resumen({ bookings }: { bookings: Booking[] }) {
   return (
     <div className="space-y-5">
       <AvailabilityToggle />
+
+      <Link
+        to="/cotizar"
+        className="flex items-center gap-3 p-4 rounded-2xl bg-[#111827] text-white border border-[#111827] hover:bg-[#1F2937] transition"
+      >
+        <div className="size-10 rounded-xl bg-[#EF9F27] flex items-center justify-center shrink-0">
+          <MessageSquareQuote className="size-5 text-[#111827]" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="font-semibold text-sm">Solicitudes en tu rubro</div>
+          <div className="text-xs text-white/70">Cotiza y consigue clientes nuevos</div>
+        </div>
+        <ChevronRight className="size-4 text-white/60 shrink-0" />
+      </Link>
 
       <div className="grid grid-cols-2 gap-3">
         <StatCard icon={CalendarCheck} label="Hoy" value={String(reservasHoy.length)} sub="reservas activas" />

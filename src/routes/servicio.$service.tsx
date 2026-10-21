@@ -62,6 +62,12 @@ function ServicePage() {
         <p className="text-sm text-white/80 mt-2">
           {isLoading ? "Cargando prestadores..." : `${providers.length} prestadores disponibles`}
         </p>
+        <Link
+          to="/solicitar"
+          className="mt-3 inline-flex items-center justify-center w-full px-4 py-2.5 rounded-xl bg-white/15 border border-white/30 text-white text-sm font-semibold hover:bg-white/25 transition"
+        >
+          Pedir cotizaciones para este servicio
+        </Link>
       </header>
 
       <div className="px-5 pt-4 pb-3 overflow-x-auto">

@@ -254,6 +254,11 @@ function ProviderPage() {
               {p.disponibleAhora ? "Contratar" : "Agendar"}
             </Link>
           </div>
+          <div className="mx-auto max-w-2xl px-5 -mt-1 pb-2 text-right">
+            <Link to="/solicitar" className="text-xs font-semibold text-[#6B7280] underline underline-offset-2 hover:text-[#111827]">
+              Pedir cotización
+            </Link>
+          </div>
         </div>
       )}
     </AppShell>

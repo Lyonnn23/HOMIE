@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CalendarCheck, MapPin, MessageCircle, Star, Shield, RotateCcw, Award, Scale } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { CalendarCheck, MapPin, MessageCircle, Star, Shield, RotateCcw, Award, Scale, CreditCard, Loader2 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { ContactoPrestador } from "@/components/ContactoPrestador";
 import { ReportModal } from "@/components/ReportModal";
@@ -8,6 +10,7 @@ import { ReviewModal } from "@/components/ReviewModal";
 import { EmergencyBanner } from "@/components/EmergencyBanner";
 import { useBookings, useUpdateBookingStatus, type Booking } from "@/store/bookings";
 import { formatCLP } from "@/data/services";
+import { createPaymentPreference } from "@/lib/mercadopago.functions";
 
 
 export const Route = createFileRoute("/_authenticated/reservas")({
@@ -84,8 +87,22 @@ function BookingCard({ b, timesHired }: { b: Booking; timesHired: number }) {
   const [showReview, setShowReview] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const cancel = useUpdateBookingStatus();
+  const createPreference = useServerFn(createPaymentPreference);
+  const [paying, setPaying] = useState(false);
   const canReport = b.status === "confirmada" || b.status === "en camino" || b.status === "completado";
   const isHabitual = timesHired >= 3;
+
+  async function pagar() {
+    setPaying(true);
+    try {
+      const { initPoint } = await createPreference({ data: { reservaId: b.id } });
+      window.location.href = initPoint;
+    } catch (err) {
+      console.error(err);
+      toast.error(err instanceof Error ? err.message : "No se pudo iniciar el pago");
+      setPaying(false);
+    }
+  }
 
   return (
     <div className="p-4 rounded-2xl bg-white border border-border">
@@ -122,6 +139,15 @@ function BookingCard({ b, timesHired }: { b: Booking; timesHired: number }) {
           )}
           {(b.status === "confirmada" || b.status === "en camino") && (
             <ContactoPrestador reservaId={b.id} nombre={b.providerName} />
+          )}
+          {b.status === "pendiente" && (
+            <button
+              disabled={paying}
+              onClick={pagar}
+              className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-[#EF9F27] text-[#111827] text-xs font-bold disabled:opacity-50"
+            >
+              {paying ? <Loader2 className="size-3.5 animate-spin" /> : <CreditCard className="size-3.5" />} Pagar
+            </button>
           )}
           {b.status === "pendiente" && (
             <button

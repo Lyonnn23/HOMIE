@@ -12,13 +12,18 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as BuscarRouteImport } from './routes/buscar'
+import { Route as ComoFuncionaRouteImport } from './routes/como-funciona'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as GasRouteImport } from './routes/gas'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as PreciosRouteImport } from './routes/precios'
+import { Route as PrivacidadRouteImport } from './routes/privacidad'
 import { Route as RegistroRouteImport } from './routes/registro'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SeguridadRouteImport } from './routes/seguridad'
+import { Route as TerminosRouteImport } from './routes/terminos'
 import { Route as AuthenticatedAyudaRouteImport } from './routes/_authenticated.ayuda'
+import { Route as AuthenticatedCotizarRouteImport } from './routes/_authenticated.cotizar'
 import { Route as AuthenticatedCuentaRouteImport } from './routes/_authenticated.cuenta'
 import { Route as AuthenticatedDireccionesRouteImport } from './routes/_authenticated.direcciones'
 import { Route as AuthenticatedFavoritosRouteImport } from './routes/_authenticated.favoritos'
@@ -28,6 +33,8 @@ import { Route as AuthenticatedOnboardingPrestadorRouteImport } from './routes/_
 import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated.panel'
 import { Route as AuthenticatedReclamosRouteImport } from './routes/_authenticated.reclamos'
 import { Route as AuthenticatedReservasRouteImport } from './routes/_authenticated.reservas'
+import { Route as AuthenticatedSolicitarRouteImport } from './routes/_authenticated.solicitar'
+import { Route as AuthenticatedSolicitudesRouteImport } from './routes/_authenticated.solicitudes'
 import { Route as AuthenticatedVerificarIdentidadRouteImport } from './routes/_authenticated.verificar-identidad'
 import { Route as PrestadorIdRouteImport } from './routes/prestador.$id'
 import { Route as ReservarIdRouteImport } from './routes/reservar.$id'
@@ -36,6 +43,7 @@ import { Route as AuthenticatedAdminReclamosRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminReportesRouteImport } from './routes/_authenticated.admin.reportes'
 import { Route as AuthenticatedAdminVerificacionesRouteImport } from './routes/_authenticated.admin.verificaciones'
 import { Route as AuthenticatedChatReservaIdRouteImport } from './routes/_authenticated.chat.$reservaId'
+import { Route as AuthenticatedSolicitudesIdRouteImport } from './routes/_authenticated.solicitudes.$id'
 import { Route as ApiPublicMercadopagoWebhookRouteImport } from './routes/api/public/mercadopago/webhook'
 
 const IndexRoute = IndexRouteImport.update({
@@ -50,6 +58,11 @@ const AuthenticatedRoute = AuthenticatedRouteImport.update({
 const BuscarRoute = BuscarRouteImport.update({
   id: '/buscar',
   path: '/buscar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ComoFuncionaRoute = ComoFuncionaRouteImport.update({
+  id: '/como-funciona',
+  path: '/como-funciona',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
@@ -67,6 +80,16 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PreciosRoute = PreciosRouteImport.update({
+  id: '/precios',
+  path: '/precios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacidadRoute = PrivacidadRouteImport.update({
+  id: '/privacidad',
+  path: '/privacidad',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RegistroRoute = RegistroRouteImport.update({
   id: '/registro',
   path: '/registro',
@@ -82,9 +105,19 @@ const SeguridadRoute = SeguridadRouteImport.update({
   path: '/seguridad',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TerminosRoute = TerminosRouteImport.update({
+  id: '/terminos',
+  path: '/terminos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAyudaRoute = AuthenticatedAyudaRouteImport.update({
   id: '/ayuda',
   path: '/ayuda',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedCotizarRoute = AuthenticatedCotizarRouteImport.update({
+  id: '/cotizar',
+  path: '/cotizar',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedCuentaRoute = AuthenticatedCuentaRouteImport.update({
@@ -136,6 +169,17 @@ const AuthenticatedReservasRoute = AuthenticatedReservasRouteImport.update({
   path: '/reservas',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedSolicitarRoute = AuthenticatedSolicitarRouteImport.update({
+  id: '/solicitar',
+  path: '/solicitar',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedSolicitudesRoute =
+  AuthenticatedSolicitudesRouteImport.update({
+    id: '/solicitudes',
+    path: '/solicitudes',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedVerificarIdentidadRoute =
   AuthenticatedVerificarIdentidadRouteImport.update({
     id: '/verificar-identidad',
@@ -181,6 +225,12 @@ const AuthenticatedChatReservaIdRoute =
     path: '/chat/$reservaId',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedSolicitudesIdRoute =
+  AuthenticatedSolicitudesIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedSolicitudesRoute,
+  } as any)
 const ApiPublicMercadopagoWebhookRoute =
   ApiPublicMercadopagoWebhookRouteImport.update({
     id: '/api/public/mercadopago/webhook',
@@ -191,13 +241,18 @@ const ApiPublicMercadopagoWebhookRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/buscar': typeof BuscarRoute
+  '/como-funciona': typeof ComoFuncionaRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/gas': typeof GasRoute
   '/login': typeof LoginRoute
+  '/precios': typeof PreciosRoute
+  '/privacidad': typeof PrivacidadRoute
   '/registro': typeof RegistroRoute
   '/reset-password': typeof ResetPasswordRoute
   '/seguridad': typeof SeguridadRoute
+  '/terminos': typeof TerminosRoute
   '/ayuda': typeof AuthenticatedAyudaRoute
+  '/cotizar': typeof AuthenticatedCotizarRoute
   '/cuenta': typeof AuthenticatedCuentaRoute
   '/direcciones': typeof AuthenticatedDireccionesRoute
   '/favoritos': typeof AuthenticatedFavoritosRoute
@@ -207,6 +262,8 @@ export interface FileRoutesByFullPath {
   '/panel': typeof AuthenticatedPanelRoute
   '/reclamos': typeof AuthenticatedReclamosRoute
   '/reservas': typeof AuthenticatedReservasRoute
+  '/solicitar': typeof AuthenticatedSolicitarRoute
+  '/solicitudes': typeof AuthenticatedSolicitudesRouteWithChildren
   '/verificar-identidad': typeof AuthenticatedVerificarIdentidadRoute
   '/prestador/$id': typeof PrestadorIdRoute
   '/reservar/$id': typeof ReservarIdRoute
@@ -215,18 +272,24 @@ export interface FileRoutesByFullPath {
   '/admin/reportes': typeof AuthenticatedAdminReportesRoute
   '/admin/verificaciones': typeof AuthenticatedAdminVerificacionesRoute
   '/chat/$reservaId': typeof AuthenticatedChatReservaIdRoute
+  '/solicitudes/$id': typeof AuthenticatedSolicitudesIdRoute
   '/api/public/mercadopago/webhook': typeof ApiPublicMercadopagoWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/buscar': typeof BuscarRoute
+  '/como-funciona': typeof ComoFuncionaRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/gas': typeof GasRoute
   '/login': typeof LoginRoute
+  '/precios': typeof PreciosRoute
+  '/privacidad': typeof PrivacidadRoute
   '/registro': typeof RegistroRoute
   '/reset-password': typeof ResetPasswordRoute
   '/seguridad': typeof SeguridadRoute
+  '/terminos': typeof TerminosRoute
   '/ayuda': typeof AuthenticatedAyudaRoute
+  '/cotizar': typeof AuthenticatedCotizarRoute
   '/cuenta': typeof AuthenticatedCuentaRoute
   '/direcciones': typeof AuthenticatedDireccionesRoute
   '/favoritos': typeof AuthenticatedFavoritosRoute
@@ -236,6 +299,8 @@ export interface FileRoutesByTo {
   '/panel': typeof AuthenticatedPanelRoute
   '/reclamos': typeof AuthenticatedReclamosRoute
   '/reservas': typeof AuthenticatedReservasRoute
+  '/solicitar': typeof AuthenticatedSolicitarRoute
+  '/solicitudes': typeof AuthenticatedSolicitudesRouteWithChildren
   '/verificar-identidad': typeof AuthenticatedVerificarIdentidadRoute
   '/prestador/$id': typeof PrestadorIdRoute
   '/reservar/$id': typeof ReservarIdRoute
@@ -244,6 +309,7 @@ export interface FileRoutesByTo {
   '/admin/reportes': typeof AuthenticatedAdminReportesRoute
   '/admin/verificaciones': typeof AuthenticatedAdminVerificacionesRoute
   '/chat/$reservaId': typeof AuthenticatedChatReservaIdRoute
+  '/solicitudes/$id': typeof AuthenticatedSolicitudesIdRoute
   '/api/public/mercadopago/webhook': typeof ApiPublicMercadopagoWebhookRoute
 }
 export interface FileRoutesById {
@@ -251,13 +317,18 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/buscar': typeof BuscarRoute
+  '/como-funciona': typeof ComoFuncionaRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/gas': typeof GasRoute
   '/login': typeof LoginRoute
+  '/precios': typeof PreciosRoute
+  '/privacidad': typeof PrivacidadRoute
   '/registro': typeof RegistroRoute
   '/reset-password': typeof ResetPasswordRoute
   '/seguridad': typeof SeguridadRoute
+  '/terminos': typeof TerminosRoute
   '/_authenticated/ayuda': typeof AuthenticatedAyudaRoute
+  '/_authenticated/cotizar': typeof AuthenticatedCotizarRoute
   '/_authenticated/cuenta': typeof AuthenticatedCuentaRoute
   '/_authenticated/direcciones': typeof AuthenticatedDireccionesRoute
   '/_authenticated/favoritos': typeof AuthenticatedFavoritosRoute
@@ -267,6 +338,8 @@ export interface FileRoutesById {
   '/_authenticated/panel': typeof AuthenticatedPanelRoute
   '/_authenticated/reclamos': typeof AuthenticatedReclamosRoute
   '/_authenticated/reservas': typeof AuthenticatedReservasRoute
+  '/_authenticated/solicitar': typeof AuthenticatedSolicitarRoute
+  '/_authenticated/solicitudes': typeof AuthenticatedSolicitudesRouteWithChildren
   '/_authenticated/verificar-identidad': typeof AuthenticatedVerificarIdentidadRoute
   '/prestador/$id': typeof PrestadorIdRoute
   '/reservar/$id': typeof ReservarIdRoute
@@ -275,6 +348,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/reportes': typeof AuthenticatedAdminReportesRoute
   '/_authenticated/admin/verificaciones': typeof AuthenticatedAdminVerificacionesRoute
   '/_authenticated/chat/$reservaId': typeof AuthenticatedChatReservaIdRoute
+  '/_authenticated/solicitudes/$id': typeof AuthenticatedSolicitudesIdRoute
   '/api/public/mercadopago/webhook': typeof ApiPublicMercadopagoWebhookRoute
 }
 export interface FileRouteTypes {
@@ -282,13 +356,18 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/buscar'
+    | '/como-funciona'
     | '/forgot-password'
     | '/gas'
     | '/login'
+    | '/precios'
+    | '/privacidad'
     | '/registro'
     | '/reset-password'
     | '/seguridad'
+    | '/terminos'
     | '/ayuda'
+    | '/cotizar'
     | '/cuenta'
     | '/direcciones'
     | '/favoritos'
@@ -298,6 +377,8 @@ export interface FileRouteTypes {
     | '/panel'
     | '/reclamos'
     | '/reservas'
+    | '/solicitar'
+    | '/solicitudes'
     | '/verificar-identidad'
     | '/prestador/$id'
     | '/reservar/$id'
@@ -306,18 +387,24 @@ export interface FileRouteTypes {
     | '/admin/reportes'
     | '/admin/verificaciones'
     | '/chat/$reservaId'
+    | '/solicitudes/$id'
     | '/api/public/mercadopago/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/buscar'
+    | '/como-funciona'
     | '/forgot-password'
     | '/gas'
     | '/login'
+    | '/precios'
+    | '/privacidad'
     | '/registro'
     | '/reset-password'
     | '/seguridad'
+    | '/terminos'
     | '/ayuda'
+    | '/cotizar'
     | '/cuenta'
     | '/direcciones'
     | '/favoritos'
@@ -327,6 +414,8 @@ export interface FileRouteTypes {
     | '/panel'
     | '/reclamos'
     | '/reservas'
+    | '/solicitar'
+    | '/solicitudes'
     | '/verificar-identidad'
     | '/prestador/$id'
     | '/reservar/$id'
@@ -335,19 +424,25 @@ export interface FileRouteTypes {
     | '/admin/reportes'
     | '/admin/verificaciones'
     | '/chat/$reservaId'
+    | '/solicitudes/$id'
     | '/api/public/mercadopago/webhook'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/buscar'
+    | '/como-funciona'
     | '/forgot-password'
     | '/gas'
     | '/login'
+    | '/precios'
+    | '/privacidad'
     | '/registro'
     | '/reset-password'
     | '/seguridad'
+    | '/terminos'
     | '/_authenticated/ayuda'
+    | '/_authenticated/cotizar'
     | '/_authenticated/cuenta'
     | '/_authenticated/direcciones'
     | '/_authenticated/favoritos'
@@ -357,6 +452,8 @@ export interface FileRouteTypes {
     | '/_authenticated/panel'
     | '/_authenticated/reclamos'
     | '/_authenticated/reservas'
+    | '/_authenticated/solicitar'
+    | '/_authenticated/solicitudes'
     | '/_authenticated/verificar-identidad'
     | '/prestador/$id'
     | '/reservar/$id'
@@ -365,6 +462,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/reportes'
     | '/_authenticated/admin/verificaciones'
     | '/_authenticated/chat/$reservaId'
+    | '/_authenticated/solicitudes/$id'
     | '/api/public/mercadopago/webhook'
   fileRoutesById: FileRoutesById
 }
@@ -372,12 +470,16 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   BuscarRoute: typeof BuscarRoute
+  ComoFuncionaRoute: typeof ComoFuncionaRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   GasRoute: typeof GasRoute
   LoginRoute: typeof LoginRoute
+  PreciosRoute: typeof PreciosRoute
+  PrivacidadRoute: typeof PrivacidadRoute
   RegistroRoute: typeof RegistroRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SeguridadRoute: typeof SeguridadRoute
+  TerminosRoute: typeof TerminosRoute
   PrestadorIdRoute: typeof PrestadorIdRoute
   ReservarIdRoute: typeof ReservarIdRoute
   ServicioServiceRoute: typeof ServicioServiceRoute
@@ -407,6 +509,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BuscarRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/como-funciona': {
+      id: '/como-funciona'
+      path: '/como-funciona'
+      fullPath: '/como-funciona'
+      preLoaderRoute: typeof ComoFuncionaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/forgot-password': {
       id: '/forgot-password'
       path: '/forgot-password'
@@ -426,6 +535,20 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/precios': {
+      id: '/precios'
+      path: '/precios'
+      fullPath: '/precios'
+      preLoaderRoute: typeof PreciosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacidad': {
+      id: '/privacidad'
+      path: '/privacidad'
+      fullPath: '/privacidad'
+      preLoaderRoute: typeof PrivacidadRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/registro': {
@@ -449,11 +572,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SeguridadRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/terminos': {
+      id: '/terminos'
+      path: '/terminos'
+      fullPath: '/terminos'
+      preLoaderRoute: typeof TerminosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/ayuda': {
       id: '/_authenticated/ayuda'
       path: '/ayuda'
       fullPath: '/ayuda'
       preLoaderRoute: typeof AuthenticatedAyudaRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/cotizar': {
+      id: '/_authenticated/cotizar'
+      path: '/cotizar'
+      fullPath: '/cotizar'
+      preLoaderRoute: typeof AuthenticatedCotizarRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/cuenta': {
@@ -519,6 +656,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedReservasRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/solicitar': {
+      id: '/_authenticated/solicitar'
+      path: '/solicitar'
+      fullPath: '/solicitar'
+      preLoaderRoute: typeof AuthenticatedSolicitarRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/solicitudes': {
+      id: '/_authenticated/solicitudes'
+      path: '/solicitudes'
+      fullPath: '/solicitudes'
+      preLoaderRoute: typeof AuthenticatedSolicitudesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/verificar-identidad': {
       id: '/_authenticated/verificar-identidad'
       path: '/verificar-identidad'
@@ -575,6 +726,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedChatReservaIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/solicitudes/$id': {
+      id: '/_authenticated/solicitudes/$id'
+      path: '/$id'
+      fullPath: '/solicitudes/$id'
+      preLoaderRoute: typeof AuthenticatedSolicitudesIdRouteImport
+      parentRoute: typeof AuthenticatedSolicitudesRoute
+    }
     '/api/public/mercadopago/webhook': {
       id: '/api/public/mercadopago/webhook'
       path: '/api/public/mercadopago/webhook'
@@ -585,8 +743,23 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedSolicitudesRouteChildren {
+  AuthenticatedSolicitudesIdRoute: typeof AuthenticatedSolicitudesIdRoute
+}
+
+const AuthenticatedSolicitudesRouteChildren: AuthenticatedSolicitudesRouteChildren =
+  {
+    AuthenticatedSolicitudesIdRoute: AuthenticatedSolicitudesIdRoute,
+  }
+
+const AuthenticatedSolicitudesRouteWithChildren =
+  AuthenticatedSolicitudesRoute._addFileChildren(
+    AuthenticatedSolicitudesRouteChildren,
+  )
+
 interface AuthenticatedRouteChildren {
   AuthenticatedAyudaRoute: typeof AuthenticatedAyudaRoute
+  AuthenticatedCotizarRoute: typeof AuthenticatedCotizarRoute
   AuthenticatedCuentaRoute: typeof AuthenticatedCuentaRoute
   AuthenticatedDireccionesRoute: typeof AuthenticatedDireccionesRoute
   AuthenticatedFavoritosRoute: typeof AuthenticatedFavoritosRoute
@@ -596,6 +769,8 @@ interface AuthenticatedRouteChildren {
   AuthenticatedPanelRoute: typeof AuthenticatedPanelRoute
   AuthenticatedReclamosRoute: typeof AuthenticatedReclamosRoute
   AuthenticatedReservasRoute: typeof AuthenticatedReservasRoute
+  AuthenticatedSolicitarRoute: typeof AuthenticatedSolicitarRoute
+  AuthenticatedSolicitudesRoute: typeof AuthenticatedSolicitudesRouteWithChildren
   AuthenticatedVerificarIdentidadRoute: typeof AuthenticatedVerificarIdentidadRoute
   AuthenticatedAdminReclamosRoute: typeof AuthenticatedAdminReclamosRoute
   AuthenticatedAdminReportesRoute: typeof AuthenticatedAdminReportesRoute
@@ -605,6 +780,7 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAyudaRoute: AuthenticatedAyudaRoute,
+  AuthenticatedCotizarRoute: AuthenticatedCotizarRoute,
   AuthenticatedCuentaRoute: AuthenticatedCuentaRoute,
   AuthenticatedDireccionesRoute: AuthenticatedDireccionesRoute,
   AuthenticatedFavoritosRoute: AuthenticatedFavoritosRoute,
@@ -614,6 +790,8 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedPanelRoute: AuthenticatedPanelRoute,
   AuthenticatedReclamosRoute: AuthenticatedReclamosRoute,
   AuthenticatedReservasRoute: AuthenticatedReservasRoute,
+  AuthenticatedSolicitarRoute: AuthenticatedSolicitarRoute,
+  AuthenticatedSolicitudesRoute: AuthenticatedSolicitudesRouteWithChildren,
   AuthenticatedVerificarIdentidadRoute: AuthenticatedVerificarIdentidadRoute,
   AuthenticatedAdminReclamosRoute: AuthenticatedAdminReclamosRoute,
   AuthenticatedAdminReportesRoute: AuthenticatedAdminReportesRoute,
@@ -629,12 +807,16 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   BuscarRoute: BuscarRoute,
+  ComoFuncionaRoute: ComoFuncionaRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   GasRoute: GasRoute,
   LoginRoute: LoginRoute,
+  PreciosRoute: PreciosRoute,
+  PrivacidadRoute: PrivacidadRoute,
   RegistroRoute: RegistroRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SeguridadRoute: SeguridadRoute,
+  TerminosRoute: TerminosRoute,
   PrestadorIdRoute: PrestadorIdRoute,
   ReservarIdRoute: ReservarIdRoute,
   ServicioServiceRoute: ServicioServiceRoute,
