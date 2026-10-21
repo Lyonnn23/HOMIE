@@ -68,7 +68,7 @@ function TerminosPage() {
       <h2>7. Cancelaciones y reembolsos</h2>
       <ul>
         <li><strong>Cancelación por el Cliente con más de 24 horas</strong> de anticipación a la hora reservada: reembolso del 100%.</li>
-        <li><strong>Cancelación por el Cliente con 24 horas o menos</strong>: se retiene un 20% del precio desde como compensación al Profesional por el tiempo bloqueado; el 80% restante se reembolsa.</li>
+        <li><strong>Cancelación por el Cliente con 24 horas o menos</strong>: se retiene un 10% del precio desde como compensación al Profesional por el tiempo bloqueado; el 80% restante se reembolsa.</li>
         <li><strong>Cancelación por el Profesional o inasistencia</strong>: reembolso del 100% al Cliente, sin importar la anticipación. Las inasistencias reiteradas afectan la posición del Profesional y pueden derivar en suspensión.</li>
         <li>Los reembolsos se gestionan por el mismo medio de pago en los plazos que establezca Mercado Pago y el emisor de la tarjeta.</li>
       </ul>

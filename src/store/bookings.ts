@@ -19,6 +19,9 @@ export interface Booking {
   status: "pendiente" | "confirmada" | "en camino" | "completado" | "cancelada";
   createdAt: number;
   hasReview?: boolean;
+  completadaAt?: string | null;
+  canceladaPor?: "cliente" | "prestador" | "admin" | null;
+  motivoCancelacion?: string | null;
 }
 
 export type DbEstado = "pendiente" | "confirmada" | "en_camino" | "completada" | "cancelada";
@@ -33,6 +36,7 @@ const DB_TO_UI: Record<string, Booking["status"]> = {
 
 const SELECT = `
   id, fecha, hora, direccion, estado, nota, total, created_at,
+  completada_at, cancelada_por, motivo_cancelacion,
   prestador_id, cliente_id, servicio_id,
   prestador_nombre, cliente_nombre,
   servicios ( nombre ),
@@ -42,6 +46,7 @@ const SELECT = `
 type Row = {
   id: string; fecha: string; hora: string; direccion: string;
   estado: string; nota: string | null; total: number; created_at: string;
+  completada_at?: string | null; cancelada_por?: string | null; motivo_cancelacion?: string | null;
   prestador_id: string; cliente_id: string; servicio_id: string | null;
   prestador_nombre: string | null;
   cliente_nombre: string | null;
@@ -66,6 +71,9 @@ function mapRow(r: Row): Booking {
     status: DB_TO_UI[r.estado] ?? "pendiente",
     createdAt: new Date(r.created_at).getTime(),
     hasReview: (r.resenas?.length ?? 0) > 0,
+    completadaAt: r.completada_at ?? null,
+    canceladaPor: (r.cancelada_por as Booking["canceladaPor"]) ?? null,
+    motivoCancelacion: r.motivo_cancelacion ?? null,
   };
 }
 
@@ -199,12 +207,32 @@ export function useAddBooking() {
 export function useUpdateBookingStatus() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, estado }: { id: string; estado: DbEstado }) => {
+    mutationFn: async ({ id, estado, motivo }: { id: string; estado: DbEstado; motivo?: string }) => {
+      const patch: { estado: DbEstado; motivo_cancelacion?: string | null } = { estado };
+      if (estado === "cancelada") patch.motivo_cancelacion = motivo?.trim() || null;
       const { error } = await supabase
         .from("reservas")
-        .update({ estado })
+        .update(patch)
         .eq("id", id);
       if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["bookings"] });
+    },
+  });
+}
+
+/** Prestador completa una reserva "en camino" con el código de 4 dígitos del cliente. Devuelve false si el código es incorrecto. */
+export function useCompletarConCodigo() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ reservaId, codigo }: { reservaId: string; codigo: string }): Promise<boolean> => {
+      const { data, error } = await supabase.rpc("completar_con_codigo", {
+        _reserva_id: reservaId,
+        _codigo: codigo.trim(),
+      });
+      if (error) throw error;
+      return data === true;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["bookings"] });

@@ -1,3 +1,4 @@
+import { comprimirImagen } from "@/lib/imagen";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { Eye, EyeOff, Home, Briefcase, Camera } from "lucide-react";
@@ -91,7 +92,7 @@ function RegistroPage() {
       const path = `${data.user.id}/avatar.${ext}`;
       const up = await supabase.storage
         .from("avatars")
-        .upload(path, fotoFile, { upsert: true, contentType: fotoFile.type });
+        .upload(path, await comprimirImagen(fotoFile), { upsert: true });
       if (!up.error) {
         const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
         await supabase

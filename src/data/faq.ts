@@ -19,7 +19,7 @@ export const FAQ_CLIENTES: FaqItem[] = [
   },
   {
     q: "¿Puedo cancelar una reserva?",
-    a: "Sí. Si cancelas con más de 24 horas de anticipación, el reembolso es completo. Con menos de 24 horas, se retiene un 20% para compensar el tiempo bloqueado del profesional. Si el profesional cancela o no llega, el reembolso siempre es del 100%.",
+    a: "Sí. Si cancelas con más de 24 horas de anticipación, el reembolso es completo. Con menos de 24 horas, se retiene un 10% para compensar el tiempo bloqueado del profesional. Si el profesional cancela o no llega, el reembolso siempre es del 100%.",
   },
   {
     q: "¿Cuánto cobra Homie?",

@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { CalendarCheck, MapPin, MessageCircle, Star, Shield, RotateCcw, Award, Scale, CreditCard, Loader2 } from "lucide-react";
+import { CalendarCheck, MapPin, MessageCircle, Star, Shield, RotateCcw, Award, Scale, CreditCard, Loader2, KeyRound, CheckCircle2 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
 import { ContactoPrestador } from "@/components/ContactoPrestador";
 import { ReportModal } from "@/components/ReportModal";
@@ -10,7 +12,7 @@ import { ReviewModal } from "@/components/ReviewModal";
 import { EmergencyBanner } from "@/components/EmergencyBanner";
 import { useBookings, useUpdateBookingStatus, type Booking } from "@/store/bookings";
 import { formatCLP } from "@/data/services";
-import { createPaymentPreference } from "@/lib/mercadopago.functions";
+import { createPaymentPreference, refundReserva } from "@/lib/mercadopago.functions";
 
 
 export const Route = createFileRoute("/_authenticated/reservas")({
@@ -83,10 +85,71 @@ function Reservas() {
   );
 }
 
+function CodigoConfirmacion({ reservaId }: { reservaId: string }) {
+  const q = useQuery({
+    queryKey: ["reserva-codigo", reservaId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("reserva_codigos").select("codigo").eq("reserva_id", reservaId).maybeSingle();
+      if (error) throw error;
+      return data?.codigo ?? null;
+    },
+  });
+  if (q.isLoading || !q.data) return null;
+  return (
+    <div className="mt-3 p-3 rounded-xl bg-[#FAC77540] border border-[#EF9F27]/50 flex items-start gap-3">
+      <KeyRound className="size-4 mt-0.5 text-[#854F0B] shrink-0" />
+      <div className="text-xs text-[#854F0B]">
+        <div className="font-semibold">Código de confirmación: <span className="font-mono text-base tracking-[0.25em] text-[#111827]">{q.data}</span></div>
+        <p className="mt-0.5">Dáselo al profesional solo cuando el trabajo esté terminado.</p>
+      </div>
+    </div>
+  );
+}
+
 function BookingCard({ b, timesHired }: { b: Booking; timesHired: number }) {
   const [showReview, setShowReview] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const cancel = useUpdateBookingStatus();
+  const [cancelando, setCancelando] = useState(false);
+  const [motivo, setMotivo] = useState("");
+  const canCancel = b.status === "pendiente" || b.status === "confirmada";
+
+  const refund = useServerFn(refundReserva);
+  async function confirmarCancelacion() {
+    try {
+      await cancel.mutateAsync({ id: b.id, estado: "cancelada", motivo });
+      setCancelando(false); setMotivo("");
+      if (b.status === "confirmada") {
+        try {
+          const r = await refund({ data: { reservaId: b.id } });
+          if (r.reembolsado > 0) {
+            toast.success(
+              r.motivo === "tardia"
+                ? `Reserva cancelada. Reembolso del 90% (${formatCLP(r.reembolsado)}) por cancelar con menos de 24 h.`
+                : `Reserva cancelada. Reembolso completo de ${formatCLP(r.reembolsado)} en camino.`,
+            );
+            return;
+          }
+        } catch (e) {
+          toast.warning(e instanceof Error ? e.message : "Reserva cancelada; el reembolso se procesará manualmente.");
+          return;
+        }
+      }
+      toast.success("Reserva cancelada");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo cancelar");
+    }
+  }
+
+  async function confirmarTerminado() {
+    try {
+      await cancel.mutateAsync({ id: b.id, estado: "completada" });
+      toast.success("Trabajo confirmado. ¡Gracias!");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo confirmar");
+    }
+  }
   const createPreference = useServerFn(createPaymentPreference);
   const [paying, setPaying] = useState(false);
   const canReport = b.status === "confirmada" || b.status === "en camino" || b.status === "completado";
@@ -149,10 +212,19 @@ function BookingCard({ b, timesHired }: { b: Booking; timesHired: number }) {
               {paying ? <Loader2 className="size-3.5 animate-spin" /> : <CreditCard className="size-3.5" />} Pagar
             </button>
           )}
-          {b.status === "pendiente" && (
+          {b.status === "en camino" && (
             <button
               disabled={cancel.isPending}
-              onClick={() => cancel.mutate({ id: b.id, estado: "cancelada" })}
+              onClick={confirmarTerminado}
+              className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-[#00C288] text-white text-xs font-bold disabled:opacity-50"
+            >
+              <CheckCircle2 className="size-3.5" /> Confirmar trabajo terminado
+            </button>
+          )}
+          {canCancel && !cancelando && (
+            <button
+              disabled={cancel.isPending}
+              onClick={() => setCancelando(true)}
               className="px-3 py-2 rounded-xl border border-border text-xs font-semibold hover:bg-muted disabled:opacity-50"
             >
               Cancelar
@@ -171,6 +243,35 @@ function BookingCard({ b, timesHired }: { b: Booking; timesHired: number }) {
           )}
         </div>
       </div>
+
+      {b.status === "en camino" && <CodigoConfirmacion reservaId={b.id} />}
+
+      {canCancel && cancelando && (
+        <div className="mt-3 p-3 rounded-xl bg-[#F5F5F0] border border-border">
+          <label className="block text-xs font-semibold text-[#111827]">¿Por qué cancelas? (breve)</label>
+          <input
+            autoFocus value={motivo} onChange={(e) => setMotivo(e.target.value.slice(0, 140))}
+            placeholder="Ej. Cambio de planes, encontré otra solución..."
+            className="mt-1.5 w-full h-10 px-3 rounded-xl bg-white border border-border text-sm outline-none focus:border-foreground/30"
+          />
+          <div className="mt-2 flex gap-2 justify-end">
+            <button onClick={() => { setCancelando(false); setMotivo(""); }} disabled={cancel.isPending}
+              className="px-3 py-2 rounded-xl border border-border text-xs font-semibold hover:bg-muted disabled:opacity-50">
+              Volver
+            </button>
+            <button onClick={confirmarCancelacion} disabled={cancel.isPending || motivo.trim().length < 3}
+              className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-[#FF3B6B] text-white text-xs font-semibold disabled:opacity-50">
+              {cancel.isPending && <Loader2 className="size-3.5 animate-spin" />} Confirmar cancelación
+            </button>
+          </div>
+        </div>
+      )}
+
+      {b.status === "cancelada" && b.motivoCancelacion && (
+        <p className="mt-2 text-xs text-muted-foreground">
+          Cancelada{b.canceladaPor === "prestador" ? " por el profesional" : b.canceladaPor === "cliente" ? " por ti" : ""}: "{b.motivoCancelacion}"
+        </p>
+      )}
 
       {b.status === "completado" && (
         <Link

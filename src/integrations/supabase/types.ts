@@ -195,6 +195,8 @@ export type Database = {
       }
       pagos: {
         Row: {
+          liquidacion_id: string | null
+          reembolsado_at: string | null
           comision: number
           created_at: string
           estado: string
@@ -209,6 +211,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          liquidacion_id?: string | null
+          reembolsado_at?: string | null
           comision: number
           created_at?: string
           estado?: string
@@ -223,6 +227,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          liquidacion_id?: string | null
+          reembolsado_at?: string | null
           comision?: number
           created_at?: string
           estado?: string
@@ -264,18 +270,33 @@ export type Database = {
           telefono: string | null
           updated_at: string
           whatsapp: string | null
+          banco: string | null
+          tipo_cuenta: string | null
+          numero_cuenta: string | null
+          rut: string | null
+          titular: string | null
         }
         Insert: {
           prestador_id: string
           telefono?: string | null
           updated_at?: string
           whatsapp?: string | null
+          banco?: string | null
+          tipo_cuenta?: string | null
+          numero_cuenta?: string | null
+          rut?: string | null
+          titular?: string | null
         }
         Update: {
           prestador_id?: string
           telefono?: string | null
           updated_at?: string
           whatsapp?: string | null
+          banco?: string | null
+          tipo_cuenta?: string | null
+          numero_cuenta?: string | null
+          rut?: string | null
+          titular?: string | null
         }
         Relationships: [
           {
@@ -301,6 +322,18 @@ export type Database = {
           { foreignKeyName: "cotizaciones_prestador_id_fkey"; columns: ["prestador_id"]; isOneToOne: false; referencedRelation: "prestadores"; referencedColumns: ["id"] },
           { foreignKeyName: "cotizaciones_solicitud_id_fkey"; columns: ["solicitud_id"]; isOneToOne: false; referencedRelation: "solicitudes"; referencedColumns: ["id"] }
         ]
+      }
+      reserva_codigos: {
+        Row: { reserva_id: string; codigo: string; intentos: number }
+        Insert: { reserva_id: string; codigo: string; intentos?: number }
+        Update: { reserva_id?: string; codigo?: string; intentos?: number }
+        Relationships: []
+      }
+      liquidaciones: {
+        Row: { id: string; prestador_id: string; monto: number; reservas: string[]; medio: string | null; referencia: string | null; nota: string | null; pagada_at: string; pagada_por: string | null; created_at: string }
+        Insert: { id?: string; prestador_id: string; monto: number; reservas?: string[]; medio?: string | null; referencia?: string | null; nota?: string | null; pagada_at?: string; pagada_por?: string | null; created_at?: string }
+        Update: { id?: string; prestador_id?: string; monto?: number; reservas?: string[]; medio?: string | null; referencia?: string | null; nota?: string | null; pagada_at?: string; pagada_por?: string | null; created_at?: string }
+        Relationships: []
       }
       prestador_servicios: {
         Row: {
@@ -645,6 +678,9 @@ export type Database = {
       }
       reservas: {
         Row: {
+          completada_at: string | null
+          cancelada_por: string | null
+          motivo_cancelacion: string | null
           cliente_foto_url: string | null
           cliente_id: string
           cliente_nombre: string | null
@@ -664,6 +700,9 @@ export type Database = {
           total: number
         }
         Insert: {
+          completada_at?: string | null
+          cancelada_por?: string | null
+          motivo_cancelacion?: string | null
           cliente_foto_url?: string | null
           cliente_id: string
           cliente_nombre?: string | null
@@ -683,6 +722,9 @@ export type Database = {
           total: number
         }
         Update: {
+          completada_at?: string | null
+          cancelada_por?: string | null
+          motivo_cancelacion?: string | null
           cliente_foto_url?: string | null
           cliente_id?: string
           cliente_nombre?: string | null
@@ -852,12 +894,21 @@ export type Database = {
       }
     }
     Views: {
+      saldos_prestadores: {
+        Row: { prestador_id: string; nombre: string | null; usuario_id: string; reservas_pendientes: number; monto_pendiente: number; comision_homie: number; reserva_ids: string[] | null }
+        Relationships: []
+      }
       guia_precios: {
         Row: { servicio_id: string; servicio: string; categoria_id: string; profesionales: number; precio_min: number; precio_mediana: number; precio_max: number }
         Relationships: []
       }
     }
     Functions: {
+      horas_ocupadas: { Args: { _prestador_id: string; _fecha: string }; Returns: { hora: string }[] }
+      completar_con_codigo: { Args: { _reserva_id: string; _codigo: string }; Returns: boolean }
+      registrar_liquidacion: { Args: { _prestador_id: string; _medio: string | null; _referencia: string | null; _nota: string | null }; Returns: string }
+      admin_resumen: { Args: Record<string, never>; Returns: { reservas_hoy: number; reservas_pendientes: number; reservas_mes: number; ingresos_mes: number; comision_mes: number; por_liquidar: number; verificaciones_pendientes: number; reclamos_abiertos: number; prestadores_verificados: number; clientes: number }[] }
+      distancia_km: { Args: { lat1: number; lng1: number; lat2: number; lng2: number }; Returns: number }
       aceptar_cotizacion: { Args: { _cotizacion_id: string; _fecha: string; _hora: string; _direccion: string | null }; Returns: string }
       stats_publicas: { Args: Record<string, never>; Returns: { profesionales: number; servicios_completados: number; calificacion: number; resenas: number }[] }
       contacto_prestador: {

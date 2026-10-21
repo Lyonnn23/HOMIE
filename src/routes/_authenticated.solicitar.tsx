@@ -1,3 +1,4 @@
+import { comprimirImagen } from "@/lib/imagen";
 import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useRef, useState } from "react";
@@ -73,7 +74,7 @@ function SolicitarPage() {
       for (const f of fotos) {
         const ext = (f.name.split(".").pop() || "jpg").toLowerCase();
         const path = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-        const up = await supabase.storage.from("solicitudes").upload(path, f, { upsert: false });
+        const up = await supabase.storage.from("solicitudes").upload(path, await comprimirImagen(f), { upsert: false });
         if (up.error) throw up.error;
         urls.push(supabase.storage.from("solicitudes").getPublicUrl(path).data.publicUrl);
       }

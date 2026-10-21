@@ -118,3 +118,63 @@ export const createPaymentPreference = createServerFn({ method: "POST" })
       initPoint: isSandbox ? pref.sandbox_init_point : pref.init_point,
     };
   });
+
+const refundSchema = z.object({ reservaId: z.string().uuid() });
+
+/**
+ * Reembolso al cancelar una reserva pagada.
+ * Reglas: cancela el PRESTADOR o el ADMIN → 100%. Cancela el CLIENTE con 24h o más
+ * de anticipación → 100%; con menos de 24h → 90% (10% cubre la comisión y el tiempo
+ * reservado del profesional). Solo reembolsa pagos en estado "pagado".
+ */
+export const refundReserva = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => refundSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
+    if (!accessToken) throw new Error("MERCADOPAGO_ACCESS_TOKEN no configurado");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // La reserva debe ser visible para quien llama (RLS) y estar cancelada.
+    const { data: reserva } = await context.supabase
+      .from("reservas")
+      .select("id, estado, fecha, hora, cancelada_por")
+      .eq("id", data.reservaId)
+      .maybeSingle();
+    if (!reserva) throw new Error("Reserva no encontrada");
+    if (reserva.estado !== "cancelada") throw new Error("La reserva no está cancelada");
+
+    const { data: pago } = await supabaseAdmin
+      .from("pagos")
+      .select("id, mp_payment_id, monto_total, estado")
+      .eq("reserva_id", reserva.id)
+      .maybeSingle();
+    if (!pago || pago.estado !== "pagado" || !pago.mp_payment_id) {
+      return { reembolsado: 0, motivo: "sin_pago" as const };
+    }
+
+    const inicio = new Date(`${reserva.fecha}T${reserva.hora}`);
+    const horas = (inicio.getTime() - Date.now()) / 36e5;
+    const porcentaje = reserva.cancelada_por === "cliente" && horas < 24 ? 0.9 : 1;
+    const monto = Math.round(Number(pago.monto_total) * porcentaje);
+
+    const res = await fetch(`https://api.mercadopago.com/v1/payments/${pago.mp_payment_id}/refunds`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+        "X-Idempotency-Key": `refund-${reserva.id}`,
+      },
+      body: JSON.stringify(porcentaje < 1 ? { amount: monto } : {}),
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      console.error("[MP] refund failed", res.status, text);
+      throw new Error("Mercado Pago no pudo procesar el reembolso. Homie lo revisará manualmente.");
+    }
+    await supabaseAdmin
+      .from("pagos")
+      .update({ estado: "reembolsado", reembolsado_at: new Date().toISOString() })
+      .eq("id", pago.id);
+    return { reembolsado: monto, motivo: porcentaje < 1 ? ("tardia" as const) : ("total" as const) };
+  });

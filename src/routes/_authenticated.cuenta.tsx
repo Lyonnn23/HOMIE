@@ -168,6 +168,7 @@ function Cuenta() {
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">Administración</h2>
           <div className="rounded-2xl bg-white border border-border divide-y divide-border overflow-hidden">
             {[
+              { label: "Panel de administración", to: "/admin" as const },
               { label: "Reportes", to: "/admin/reportes" as const },
               { label: "Verificaciones", to: "/admin/verificaciones" as const },
               { label: "Reclamos", to: "/admin/reclamos" as const },

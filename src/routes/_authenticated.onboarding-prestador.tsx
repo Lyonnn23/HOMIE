@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { categories, groups, categoriesOfGroup, formatCLP } from "@/data/services";
 import { HorarioEditor, defaultHorario, validarHorario, type Horario } from "@/components/HorarioEditor";
+import { geocodificar } from "@/lib/geocode";
 
 export const Route = createFileRoute("/_authenticated/onboarding-prestador")({
   head: () => ({ meta: [{ title: "Completa tu perfil — Homie" }] }),
@@ -167,9 +168,13 @@ function OnboardingPrestador() {
       const precios = servicios.map((s) => s.precio);
       const precioDesde = Math.min(...precios);
       const precioHasta = Math.max(...servicios.map((s) => s.precioHasta));
+      // Geocodificación best-effort: si falla, el perfil se crea sin coordenadas.
+      const geo = await geocodificar(direccion.trim(), comuna.trim()).catch(() => null);
       const { data: prestador, error: pErr } = await supabase
         .from("prestadores")
         .insert({
+          lat: geo?.lat ?? null,
+          lng: geo?.lng ?? null,
           usuario_id: usuario.id,
           nombre: nombre.trim(),
           foto_url: fotoUrl,

@@ -10,6 +10,21 @@ import { ProviderAvatar } from "@/components/Avatar";
 import { Slider } from "@/components/ui/slider";
 import { categories, groups, categoriesOfGroup, formatCLP, type CategoryId } from "@/data/services";
 import { supabase } from "@/integrations/supabase/client";
+import { distanciaKm, type GeoPoint } from "@/lib/geocode";
+
+/** Pide la ubicación del navegador una sola vez (no bloquea; null si no hay permiso). */
+function useGeolocation(): GeoPoint | null {
+  const [pos, setPos] = useState<GeoPoint | null>(null);
+  useEffect(() => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (p) => setPos({ lat: p.coords.latitude, lng: p.coords.longitude }),
+      () => {},
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 5 * 60_000 },
+    );
+  }, []);
+  return pos;
+}
 
 const searchSchema = z.object({
   q: fallback(z.string(), "").default(""),
@@ -48,9 +63,10 @@ const PRICE_MAX = 50000;
 
 type SortKey = "relevance" | "rating" | "price" | "distance";
 
-function useSearchProviders(params: { q: string; cat: string; min: number; max: number; rating: number; now: boolean; sort: SortKey }) {
+function useSearchProviders(params: { q: string; cat: string; min: number; max: number; rating: number; now: boolean; sort: SortKey }, origen: GeoPoint | null) {
   return useQuery({
-    queryKey: ["search", params],
+    queryKey: ["search", params, origen],
+    placeholderData: (prev) => prev,
     queryFn: async (): Promise<ResultRow[]> => {
       let query = supabase
         .from("prestadores")
@@ -107,6 +123,13 @@ function useSearchProviders(params: { q: string; cat: string; min: number; max: 
           if (score === 0) return null as unknown as ResultRow & { score: number };
         }
 
+        const lat = r.lat == null ? null : Number(r.lat);
+        const lng = r.lng == null ? null : Number(r.lng);
+        // Distancia real desde la ubicación del navegador si el prestador tiene coordenadas; si no, la columna distancia_km.
+        const distanceKm = origen && lat != null && lng != null
+          ? Math.round(distanciaKm(origen, { lat, lng }) * 10) / 10
+          : Number(r.distancia_km ?? 0);
+
         return {
           id: r.id,
           name: r.nombre ?? "Prestador",
@@ -118,9 +141,9 @@ function useSearchProviders(params: { q: string; cat: string; min: number; max: 
           disponibleAhora: r.disponible_ahora,
           matchedService: matchedService ?? services[0],
           bio: r.bio ?? "",
-          distanceKm: Number(r.distancia_km ?? 0),
-          lat: r.lat == null ? null : Number(r.lat),
-          lng: r.lng == null ? null : Number(r.lng),
+          distanceKm,
+          lat,
+          lng,
           score,
         };
       }).filter(Boolean) as (ResultRow & { score: number })[];
@@ -163,7 +186,8 @@ function Buscar() {
     return () => clearTimeout(t);
   }, [localQ, q, navigate]);
 
-  const { data: results = [], isLoading } = useSearchProviders({ q, cat, min, max, rating, now, sort });
+  const origen = useGeolocation();
+  const { data: results = [], isLoading } = useSearchProviders({ q, cat, min, max, rating, now, sort }, origen);
   const [vista, setVista] = useState<"lista" | "mapa">("lista");
 
   const activeCount = useMemo(() => {

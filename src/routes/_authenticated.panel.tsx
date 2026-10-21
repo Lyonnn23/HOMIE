@@ -10,9 +10,10 @@ import { HorarioEditor, parseHorario, validarHorario, type Horario } from "@/com
 import { AppShell } from "@/components/AppShell";
 import { ProviderAvatar } from "@/components/Avatar";
 import {
-  useProviderBookings, useUpdateBookingStatus,
+  useProviderBookings, useUpdateBookingStatus, useCompletarConCodigo,
   type Booking, type DbEstado,
 } from "@/store/bookings";
+import { geocodificar } from "@/lib/geocode";
 import { formatCLP, categories } from "@/data/services";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -254,6 +255,19 @@ function Empty({ icon: Icon, title, sub }: { icon: typeof ListTodo; title: strin
 function ProviderBookingCard({ b }: { b: Booking }) {
   const update = useUpdateBookingStatus();
   const set = (estado: DbEstado) => update.mutate({ id: b.id, estado });
+  const completar = useCompletarConCodigo();
+  const [codigo, setCodigo] = useState("");
+
+  async function completarConCodigo() {
+    if (codigo.length !== 4) { toast.error("Ingresa el código de 4 dígitos"); return; }
+    try {
+      const ok = await completar.mutateAsync({ reservaId: b.id, codigo });
+      if (ok) { toast.success("Trabajo completado"); setCodigo(""); }
+      else toast.error("Código incorrecto");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo completar");
+    }
+  }
 
   return (
     <div className="p-4 rounded-2xl bg-white border border-border">
@@ -299,14 +313,26 @@ function ProviderBookingCard({ b }: { b: Booking }) {
               <Truck className="size-3.5" /> En camino
             </button>
           )}
-          {b.status === "en camino" && (
-            <button disabled={update.isPending} onClick={() => set("completada")}
-              className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-foreground text-background text-xs font-semibold disabled:opacity-50">
-              <CheckCircle2 className="size-3.5" /> Completar
-            </button>
-          )}
         </div>
       </div>
+      {b.status === "en camino" && (
+        <div className="mt-3 pt-3 border-t border-border">
+          <p className="text-xs text-muted-foreground mb-2">Pide al cliente su código de confirmación cuando termines el trabajo.</p>
+          <div className="flex gap-2">
+            <input
+              value={codigo}
+              onChange={(e) => setCodigo(e.target.value.replace(/\D/g, "").slice(0, 4))}
+              inputMode="numeric" pattern="[0-9]*" maxLength={4} placeholder="0000"
+              aria-label="Código de confirmación"
+              className="w-24 h-10 px-3 rounded-xl bg-white border border-border text-center font-mono text-base tracking-[0.3em] outline-none focus:border-foreground/30"
+            />
+            <button disabled={completar.isPending || codigo.length !== 4} onClick={completarConCodigo}
+              className="flex-1 inline-flex items-center justify-center gap-1 px-3 py-2 rounded-xl bg-foreground text-background text-xs font-semibold disabled:opacity-50">
+              {completar.isPending ? <Loader2 className="size-3.5 animate-spin" /> : <CheckCircle2 className="size-3.5" />} Completar con código
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -485,7 +511,13 @@ function EditorPerfil() {
   async function savePerfil() {
     if (!usuario || !row) return;
     setSaving(true); setMsg(null);
-    const p = await supabase.from("prestadores").update({ bio, direccion }).eq("id", row.id);
+    // Re-geocodificar la dirección base (best-effort); si falla se conservan las coordenadas previas.
+    const geo = direccion.trim()
+      ? await geocodificar(direccion.trim(), row.comuna ?? undefined).catch(() => null)
+      : null;
+    const p = await supabase.from("prestadores")
+      .update({ bio, direccion, ...(geo ? { lat: geo.lat, lng: geo.lng } : {}) })
+      .eq("id", row.id);
     setSaving(false);
     if (p.error) { setMsg(p.error.message); toast.error(p.error.message); return; }
     setMsg("Perfil actualizado");
@@ -606,6 +638,157 @@ function EditorPerfil() {
           anos_experiencia: row.anos_experiencia, comuna: row.comuna,
         }}
       />
+
+      {/* Datos bancarios para liquidaciones */}
+      <DatosBancariosCard prestadorId={row.id} />
+
+      {/* Liquidaciones recibidas */}
+      <MisLiquidacionesCard prestadorId={row.id} />
+    </div>
+  );
+}
+
+const TIPOS_CUENTA = ["Cuenta corriente", "Cuenta vista", "Cuenta RUT", "Ahorro"] as const;
+
+function DatosBancariosCard({ prestadorId }: { prestadorId: string }) {
+  const qc = useQueryClient();
+  const [banco, setBanco] = useState("");
+  const [tipoCuenta, setTipoCuenta] = useState<string>("");
+  const [numeroCuenta, setNumeroCuenta] = useState("");
+  const [rut, setRut] = useState("");
+  const [titular, setTitular] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const bancoQ = useQuery({
+    queryKey: ["prestador-banco", prestadorId],
+    enabled: !!prestadorId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("prestador_contacto")
+        .select("banco, tipo_cuenta, numero_cuenta, rut, titular")
+        .eq("prestador_id", prestadorId)
+        .maybeSingle();
+      return data;
+    },
+  });
+  useEffect(() => {
+    if (bancoQ.data) {
+      setBanco(bancoQ.data.banco ?? "");
+      setTipoCuenta(bancoQ.data.tipo_cuenta ?? "");
+      setNumeroCuenta(bancoQ.data.numero_cuenta ?? "");
+      setRut(bancoQ.data.rut ?? "");
+      setTitular(bancoQ.data.titular ?? "");
+    }
+  }, [bancoQ.data]);
+
+  async function guardar() {
+    if (!banco.trim() || !numeroCuenta.trim() || !rut.trim() || !titular.trim()) {
+      toast.error("Completa banco, número de cuenta, RUT y titular."); return;
+    }
+    setSaving(true);
+    try {
+      const { error } = await supabase.from("prestador_contacto").upsert({
+        prestador_id: prestadorId,
+        banco: banco.trim(), tipo_cuenta: tipoCuenta || null, numero_cuenta: numeroCuenta.trim(),
+        rut: rut.trim(), titular: titular.trim(),
+      });
+      if (error) throw error;
+      toast.success("Datos bancarios guardados");
+      qc.invalidateQueries({ queryKey: ["prestador-banco"] });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo guardar");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const inputCls = "w-full h-11 px-3 rounded-xl bg-muted/50 border border-border outline-none focus:border-foreground/30 text-sm";
+
+  return (
+    <div>
+      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-1.5">
+        <DollarSign className="size-3.5" /> Datos bancarios
+      </h3>
+      <div className="rounded-2xl bg-white border border-border p-4 space-y-4">
+        <p className="text-sm text-muted-foreground">
+          Para recibir tus pagos semanales. Homie cobra en Mercado Pago y cada semana te transfiere el 85% de tus servicios completados. Estos datos son privados.
+        </p>
+        <div className="grid grid-cols-2 gap-3">
+          <label className="block">
+            <span className="block text-xs font-medium mb-1">Banco</span>
+            <input value={banco} onChange={(e) => setBanco(e.target.value)} placeholder="Ej. BancoEstado" className={inputCls} />
+          </label>
+          <label className="block">
+            <span className="block text-xs font-medium mb-1">Tipo de cuenta</span>
+            <select value={tipoCuenta} onChange={(e) => setTipoCuenta(e.target.value)} className={inputCls}>
+              <option value="">Selecciona</option>
+              {TIPOS_CUENTA.map((t) => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </label>
+          <label className="block">
+            <span className="block text-xs font-medium mb-1">Número de cuenta</span>
+            <input value={numeroCuenta} onChange={(e) => setNumeroCuenta(e.target.value)} inputMode="numeric" placeholder="Ej. 12345678" className={inputCls} />
+          </label>
+          <label className="block">
+            <span className="block text-xs font-medium mb-1">RUT del titular</span>
+            <input value={rut} onChange={(e) => setRut(e.target.value)} placeholder="12.345.678-9" className={inputCls} />
+          </label>
+          <label className="block col-span-2">
+            <span className="block text-xs font-medium mb-1">Nombre del titular</span>
+            <input value={titular} onChange={(e) => setTitular(e.target.value)} placeholder="Como aparece en el banco" className={inputCls} />
+          </label>
+        </div>
+        <button type="button" onClick={guardar} disabled={saving || bancoQ.isLoading}
+          className="w-full h-11 rounded-xl bg-[#111827] text-white text-sm font-semibold disabled:opacity-50">
+          {saving ? "Guardando..." : "Guardar datos bancarios"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function MisLiquidacionesCard({ prestadorId }: { prestadorId: string }) {
+  const liqQ = useQuery({
+    queryKey: ["mis-liquidaciones", prestadorId],
+    enabled: !!prestadorId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("liquidaciones")
+        .select("id, monto, medio, referencia, pagada_at, reservas")
+        .eq("prestador_id", prestadorId)
+        .order("pagada_at", { ascending: false })
+        .limit(20);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  return (
+    <div>
+      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-1.5">
+        <History className="size-3.5" /> Mis liquidaciones
+      </h3>
+      <div className="rounded-2xl bg-white border border-border overflow-hidden">
+        {liqQ.isLoading ? (
+          <div className="p-6 text-center"><Loader2 className="size-4 mx-auto animate-spin" /></div>
+        ) : (liqQ.data?.length ?? 0) === 0 ? (
+          <div className="p-6 text-center text-sm text-muted-foreground">Aún no tienes liquidaciones. Recibirás un pago semanal por cada servicio completado.</div>
+        ) : (
+          <ul className="divide-y divide-border">
+            {liqQ.data!.map((l) => (
+              <li key={l.id} className="flex items-center gap-3 px-4 py-3 text-sm">
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium">{new Date(l.pagada_at).toLocaleDateString("es-CL")} · {l.medio ?? "Transferencia"}</div>
+                  <div className="text-xs text-muted-foreground truncate">
+                    {l.reservas.length} {l.reservas.length === 1 ? "servicio" : "servicios"}{l.referencia ? ` · Ref. ${l.referencia}` : ""}
+                  </div>
+                </div>
+                <div className="font-bold text-[#00754F] whitespace-nowrap">{formatCLP(l.monto)}</div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }

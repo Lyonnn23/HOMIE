@@ -6,9 +6,11 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { AppShell } from "@/components/AppShell";
 import { ProviderAvatar } from "@/components/Avatar";
-import { useProvider, formatCLP } from "@/data/services";
+import { useQuery } from "@tanstack/react-query";
+import { useProvider, formatCLP, DIAS, type Horario, type DiaKey } from "@/data/services";
 import { useAddBooking } from "@/store/bookings";
 import { createPaymentPreference } from "@/lib/mercadopago.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/reservar/$id")({
   validateSearch: z.object({ service: z.string().optional() }),
@@ -32,7 +34,41 @@ function nextDays(n: number) {
   return out;
 }
 
-const TIMES = ["09:00","10:00","11:00","12:00","14:00","15:00","16:00","17:00","18:00"];
+const DIA_KEYS: DiaKey[] = ["dom", "lun", "mar", "mie", "jue", "vie", "sab"];
+
+/** Clave del día (lun..dom) para una fecha YYYY-MM-DD, en hora local. */
+function diaKeyDe(fecha: string): DiaKey {
+  const [y, m, d] = fecha.split("-").map(Number);
+  return DIA_KEYS[new Date(y, m - 1, d).getDay()];
+}
+
+function toMin(hhmm: string) {
+  const [h, m] = hhmm.split(":").map(Number);
+  return (h || 0) * 60 + (m || 0);
+}
+
+/** Bloques de 1 hora desde `desde` hasta `hasta - 1h`. */
+function slotsDe(horario: Horario, fecha: string): string[] {
+  const dia = horario[diaKeyDe(fecha)];
+  if (!dia?.activo) return [];
+  const out: string[] = [];
+  for (let t = toMin(dia.desde); t + 60 <= toMin(dia.hasta); t += 60) {
+    out.push(`${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`);
+  }
+  return out;
+}
+
+function useHorasOcupadas(prestadorId: string | undefined, fecha: string) {
+  return useQuery({
+    queryKey: ["horas-ocupadas", prestadorId, fecha],
+    enabled: !!prestadorId && !!fecha,
+    queryFn: async (): Promise<Set<string>> => {
+      const { data, error } = await supabase.rpc("horas_ocupadas", { _prestador_id: prestadorId!, _fecha: fecha });
+      if (error) throw error;
+      return new Set((data ?? []).map((r) => String(r.hora).slice(0, 5)));
+    },
+  });
+}
 
 function BookingPage() {
   const { id } = Route.useParams();
@@ -44,7 +80,21 @@ function BookingPage() {
 
   const days = useMemo(() => nextDays(10), []);
   const [date, setDate] = useState(days[0].value);
-  const [time, setTime] = useState(TIMES[0]);
+  const [time, setTime] = useState<string | null>(null);
+  const ocupadasQ = useHorasOcupadas(p?.id, date);
+  const ocupadas = ocupadasQ.data ?? new Set<string>();
+  const slots = useMemo(() => (p ? slotsDe(p.horario, date) : []), [p, date]);
+  const diaActivo = p ? p.horario[diaKeyDe(date)]?.activo : true;
+  const nowMin = date === days[0].value ? new Date().getHours() * 60 + new Date().getMinutes() : -1;
+
+  const disponible = (t: string) => !ocupadas.has(t) && toMin(t) > nowMin;
+
+  // Si cambia la fecha/horario y la hora elegida ya no es válida, elige la primera disponible.
+  useEffect(() => {
+    if (time && slots.includes(time) && disponible(time)) return;
+    setTime(slots.find(disponible) ?? null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slots, ocupadasQ.data]);
   const [serviceName, setServiceName] = useState<string | undefined>(incoming);
   const [address, setAddress] = useState("");
   const [note, setNote] = useState("");
@@ -65,9 +115,14 @@ function BookingPage() {
   const fee = Math.round(base * 0.15);
   const total = base + fee;
 
+  const horarioHint = DIAS.filter((d) => p.horario[d.key]?.activo)
+    .map((d) => `${d.corto} ${p.horario[d.key].desde}–${p.horario[d.key].hasta}`)
+    .join(" · ");
+
   async function confirm() {
-    if (!address.trim() || !selected || !p) return;
+    if (!address.trim() || !selected || !p || !time) return;
     setPaying(true);
+    let reservaId: string | null = null;
     try {
       const reserva = await addBooking.mutateAsync({
         providerId: p.id,
@@ -75,7 +130,18 @@ function BookingPage() {
         service: selected.name,
         date, time, address, note, price: total,
       });
-      const { initPoint } = await createPreference({ data: { reservaId: reserva.id } });
+      reservaId = reserva.id;
+    } catch (err) {
+      console.error(err);
+      // El trigger de la BD lanza mensajes en español (día inactivo, fuera de horario, hora ocupada...).
+      const msg = (err as { message?: string })?.message;
+      toast.error(msg?.trim() || "No se pudo crear la reserva");
+      ocupadasQ.refetch();
+      setPaying(false);
+      return;
+    }
+    try {
+      const { initPoint } = await createPreference({ data: { reservaId } });
       window.location.href = initPoint;
     } catch (err) {
       console.error(err);
@@ -135,16 +201,35 @@ function BookingPage() {
 
       <section className="px-5 mt-6">
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Hora</h2>
-        <div className="mt-2 grid grid-cols-4 gap-2">
-          {TIMES.map((t) => (
-            <button key={t} onClick={() => setTime(t)}
-              className={`py-2.5 rounded-xl text-sm border transition ${
-                time === t ? "bg-foreground text-background border-foreground" : "bg-white border-border"
-              }`}>
-              {t}
-            </button>
-          ))}
-        </div>
+        {!diaActivo ? (
+          <div className="mt-2 p-4 rounded-2xl bg-[#F5F5F0] border border-border text-sm text-muted-foreground text-center">
+            No atiende este día
+          </div>
+        ) : slots.length === 0 ? (
+          <div className="mt-2 p-4 rounded-2xl bg-[#F5F5F0] border border-border text-sm text-muted-foreground text-center">
+            Sin horas disponibles
+          </div>
+        ) : (
+          <div className="mt-2 grid grid-cols-4 gap-2">
+            {slots.map((t) => {
+              const libre = disponible(t);
+              return (
+                <button key={t} disabled={!libre} onClick={() => setTime(t)}
+                  title={ocupadas.has(t) ? "Hora ocupada" : undefined}
+                  className={`py-2.5 rounded-xl text-sm border transition ${
+                    time === t ? "bg-foreground text-background border-foreground"
+                    : libre ? "bg-white border-border"
+                    : "bg-muted text-muted-foreground/50 border-border line-through cursor-not-allowed"
+                  }`}>
+                  {t}
+                </button>
+              );
+            })}
+          </div>
+        )}
+        <p className="mt-2 text-[11px] text-muted-foreground">
+          <span className="font-semibold">Horario del profesional:</span> {horarioHint || "no informado"}
+        </p>
       </section>
 
       <section className="px-5 mt-6">
@@ -182,7 +267,7 @@ function BookingPage() {
       <div className="fixed bottom-0 inset-x-0 z-30 border-t border-border bg-background/95 backdrop-blur">
         <div className="mx-auto max-w-2xl px-5 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           <button
-            disabled={!address.trim() || paying || addBooking.isPending}
+            disabled={!address.trim() || !time || paying || addBooking.isPending}
             onClick={confirm}
             className="w-full py-3.5 rounded-2xl bg-foreground text-background font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
           >

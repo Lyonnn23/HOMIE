@@ -1,3 +1,4 @@
+import { comprimirImagen } from "@/lib/imagen";
 import { requisitosDe } from "@/data/requisitos";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
@@ -105,7 +106,7 @@ function VerificarIdentidad() {
   async function uploadFile(file: File, slug: string) {
     const ext = file.name.split(".").pop() || "jpg";
     const path = `${user!.id}/${prestadorQ.data!.id}/${slug}-${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from("verificaciones").upload(path, file, { upsert: true });
+    const { error } = await supabase.storage.from("verificaciones").upload(path, await comprimirImagen(file), { upsert: true });
     if (error) throw error;
     return path;
   }

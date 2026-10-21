@@ -39,8 +39,12 @@ import { Route as AuthenticatedVerificarIdentidadRouteImport } from './routes/_a
 import { Route as PrestadorIdRouteImport } from './routes/prestador.$id'
 import { Route as ReservarIdRouteImport } from './routes/reservar.$id'
 import { Route as ServicioServiceRouteImport } from './routes/servicio.$service'
+import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated.admin.index'
+import { Route as AuthenticatedAdminLiquidacionesRouteImport } from './routes/_authenticated.admin.liquidaciones'
+import { Route as AuthenticatedAdminPrestadoresRouteImport } from './routes/_authenticated.admin.prestadores'
 import { Route as AuthenticatedAdminReclamosRouteImport } from './routes/_authenticated.admin.reclamos'
 import { Route as AuthenticatedAdminReportesRouteImport } from './routes/_authenticated.admin.reportes'
+import { Route as AuthenticatedAdminReservasRouteImport } from './routes/_authenticated.admin.reservas'
 import { Route as AuthenticatedAdminVerificacionesRouteImport } from './routes/_authenticated.admin.verificaciones'
 import { Route as AuthenticatedChatReservaIdRouteImport } from './routes/_authenticated.chat.$reservaId'
 import { Route as AuthenticatedSolicitudesIdRouteImport } from './routes/_authenticated.solicitudes.$id'
@@ -201,6 +205,23 @@ const ServicioServiceRoute = ServicioServiceRouteImport.update({
   path: '/servicio/$service',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedAdminLiquidacionesRoute =
+  AuthenticatedAdminLiquidacionesRouteImport.update({
+    id: '/admin/liquidaciones',
+    path: '/admin/liquidaciones',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedAdminPrestadoresRoute =
+  AuthenticatedAdminPrestadoresRouteImport.update({
+    id: '/admin/prestadores',
+    path: '/admin/prestadores',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedAdminReclamosRoute =
   AuthenticatedAdminReclamosRouteImport.update({
     id: '/admin/reclamos',
@@ -211,6 +232,12 @@ const AuthenticatedAdminReportesRoute =
   AuthenticatedAdminReportesRouteImport.update({
     id: '/admin/reportes',
     path: '/admin/reportes',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedAdminReservasRoute =
+  AuthenticatedAdminReservasRouteImport.update({
+    id: '/admin/reservas',
+    path: '/admin/reservas',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedAdminVerificacionesRoute =
@@ -268,11 +295,15 @@ export interface FileRoutesByFullPath {
   '/prestador/$id': typeof PrestadorIdRoute
   '/reservar/$id': typeof ReservarIdRoute
   '/servicio/$service': typeof ServicioServiceRoute
+  '/admin/liquidaciones': typeof AuthenticatedAdminLiquidacionesRoute
+  '/admin/prestadores': typeof AuthenticatedAdminPrestadoresRoute
   '/admin/reclamos': typeof AuthenticatedAdminReclamosRoute
   '/admin/reportes': typeof AuthenticatedAdminReportesRoute
+  '/admin/reservas': typeof AuthenticatedAdminReservasRoute
   '/admin/verificaciones': typeof AuthenticatedAdminVerificacionesRoute
   '/chat/$reservaId': typeof AuthenticatedChatReservaIdRoute
   '/solicitudes/$id': typeof AuthenticatedSolicitudesIdRoute
+  '/admin/': typeof AuthenticatedAdminIndexRoute
   '/api/public/mercadopago/webhook': typeof ApiPublicMercadopagoWebhookRoute
 }
 export interface FileRoutesByTo {
@@ -305,11 +336,15 @@ export interface FileRoutesByTo {
   '/prestador/$id': typeof PrestadorIdRoute
   '/reservar/$id': typeof ReservarIdRoute
   '/servicio/$service': typeof ServicioServiceRoute
+  '/admin/liquidaciones': typeof AuthenticatedAdminLiquidacionesRoute
+  '/admin/prestadores': typeof AuthenticatedAdminPrestadoresRoute
   '/admin/reclamos': typeof AuthenticatedAdminReclamosRoute
   '/admin/reportes': typeof AuthenticatedAdminReportesRoute
+  '/admin/reservas': typeof AuthenticatedAdminReservasRoute
   '/admin/verificaciones': typeof AuthenticatedAdminVerificacionesRoute
   '/chat/$reservaId': typeof AuthenticatedChatReservaIdRoute
   '/solicitudes/$id': typeof AuthenticatedSolicitudesIdRoute
+  '/admin': typeof AuthenticatedAdminIndexRoute
   '/api/public/mercadopago/webhook': typeof ApiPublicMercadopagoWebhookRoute
 }
 export interface FileRoutesById {
@@ -344,11 +379,15 @@ export interface FileRoutesById {
   '/prestador/$id': typeof PrestadorIdRoute
   '/reservar/$id': typeof ReservarIdRoute
   '/servicio/$service': typeof ServicioServiceRoute
+  '/_authenticated/admin/liquidaciones': typeof AuthenticatedAdminLiquidacionesRoute
+  '/_authenticated/admin/prestadores': typeof AuthenticatedAdminPrestadoresRoute
   '/_authenticated/admin/reclamos': typeof AuthenticatedAdminReclamosRoute
   '/_authenticated/admin/reportes': typeof AuthenticatedAdminReportesRoute
+  '/_authenticated/admin/reservas': typeof AuthenticatedAdminReservasRoute
   '/_authenticated/admin/verificaciones': typeof AuthenticatedAdminVerificacionesRoute
   '/_authenticated/chat/$reservaId': typeof AuthenticatedChatReservaIdRoute
   '/_authenticated/solicitudes/$id': typeof AuthenticatedSolicitudesIdRoute
+  '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/api/public/mercadopago/webhook': typeof ApiPublicMercadopagoWebhookRoute
 }
 export interface FileRouteTypes {
@@ -383,11 +422,15 @@ export interface FileRouteTypes {
     | '/prestador/$id'
     | '/reservar/$id'
     | '/servicio/$service'
+    | '/admin/liquidaciones'
+    | '/admin/prestadores'
     | '/admin/reclamos'
     | '/admin/reportes'
+    | '/admin/reservas'
     | '/admin/verificaciones'
     | '/chat/$reservaId'
     | '/solicitudes/$id'
+    | '/admin/'
     | '/api/public/mercadopago/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -420,11 +463,15 @@ export interface FileRouteTypes {
     | '/prestador/$id'
     | '/reservar/$id'
     | '/servicio/$service'
+    | '/admin/liquidaciones'
+    | '/admin/prestadores'
     | '/admin/reclamos'
     | '/admin/reportes'
+    | '/admin/reservas'
     | '/admin/verificaciones'
     | '/chat/$reservaId'
     | '/solicitudes/$id'
+    | '/admin'
     | '/api/public/mercadopago/webhook'
   id:
     | '__root__'
@@ -458,11 +505,15 @@ export interface FileRouteTypes {
     | '/prestador/$id'
     | '/reservar/$id'
     | '/servicio/$service'
+    | '/_authenticated/admin/liquidaciones'
+    | '/_authenticated/admin/prestadores'
     | '/_authenticated/admin/reclamos'
     | '/_authenticated/admin/reportes'
+    | '/_authenticated/admin/reservas'
     | '/_authenticated/admin/verificaciones'
     | '/_authenticated/chat/$reservaId'
     | '/_authenticated/solicitudes/$id'
+    | '/_authenticated/admin/'
     | '/api/public/mercadopago/webhook'
   fileRoutesById: FileRoutesById
 }
@@ -698,6 +749,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ServicioServiceRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin/': {
+      id: '/_authenticated/admin/'
+      path: '/admin'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/admin/liquidaciones': {
+      id: '/_authenticated/admin/liquidaciones'
+      path: '/admin/liquidaciones'
+      fullPath: '/admin/liquidaciones'
+      preLoaderRoute: typeof AuthenticatedAdminLiquidacionesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/admin/prestadores': {
+      id: '/_authenticated/admin/prestadores'
+      path: '/admin/prestadores'
+      fullPath: '/admin/prestadores'
+      preLoaderRoute: typeof AuthenticatedAdminPrestadoresRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/admin/reclamos': {
       id: '/_authenticated/admin/reclamos'
       path: '/admin/reclamos'
@@ -710,6 +782,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/reportes'
       fullPath: '/admin/reportes'
       preLoaderRoute: typeof AuthenticatedAdminReportesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/admin/reservas': {
+      id: '/_authenticated/admin/reservas'
+      path: '/admin/reservas'
+      fullPath: '/admin/reservas'
+      preLoaderRoute: typeof AuthenticatedAdminReservasRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/admin/verificaciones': {
@@ -772,10 +851,14 @@ interface AuthenticatedRouteChildren {
   AuthenticatedSolicitarRoute: typeof AuthenticatedSolicitarRoute
   AuthenticatedSolicitudesRoute: typeof AuthenticatedSolicitudesRouteWithChildren
   AuthenticatedVerificarIdentidadRoute: typeof AuthenticatedVerificarIdentidadRoute
+  AuthenticatedAdminLiquidacionesRoute: typeof AuthenticatedAdminLiquidacionesRoute
+  AuthenticatedAdminPrestadoresRoute: typeof AuthenticatedAdminPrestadoresRoute
   AuthenticatedAdminReclamosRoute: typeof AuthenticatedAdminReclamosRoute
   AuthenticatedAdminReportesRoute: typeof AuthenticatedAdminReportesRoute
+  AuthenticatedAdminReservasRoute: typeof AuthenticatedAdminReservasRoute
   AuthenticatedAdminVerificacionesRoute: typeof AuthenticatedAdminVerificacionesRoute
   AuthenticatedChatReservaIdRoute: typeof AuthenticatedChatReservaIdRoute
+  AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -793,10 +876,14 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedSolicitarRoute: AuthenticatedSolicitarRoute,
   AuthenticatedSolicitudesRoute: AuthenticatedSolicitudesRouteWithChildren,
   AuthenticatedVerificarIdentidadRoute: AuthenticatedVerificarIdentidadRoute,
+  AuthenticatedAdminLiquidacionesRoute: AuthenticatedAdminLiquidacionesRoute,
+  AuthenticatedAdminPrestadoresRoute: AuthenticatedAdminPrestadoresRoute,
   AuthenticatedAdminReclamosRoute: AuthenticatedAdminReclamosRoute,
   AuthenticatedAdminReportesRoute: AuthenticatedAdminReportesRoute,
+  AuthenticatedAdminReservasRoute: AuthenticatedAdminReservasRoute,
   AuthenticatedAdminVerificacionesRoute: AuthenticatedAdminVerificacionesRoute,
   AuthenticatedChatReservaIdRoute: AuthenticatedChatReservaIdRoute,
+  AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
