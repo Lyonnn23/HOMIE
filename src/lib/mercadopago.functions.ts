@@ -31,34 +31,20 @@ export const createPaymentPreference = createServerFn({ method: "POST" })
       throw new Error("Solo el cliente de la reserva puede pagar");
     }
 
-    // Recompute the price SERVER-SIDE from the provider's published service
-    // price — never trust the client-supplied reservas.total.
-    if (!reserva.servicio_id) throw new Error("La reserva no tiene un servicio asociado");
-    const { data: ps, error: psErr } = await context.supabase
-      .from("prestador_servicios")
-      .select("precio")
-      .eq("prestador_id", reserva.prestador_id)
-      .eq("servicio_id", reserva.servicio_id)
-      .maybeSingle();
-    if (psErr) throw psErr;
-    const basePrice = Number(ps?.precio ?? 0);
-    if (!basePrice || basePrice <= 0) {
-      throw new Error("No se pudo validar el precio del servicio");
-    }
-    const comision = Math.round(basePrice * 0.15);
-    const total = basePrice + comision;
-    const montoPrestador = basePrice;
+    // Use the price locked when the booking was created. The DB trigger
+    // `fill_reserva_total` computed reservas.total/comision server-side at
+    // insert time, so a provider raising prices later can't change what the
+    // client is charged.
+    const total = Number(reserva.total);
+    if (!total || total <= 0) throw new Error("No se pudo validar el precio del servicio");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rc } = await supabaseAdmin
+      .from("reservas").select("comision, estado").eq("id", reserva.id).maybeSingle();
+    if (rc?.estado === "cancelada") throw new Error("La reserva está cancelada");
+    const comision = Number(rc?.comision ?? Math.round(total - total / 1.15));
+    const montoPrestador = total - comision;
     const serviceName =
       (reserva.servicios as { nombre?: string } | null)?.nombre ?? "Servicio Homie";
-
-    // Keep the stored reservation total consistent with the server-computed price.
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    if (Number(reserva.total) !== total) {
-      await supabaseAdmin
-        .from("reservas")
-        .update({ total, comision })
-        .eq("id", reserva.id);
-    }
 
     // Build absolute origin for back_urls / notification_url.
     const forwardedProto = getRequestHeader("x-forwarded-proto") ?? "https";
