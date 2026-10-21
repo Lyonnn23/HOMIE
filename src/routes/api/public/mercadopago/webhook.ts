@@ -112,6 +112,15 @@ export const Route = createFileRoute("/api/public/mercadopago/webhook")({
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
+        // Make sure the amount paid matches what we expected for this booking.
+        const { data: pago } = await supabaseAdmin
+          .from("pagos").select("monto_total").eq("reserva_id", reservaId).maybeSingle();
+        if (!pago) return new Response("Unknown reserva", { status: 202 });
+        if (pagoEstado === "pagado" && Number(payment.transaction_amount) < Number(pago.monto_total)) {
+          console.error("[MP webhook] amount mismatch", payment.transaction_amount, pago.monto_total);
+          return new Response("Amount mismatch", { status: 202 });
+        }
+
         await supabaseAdmin
           .from("pagos")
           .update({
