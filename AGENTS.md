@@ -5,3 +5,5 @@
 - Assign email-based administrative roles only after email verification, including the verification lifecycle event, to prevent mailbox impersonation.
 - Break cross-table RLS cycles with narrowly scoped viewer-bound helpers so request and quote reads cannot recurse indefinitely.
 - Define complete page-specific metadata on each content route and never place preview images in the shared root because shared images misrepresent leaf pages.
+- Store request photos as private object paths and render them through the shared signed-photo component; authorize file reads using the request client and existing quote relationship to prevent public or category-wide access.
+- Parent content routes must render Outlet and show their own list only when no child is matched so detail navigation does not retain the list page.
