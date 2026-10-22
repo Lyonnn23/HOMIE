@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useChildMatches } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { FileText, Plus, ChevronRight, Zap, MessageSquareQuote, Loader2, ImageIcon } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
@@ -15,8 +15,13 @@ export const Route = createFileRoute("/_authenticated/solicitudes")({
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary" },
     { title: "Mis solicitudes — Homie" }] }),
-  component: SolicitudesPage,
+  component: SolicitudesLayout,
 });
+
+function SolicitudesLayout() {
+  const children = useChildMatches();
+  return <>{children.length === 0 && <SolicitudesPage />}<Outlet /></>;
+}
 
 const ESTADO_SOLICITUD: Record<string, { label: string; cls: string }> = {
   abierta: { label: "Abierta", cls: "bg-[#00C28820] text-[#00754F]" },
