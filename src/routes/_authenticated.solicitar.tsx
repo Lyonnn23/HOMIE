@@ -76,13 +76,13 @@ function SolicitarPage() {
     if (!valid || !usuario || !user) return;
     setSending(true);
     try {
-      const urls: string[] = [];
+      const paths: string[] = [];
       for (const f of fotos) {
         const ext = (f.name.split(".").pop() || "jpg").toLowerCase();
         const path = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
         const up = await supabase.storage.from("solicitudes").upload(path, await comprimirImagen(f), { upsert: false });
         if (up.error) throw up.error;
-        urls.push(supabase.storage.from("solicitudes").getPublicUrl(path).data.publicUrl);
+        paths.push(path);
       }
       const { data, error } = await supabase
         .from("solicitudes")
@@ -92,7 +92,7 @@ function SolicitarPage() {
           servicio_id: servicioId || null,
           titulo: titulo.trim(),
           detalle: detalle.trim(),
-          fotos: urls,
+          fotos: paths,
           comuna: comuna.trim() || null,
           direccion: direccion.trim() || null,
           fecha_deseada: fechaDeseada || null,

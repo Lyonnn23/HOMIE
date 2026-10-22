@@ -5,6 +5,7 @@ import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { getCategory, formatCLP } from "@/data/services";
+import { SolicitudFoto } from "@/components/SolicitudFoto";
 
 export const Route = createFileRoute("/_authenticated/solicitudes")({
   head: () => ({ meta: [
@@ -100,7 +101,7 @@ function SolicitudesPage() {
               >
                 <div className="flex items-start gap-3">
                   {r.fotos?.[0] ? (
-                    <img src={r.fotos[0]} alt="" className="size-14 rounded-xl object-cover shrink-0 border border-border" />
+                    <SolicitudFoto foto={r.fotos[0]} className="size-14 rounded-lg shrink-0" />
                   ) : (
                     <div className="size-14 rounded-xl shrink-0 flex items-center justify-center" style={{ backgroundColor: `${cat?.bg ?? "#111827"}1A` }}>
                       {cat ? <cat.icon className="size-6" style={{ color: cat.bg }} /> : <ImageIcon className="size-5 text-muted-foreground" />}

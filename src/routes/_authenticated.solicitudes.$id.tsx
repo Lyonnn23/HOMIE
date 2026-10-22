@@ -10,6 +10,7 @@ import { ProviderAvatar } from "@/components/Avatar";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { getCategory, formatCLP } from "@/data/services";
+import { SolicitudFoto } from "@/components/SolicitudFoto";
 
 export const Route = createFileRoute("/_authenticated/solicitudes/$id")({
   head: () => ({ meta: [
@@ -134,9 +135,7 @@ function SolicitudDetalle() {
           {s.fotos?.length > 0 && (
             <div className="mt-3 grid grid-cols-4 gap-2">
               {s.fotos.map((f) => (
-                <button key={f} type="button" onClick={() => setFoto(f)} className="aspect-square rounded-xl overflow-hidden border border-border bg-muted">
-                  <img src={f} alt="" className="size-full object-cover" />
-                </button>
+                <SolicitudFoto key={f} foto={f} onOpen={setFoto} className="aspect-square w-full rounded-lg" />
               ))}
             </div>
           )}

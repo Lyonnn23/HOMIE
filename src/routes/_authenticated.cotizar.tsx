@@ -9,6 +9,7 @@ import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { getCategory, formatCLP, RANGO_MAX_FACTOR } from "@/data/services";
+import { SolicitudFoto } from "@/components/SolicitudFoto";
 
 export const Route = createFileRoute("/_authenticated/cotizar")({
   head: () => ({ meta: [
@@ -242,9 +243,7 @@ function SolicitudCard({ s, prestadorId, mia, onFoto }: { s: Solicitud; prestado
       {s.fotos?.length > 0 && (
         <div className="px-4 pb-3 flex gap-2 overflow-x-auto">
           {s.fotos.map((f) => (
-            <button key={f} type="button" onClick={() => onFoto(f)} className="size-16 shrink-0 rounded-xl overflow-hidden border border-border bg-muted">
-              <img src={f} alt="" className="size-full object-cover" />
-            </button>
+            <SolicitudFoto key={f} foto={f} onOpen={onFoto} className="size-16 shrink-0 rounded-lg" />
           ))}
         </div>
       )}
