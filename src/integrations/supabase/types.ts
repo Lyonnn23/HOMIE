@@ -1461,6 +1461,10 @@ export type Database = {
         }[]
       }
       is_admin: { Args: never; Returns: boolean }
+      puede_leer_foto_solicitud: {
+        Args: { _object_path: string }
+        Returns: boolean
+      }
       registrar_liquidacion: {
         Args: {
           _medio: string

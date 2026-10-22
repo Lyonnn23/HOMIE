@@ -64,6 +64,13 @@
       "when": 1792577495353,
       "tag": "0008_20261021060000_homie_pro_ya_modalidad",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792709853465,
+      "tag": "0009_solicitudes_fotos_privadas_autorizadas",
+      "breakpoints": true
     }
   ]
 }
