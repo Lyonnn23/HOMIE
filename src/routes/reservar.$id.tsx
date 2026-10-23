@@ -10,6 +10,7 @@ import { ProviderAvatar } from "@/components/Avatar";
 import { useQuery } from "@tanstack/react-query";
 import { useProvider, formatCLP, DIAS, esPro, MODALIDAD_LABEL, type Horario, type DiaKey } from "@/data/services";
 import { useAddBooking } from "@/store/bookings";
+import { useEnvioUnico } from "@/lib/doble-envio";
 import { createPaymentPreference } from "@/lib/mercadopago.functions";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -136,6 +137,7 @@ function BookingPage() {
   const [address, setAddress] = useState("");
   const [note, setNote] = useState("");
   const [paying, setPaying] = useState(false);
+  const [enviando, ejecutar] = useEnvioUnico();
 
   useEffect(() => {
     if (!p) return;
@@ -419,8 +421,8 @@ function BookingPage() {
       <div className="fixed bottom-0 inset-x-0 z-30 border-t border-border bg-background/95 backdrop-blur">
         <div className="mx-auto max-w-2xl px-5 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           <button
-            disabled={!direccionOk || !time || paying || addBooking.isPending}
-            onClick={confirm}
+            disabled={!direccionOk || !time || paying || enviando || addBooking.isPending}
+            onClick={() => ejecutar(confirm)}
             className="w-full py-3.5 rounded-2xl bg-foreground text-background font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {paying ? "Redirigiendo a Mercado Pago..." : `Pagar ${formatCLP(total)} con Mercado Pago`}

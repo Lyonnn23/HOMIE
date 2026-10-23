@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { CalendarCheck, MapPin, MessageCircle, Star, Shield, RotateCcw, Award, Scale, CreditCard, Loader2, KeyRound, CheckCircle2, FileText } from "lucide-react";
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useIsFetching, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
@@ -10,6 +10,10 @@ import { ContactoPrestador } from "@/components/ContactoPrestador";
 import { ReportModal } from "@/components/ReportModal";
 import { ReviewModal } from "@/components/ReviewModal";
 import { EmergencyBanner } from "@/components/EmergencyBanner";
+import { EstadoVacio } from "@/components/EstadoVacio";
+import { ListaSkeleton } from "@/components/Skeletons";
+import { PullRefresh } from "@/components/PullRefresh";
+import { useAuth } from "@/hooks/use-auth";
 import { useBookings, useUpdateBookingStatus, type Booking } from "@/store/bookings";
 import { formatCLP } from "@/data/services";
 import { createPaymentPreference, refundReserva } from "@/lib/mercadopago.functions";
@@ -36,6 +40,9 @@ const STATUS_STYLE: Record<string, string> = {
 
 function Reservas() {
   const bookings = useBookings();
+  const { usuario } = useAuth();
+  const fetching = useIsFetching({ queryKey: ["bookings", "cliente"] });
+  const cargando = bookings.length === 0 && fetching > 0;
   const active = bookings.filter((b) => b.status !== "completado" && b.status !== "cancelada");
   const past = bookings.filter((b) => b.status === "completado" || b.status === "cancelada");
   const hasOngoing = active.some((b) => b.status === "en camino" || b.status === "confirmada");
@@ -51,22 +58,21 @@ function Reservas() {
 
   return (
     <AppShell>
+      <PullRefresh queryKey={["bookings", "cliente", usuario?.id]} />
       {hasOngoing && <EmergencyBanner />}
-      <header className="px-5 pt-8 pb-4">
-        <h1 className="text-3xl font-bold tracking-tight">Reservas</h1>
+      <header className="px-5 pt-6 pb-4">
+        <h1 className="title-1">Reservas</h1>
       </header>
 
-      {bookings.length === 0 ? (
-        <div className="px-5 mt-10 text-center">
-          <div className="mx-auto size-16 rounded-full bg-muted flex items-center justify-center">
-            <CalendarCheck className="size-7 text-muted-foreground" />
-          </div>
-          <h2 className="mt-4 font-semibold">Aún no tienes reservas</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Explora servicios y reserva en minutos.</p>
-          <Link to="/" className="inline-block mt-6 px-5 py-3 rounded-2xl bg-foreground text-background font-semibold text-sm">
-            Explorar servicios
-          </Link>
-        </div>
+      {cargando ? (
+        <ListaSkeleton items={4} className="px-5" />
+      ) : bookings.length === 0 ? (
+        <EstadoVacio
+          icon={CalendarCheck}
+          titulo="Aún no tienes reservas"
+          descripcion="Explora servicios y reserva en minutos."
+          accion={{ label: "Explorar servicios", to: "/buscar" }}
+        />
       ) : (
         <div className="px-5 space-y-6">
           {active.length > 0 && (
@@ -165,6 +171,7 @@ function BookingCard({ b, timesHired }: { b: Booking; timesHired: number }) {
     setPaying(true);
     try {
       const { initPoint } = await createPreference({ data: { reservaId: b.id } });
+      import("@/lib/nativo").then((m) => m.vibrar("exito")).catch(() => {});
       window.location.href = initPoint;
     } catch (err) {
       console.error(err);
@@ -293,7 +300,7 @@ function BookingCard({ b, timesHired }: { b: Booking; timesHired: number }) {
           to="/reservar/$id"
           params={{ id: b.providerId }}
           search={{ service: b.service }}
-          className="mt-3 w-full inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-[#F5F5F0] border border-[#EF9F27] text-[#111827] text-xs font-bold hover:bg-[#EF9F27]/10"
+          className="mt-3 w-full h-11 inline-flex items-center justify-center gap-1.5 px-3 rounded-xl bg-[#F5F5F0] border border-[#EF9F27] text-[#111827] text-xs font-bold hover:bg-[#EF9F27]/10"
         >
           <RotateCcw className="size-3.5 text-[#EF9F27]" />
           Volver a reservar con {b.providerName}

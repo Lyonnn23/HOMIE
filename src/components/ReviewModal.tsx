@@ -31,6 +31,7 @@ export function ReviewModal({ b, onClose }: { b: Booking; onClose: () => void })
         comentario: comment,
         foto,
       });
+      import("@/lib/nativo").then((m) => m.vibrar("exito")).catch(() => {});
       onClose();
     } catch (e) {
       setErr(e instanceof Error ? e.message : "No se pudo publicar la reseña");

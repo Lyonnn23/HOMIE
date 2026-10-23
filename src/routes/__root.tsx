@@ -14,6 +14,9 @@ import OnboardingGate from "../components/OnboardingGate";
 import { Toaster } from "@/components/ui/sonner";
 import { AccesibilidadProvider } from "@/hooks/use-accesibilidad";
 import { AuthProvider } from "@/hooks/use-auth";
+import { useEffect } from "react";
+import { esNativo, configurarBarraEstado, manejarBotonAtras } from "@/lib/nativo";
+import { ErrorBoundaryMonitoreo, reportarError } from "@/lib/monitoreo";
 
 function NotFoundComponent() {
   return (
@@ -76,7 +79,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { name: "theme-color", content: "#111827" },
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
@@ -114,6 +117,12 @@ function RootShell({ children }: { children: React.ReactNode }) {
     <html lang="es-CL">
       <head>
         <HeadContent />
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{var t=localStorage.getItem('homie_tema')||'system';var d=t==='dark'||(t==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);var h=document.documentElement;h.setAttribute('data-theme-pref',t);if(t!=='system')h.setAttribute('data-theme',t);h.style.colorScheme=d?'dark':'light';}catch(e){}",
+          }}
+        />
       </head>
       <body>
         {children}
@@ -131,17 +140,36 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
+
+  // Solo dentro de la app nativa (Capacitor): barra de estado y botón atrás de Android.
+  useEffect(() => {
+    if (!esNativo()) return;
+    void configurarBarraEstado();
+    let quitar: (() => void) | undefined;
+    void manejarBotonAtras(router).then((fn) => {
+      quitar = fn;
+    });
+    return () => quitar?.();
+  }, [router]);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <AccesibilidadProvider>
-          <OnboardingGate>
-            <Outlet />
-          </OnboardingGate>
-          <Toaster />
-        </AccesibilidadProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <ErrorBoundaryMonitoreo
+      fallback={({ error, resetError, componentStack }) => (
+        <ErrorComponent error={error as Error} reset={resetError} info={{ componentStack: componentStack ?? "" }} />
+      )}
+      onError={(error, componentStack) => reportarError(error, { componentStack })}
+    >
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <AccesibilidadProvider>
+            <OnboardingGate>
+              <Outlet />
+            </OnboardingGate>
+            <Toaster />
+          </AccesibilidadProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </ErrorBoundaryMonitoreo>
   );
 }

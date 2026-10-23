@@ -22,7 +22,7 @@ export function HomieIcon({ size = 24, bg = "#1A1A2E", stroke = "#EF9F27", round
 export function HomieWordmark({ className = "", inverted = false }: { className?: string; inverted?: boolean }) {
   return (
     <span className={`font-extrabold tracking-tight ${className}`}>
-      <span style={{ color: inverted ? "#FFFFFF" : "#111827" }}>Hom</span>
+      <span className={inverted ? "text-white" : "text-[#111827]"}>Hom</span>
       <span style={{ color: "#EF9F27" }}>ie</span>
     </span>
   );

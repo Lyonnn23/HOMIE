@@ -129,7 +129,7 @@ function ReferidosPage() {
             <Gift className="size-6 text-[#111827]" />
           </span>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Invita y gana</h1>
+            <h1 className="title-1">Invita y gana</h1>
             <p className="text-sm text-white/70 mt-0.5">{formatCLP(BONO)} para ti y {formatCLP(BONO)} para tu amigo</p>
           </div>
         </div>

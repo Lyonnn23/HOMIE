@@ -103,9 +103,9 @@ function DireccionesPage() {
 
   return (
     <AppShell>
-      <header className="px-5 pt-8 pb-4 flex items-start justify-between gap-3">
+      <header className="px-5 pt-6 pb-4 flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Direcciones guardadas</h1>
+          <h1 className="title-1">Direcciones guardadas</h1>
           <p className="mt-1 text-sm text-[#6B7280]">Guarda tus direcciones frecuentes para reservar más rápido.</p>
         </div>
         {!form && (
@@ -165,7 +165,7 @@ function DireccionesPage() {
             <button
               type="submit"
               disabled={save.isPending}
-              className="w-full py-3 rounded-xl bg-[#111827] text-white font-semibold text-sm disabled:opacity-60"
+              className="w-full h-12 rounded-2xl bg-[#111827] text-white font-semibold text-sm disabled:opacity-60"
             >
               {save.isPending ? "Guardando…" : form.id ? "Guardar cambios" : "Guardar dirección"}
             </button>

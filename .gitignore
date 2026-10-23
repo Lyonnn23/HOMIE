@@ -30,3 +30,16 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Capacitor (nativo). La carpeta `www` SÍ se versiona: es el fallback del WebView.
+android/.gradle
+android/app/build
+android/build
+android/app/src/main/assets/public
+android/app/google-services.json
+ios/App/Pods
+ios/App/build
+ios/App/App/public
+ios/App/App/GoogleService-Info.plist
+*.keystore
+*.jks

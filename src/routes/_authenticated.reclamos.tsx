@@ -7,6 +7,7 @@ import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useBookings, useProviderBookings, type Booking } from "@/store/bookings";
+import { mensajeError } from "@/lib/errores";
 
 export const Route = createFileRoute("/_authenticated/reclamos")({
   head: () => ({ meta: [
@@ -100,7 +101,7 @@ function ReclamosPage() {
       setErrores({});
       qc.invalidateQueries({ queryKey: ["reclamos", "mios"] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(mensajeError(e, "No se pudo enviar el reclamo.")),
   });
 
   const validar = () => {
@@ -126,8 +127,8 @@ function ReclamosPage() {
 
   return (
     <AppShell>
-      <header className="px-5 pt-8 pb-4">
-        <h1 className="text-3xl font-bold tracking-tight">Reclamos y sugerencias</h1>
+      <header className="px-5 pt-6 pb-4">
+        <h1 className="title-1">Reclamos y sugerencias</h1>
         <p className="mt-2 text-sm text-[#6B7280] leading-relaxed">
           Si tuviste un problema con un servicio, Homie actúa como mediador entre cliente y profesional. También puedes
           dejarnos sugerencias.
@@ -218,7 +219,7 @@ function ReclamosPage() {
           <button
             type="submit"
             disabled={enviar.isPending}
-            className="w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-[#EF9F27] text-[#111827] font-semibold text-sm disabled:opacity-50"
+            className="w-full h-12 inline-flex items-center justify-center gap-2 px-5 rounded-2xl bg-[#EF9F27] text-[#111827] font-semibold text-sm disabled:opacity-50"
           >
             {enviar.isPending ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
             {tipo === "reclamo" ? "Enviar reclamo" : "Enviar sugerencia"}

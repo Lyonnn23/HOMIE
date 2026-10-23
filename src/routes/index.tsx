@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { AppShell } from "@/components/AppShell";
+import { StatsSkeleton, TextoSkeleton } from "@/components/Skeletons";
 import { TicketPrecio } from "@/components/TicketPrecio";
 import { Faq } from "@/components/Faq";
 import { supabase } from "@/integrations/supabase/client";
@@ -180,7 +181,13 @@ function useLandingData(enabled: boolean) {
       return (data ?? []) as GuiaRow[];
     },
   });
-  return { stats: stats.data, testimonios: testimonios.data ?? [], guia: guia.data ?? [] };
+  return {
+    stats: stats.data,
+    testimonios: testimonios.data ?? [],
+    guia: guia.data ?? [],
+    cargandoStats: enabled && stats.isLoading,
+    cargandoTestimonios: enabled && testimonios.isLoading,
+  };
 }
 
 function Home() {
@@ -190,7 +197,7 @@ function Home() {
   const [openGroup, setOpenGroup] = useState<GroupId | null>(null);
   const [openCat, setOpenCat] = useState<CategoryId | null>(null);
   const visitante = !usuario;
-  const { stats, testimonios, guia } = useLandingData(visitante);
+  const { stats, testimonios, guia, cargandoStats, cargandoTestimonios } = useLandingData(visitante);
 
   const allServices = useMemo(
     () => categories.flatMap((c) => c.services.map((s) => ({ service: s, cat: c }))),
@@ -558,11 +565,27 @@ function Home() {
               </div>
 
               {/* Cifras */}
-              <StatsRow stats={stats} />
+              {cargandoStats ? (
+                <div className="mt-10 md:mt-12 border-t border-[#E5E7EB] pt-8"><StatsSkeleton items={4} /></div>
+              ) : (
+                <StatsRow stats={stats} />
+              )}
             </div>
           </section>
 
           {/* TESTIMONIOS */}
+          {cargandoTestimonios && (
+            <section className="bg-[#F3F4F6]" aria-busy="true">
+              <div className="container-landing py-14 md:py-20">
+                <div className="skeleton h-7 w-64 rounded-lg" />
+                <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3 md:gap-6">
+                  <TextoSkeleton lineas={4} />
+                  <TextoSkeleton lineas={4} className="hidden md:block" />
+                  <TextoSkeleton lineas={4} className="hidden lg:block" />
+                </div>
+              </div>
+            </section>
+          )}
           {testimonios.length > 0 && (
             <section className="bg-[#F3F4F6]" aria-labelledby="testimonios-title">
               <div className="container-landing py-14 md:py-20">

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Accessibility, Square, Volume2, X } from "lucide-react";
 import { useAccesibilidad } from "@/hooks/use-accesibilidad";
+import { SelectorTema } from "./SelectorTema";
 
 export function AccesibilidadBoton() {
   const [open, setOpen] = useState(false);
@@ -50,7 +51,7 @@ export function AccesibilidadBoton() {
           role="dialog"
           aria-modal="true"
           aria-labelledby="accesibilidad-titulo"
-          className="fixed bottom-40 right-4 left-4 sm:left-auto sm:w-[360px] z-50 rounded-2xl bg-white border border-border shadow-xl p-4"
+          className="fixed right-4 left-4 bottom-[calc(10rem+env(safe-area-inset-bottom,0px))] sm:left-auto sm:w-[360px] z-50 rounded-2xl bg-white border border-border shadow-xl p-4"
         >
           <div className="flex items-start justify-between gap-3">
             <h2 id="accesibilidad-titulo" className="font-bold text-base text-[#111827]">
@@ -67,6 +68,11 @@ export function AccesibilidadBoton() {
           </div>
 
           <div className="mt-3 space-y-2">
+            <div className="p-3 rounded-2xl border border-border bg-white">
+              <span className="block font-semibold text-sm text-[#111827]">Apariencia</span>
+              <span className="block text-xs text-muted-foreground">Sistema, claro u oscuro</span>
+              <SelectorTema className="mt-2" />
+            </div>
             <ToggleRow
               label="Modo fácil"
               hint="Letras grandes, más contraste"
@@ -115,7 +121,7 @@ export function AccesibilidadBoton() {
         aria-label="Opciones de accesibilidad"
         aria-expanded={open}
         aria-haspopup="dialog"
-        className="fixed bottom-24 right-4 z-50 size-14 rounded-full bg-[#111827] text-white border-2 border-[#EF9F27] shadow-lg flex items-center justify-center hover:bg-[#1F2937]"
+        className="fixed right-4 z-50 size-14 bottom-[calc(6rem+env(safe-area-inset-bottom,0px))] rounded-full bg-[#111827] text-white border-2 border-[#EF9F27] shadow-lg flex items-center justify-center hover:bg-[#1F2937]"
       >
         <Accessibility className="size-7" aria-hidden="true" />
       </button>

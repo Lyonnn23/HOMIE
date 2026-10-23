@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Camera, Check, ChevronLeft, Clock, Upload, Plus, X, AlertCircle, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { mensajeError } from "@/lib/errores";
 
 export const Route = createFileRoute("/_authenticated/verificar-identidad")({
   head: () => ({ meta: [
@@ -73,7 +74,7 @@ function VerificarIdentidad() {
   }, [usuario, navigate]);
 
   if (!usuario || prestadorQ.isLoading) {
-    return <div className="min-h-screen flex items-center justify-center text-sm text-muted-foreground">Cargando...</div>;
+    return <div className="min-h-screen flex items-center justify-center text-sm text-muted-foreground"><span className="size-5 rounded-full border-2 border-[#EF9F27] border-t-transparent animate-spin" aria-label="Cargando" /></div>;
   }
   if (!prestadorQ.data) {
     return (
@@ -156,7 +157,7 @@ function VerificarIdentidad() {
       if (error) throw error;
       setDone(true);
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Error al enviar");
+      setErr(mensajeError(e, "No se pudo enviar la verificación."));
     } finally {
       setSubmitting(false);
     }

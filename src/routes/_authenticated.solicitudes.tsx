@@ -1,7 +1,9 @@
 import { createFileRoute, Link, Outlet, useChildMatches } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { FileText, Plus, ChevronRight, Zap, MessageSquareQuote, Loader2, ImageIcon } from "lucide-react";
+import { FileText, Plus, ChevronRight, Zap, MessageSquareQuote, ImageIcon } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { EstadoVacio } from "@/components/EstadoVacio";
+import { ListaSkeleton } from "@/components/Skeletons";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { getCategory, formatCLP } from "@/data/services";
@@ -62,9 +64,9 @@ function SolicitudesPage() {
 
   return (
     <AppShell>
-      <header className="px-5 pt-8 pb-4 flex items-end justify-between gap-3">
+      <header className="px-5 pt-6 pb-4 flex items-end justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Mis solicitudes</h1>
+          <h1 className="title-1">Mis solicitudes</h1>
           <p className="text-sm text-muted-foreground mt-1">Cotizaciones que pediste a profesionales</p>
         </div>
         <Link
@@ -76,20 +78,14 @@ function SolicitudesPage() {
       </header>
 
       {q.isLoading ? (
-        <div className="py-16 text-center text-muted-foreground"><Loader2 className="size-5 mx-auto animate-spin" /></div>
+        <ListaSkeleton items={4} conAvatar={false} className="px-5" />
       ) : rows.length === 0 ? (
-        <div className="px-5 mt-10 text-center">
-          <div className="mx-auto size-16 rounded-full bg-muted flex items-center justify-center">
-            <MessageSquareQuote className="size-7 text-muted-foreground" />
-          </div>
-          <h2 className="mt-4 font-semibold">Aún no pides cotizaciones</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Describe lo que necesitas y recibe propuestas de profesionales verificados. Gratis y sin compromiso.
-          </p>
-          <Link to="/solicitar" className="inline-block mt-6 px-5 py-3 rounded-2xl bg-[#EF9F27] text-[#111827] font-bold text-sm">
-            Pedir cotizaciones
-          </Link>
-        </div>
+        <EstadoVacio
+          icon={MessageSquareQuote}
+          titulo="Aún no pides cotizaciones"
+          descripcion="Describe lo que necesitas y recibe propuestas de profesionales verificados. Gratis y sin compromiso."
+          accion={{ label: "Pedir cotizaciones", to: "/solicitar" }}
+        />
       ) : (
         <div className="px-5 space-y-2 pb-6">
           {rows.map((r) => {

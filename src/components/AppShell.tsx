@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { Suspense, lazy, useEffect, useState, type ReactNode } from "react";
 import { Link, useLocation } from "@tanstack/react-router";
 import { BellRing, X } from "lucide-react";
 import { estadoPush, pedirPermisoPush, pushDisponible } from "@/lib/push";
@@ -8,6 +8,12 @@ import { NotificationsBell } from "./NotificationsBell";
 import { SiteFooter } from "./SiteFooter";
 import { HomieIcon, HomieWordmark } from "./Logo";
 import { useAuth } from "@/hooks/use-auth";
+import { TemaProvider, useTema } from "@/hooks/use-tema";
+
+// Carga perezosa: el banner de "sin conexión" vive en su propio chunk.
+const OfflineBanner = lazy(() =>
+  import("./OfflineBanner").then((m) => ({ default: m.OfflineBanner })).catch(() => ({ default: () => null })),
+);
 
 const NAV: { label: string; to: string; search?: Record<string, string> }[] = [
   { label: "Buscar", to: "/buscar" },
@@ -23,9 +29,19 @@ interface Props {
   wide?: boolean;
 }
 
-export function AppShell({ children, wide = false }: Props) {
+export function AppShell(props: Props) {
+  return (
+    <TemaProvider>
+      <AppShellInner {...props} />
+    </TemaProvider>
+  );
+}
+
+function AppShellInner({ children, wide = false }: Props) {
   const { usuario, user } = useAuth();
   const loc = useLocation();
+  // Asegura que el atributo data-theme se aplique en todas las pantallas.
+  useTema();
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
@@ -78,9 +94,16 @@ export function AppShell({ children, wide = false }: Props) {
         </div>
       </header>
 
+      <Suspense fallback={null}>
+        <OfflineBanner />
+      </Suspense>
+
       {user && loc.pathname !== "/notif-config" && <PushBanner />}
 
-      <main className={`flex-1 ${wide ? "w-full pb-24 md:pb-0" : "mx-auto w-full max-w-2xl pb-28 md:pb-16"}`}>
+      <main
+        key={loc.pathname}
+        className={`flex-1 page-enter ${wide ? "w-full pb-nav md:pb-0" : "mx-auto w-full max-w-2xl pb-nav md:pb-16"}`}
+      >
         {children}
       </main>
 

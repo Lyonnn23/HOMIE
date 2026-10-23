@@ -1,6 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { mensajeError } from "@/lib/errores";
+import { useTemaGuardado } from "@/hooks/use-tema";
 
 export const Route = createFileRoute("/reset-password")({
   head: () => ({ meta: [
@@ -14,6 +16,7 @@ export const Route = createFileRoute("/reset-password")({
 });
 
 function ResetPasswordPage() {
+  useTemaGuardado();
   const navigate = useNavigate();
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -42,7 +45,7 @@ function ResetPasswordPage() {
     setSubmitting(true);
     const { error } = await supabase.auth.updateUser({ password });
     setSubmitting(false);
-    if (error) { setErr(error.message); return; }
+    if (error) { setErr(mensajeError(error, "No pudimos cambiar la contraseña.")); return; }
     setDone(true);
     setTimeout(() => navigate({ to: "/" }), 1500);
   }
@@ -50,7 +53,7 @@ function ResetPasswordPage() {
   return (
     <div className="min-h-screen bg-[oklch(0.985_0.003_260)] flex flex-col items-center justify-center px-5">
       <div className="w-full max-w-sm">
-        <h1 className="text-3xl font-bold tracking-tight text-center">Nueva contraseña</h1>
+        <h1 className="title-1 text-center">Nueva contraseña</h1>
         <p className="text-sm text-muted-foreground text-center mt-1">
           Crea una contraseña segura para tu cuenta.
         </p>

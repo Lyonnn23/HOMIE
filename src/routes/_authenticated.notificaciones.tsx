@@ -116,9 +116,9 @@ function NotificacionesPage() {
 
   return (
     <AppShell>
-      <header className="px-5 pt-8 pb-4 flex items-end justify-between gap-3">
+      <header className="px-5 pt-6 pb-4 flex items-end justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Notificaciones</h1>
+          <h1 className="title-1">Notificaciones</h1>
           {unread > 0 && (
             <p className="text-sm text-[#6B7280] mt-1">{unread} sin leer</p>
           )}

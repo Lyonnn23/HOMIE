@@ -4,6 +4,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
+import { aplicarTemaGuardado } from "@/hooks/use-tema";
+import { mensajeError } from "@/lib/errores";
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthGate,
@@ -17,6 +19,9 @@ function AuthGate() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const refAplicado = useRef(false);
+
+  // Tema (claro/oscuro) también en pantallas sin AppShell.
+  useEffect(() => { aplicarTemaGuardado(); }, []);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -35,7 +40,7 @@ function AuthGate() {
       const { data, error } = await supabase.rpc("usar_codigo_referido", { _codigo: code!.trim().toUpperCase() });
       try { localStorage.removeItem(HOMIE_REF_KEY); } catch { /* ignore */ }
       if (error) {
-        toast.error(`Código de invitación: ${error.message}`);
+        toast.error(`Código de invitación: ${mensajeError(error, "no se pudo aplicar.")}`);
         return;
       }
       toast.success(`¡Tienes $3.000 de regalo! Usa el cupón ${data} en tu primera reserva.`);
@@ -46,8 +51,11 @@ function AuthGate() {
 
   if (loading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-sm text-muted-foreground">
-        Cargando...
+      <div className="min-h-screen flex items-center justify-center text-sm text-muted-foreground" role="status" aria-live="polite">
+        <span className="inline-flex items-center gap-2">
+          <span className="size-4 rounded-full border-2 border-[#EF9F27] border-t-transparent animate-spin" aria-hidden="true" />
+          Cargando…
+        </span>
       </div>
     );
   }

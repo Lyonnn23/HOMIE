@@ -1,7 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronRight, Bell, CreditCard, HelpCircle, MapPin, Shield, LogOut, Heart, Scale, Accessibility, ShieldCheck, MessageSquareQuote, Gift, Star, LifeBuoy } from "lucide-react";
+import { ChevronRight, Bell, CreditCard, HelpCircle, MapPin, Shield, LogOut, Heart, Scale, Accessibility, ShieldCheck, MessageSquareQuote, Gift, Star, LifeBuoy, SunMoon } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { SelectorTema } from "@/components/SelectorTema";
 import { useBookings } from "@/store/bookings";
 import { useFavoritos } from "@/hooks/use-favoritos";
 import { useAuth } from "@/hooks/use-auth";
@@ -78,8 +79,8 @@ function Cuenta() {
 
   return (
     <AppShell>
-      <header className="px-5 pt-8 pb-4">
-        <h1 className="text-3xl font-bold tracking-tight">Mi cuenta</h1>
+      <header className="px-5 pt-6 pb-4">
+        <h1 className="title-1">Mi cuenta</h1>
       </header>
 
       <section className="px-5">
@@ -167,8 +168,18 @@ function Cuenta() {
       </section>
 
       <section className="px-5 mt-6">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">Accesibilidad</h2>
-        <div className="rounded-2xl bg-white border border-border overflow-hidden">
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">Apariencia y accesibilidad</h2>
+        <div className="rounded-2xl bg-white border border-border divide-y divide-border overflow-hidden">
+          <div className="px-4 py-3.5">
+            <div className="flex items-center gap-3">
+              <SunMoon className="size-4 text-[#EF9F27]" />
+              <span className="flex-1 min-w-0">
+                <span className="block text-sm">Apariencia</span>
+                <span className="block text-xs text-muted-foreground">Sistema, claro u oscuro</span>
+              </span>
+            </div>
+            <SelectorTema className="mt-3" />
+          </div>
           <button
             type="button"
             role="switch"

@@ -5,6 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { HomieLogo } from "@/components/Logo";
 import { groups, categoriesOfGroup } from "@/data/services";
+import { mensajeError } from "@/lib/errores";
+import { useTemaGuardado } from "@/hooks/use-tema";
 
 export const Route = createFileRoute("/registro")({
   validateSearch: (s: Record<string, unknown>): { tipo?: "prestador"; ref?: string } => ({
@@ -22,6 +24,7 @@ export const Route = createFileRoute("/registro")({
 });
 
 function RegistroPage() {
+  useTemaGuardado();
   const navigate = useNavigate();
   const [nombre, setNombre] = useState("");
   const [email, setEmail] = useState("");
@@ -71,7 +74,7 @@ function RegistroPage() {
     });
     setSubmitting(false);
     if (error) {
-      setErr(error.message);
+      setErr(mensajeError(error, "No pudimos crear tu cuenta."));
       return;
     }
     if (!data.session) {
@@ -88,7 +91,7 @@ function RegistroPage() {
     const res = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: window.location.origin,
     });
-    if (res.error) setErr(res.error.message);
+    if (res.error) setErr(mensajeError(res.error, "No pudimos continuar con Google."));
   }
 
   if (pendienteEmail) {
@@ -99,7 +102,7 @@ function RegistroPage() {
           <div className="mx-auto size-16 rounded-full bg-[#00C28820] flex items-center justify-center">
             <MailCheck className="size-8 text-[#00754F]" />
           </div>
-          <h1 className="mt-5 text-2xl font-bold tracking-tight text-[#111827]">Confirma tu correo</h1>
+          <h1 className="mt-5 title-2 text-[#111827]">Confirma tu correo</h1>
           <p className="mt-2 text-sm text-[#6B7280]">
             Te enviamos un enlace a <b className="text-[#111827]">{email}</b>. Ábrelo para activar tu cuenta.
           </p>
@@ -124,7 +127,7 @@ function RegistroPage() {
         <div className="flex justify-center mb-6">
           <HomieLogo size={44} inverted={false} />
         </div>
-        <h1 className="text-2xl font-bold tracking-tight text-center text-[#111827]">
+        <h1 className="title-2 text-center text-[#111827]">
           Crear cuenta
         </h1>
         <p className="text-sm text-gray-500 text-center mt-1">

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Shield, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { mensajeError } from "@/lib/errores";
 
 const MOTIVOS = [
   "No llegó a la cita",
@@ -41,7 +42,7 @@ export function ReportModal({
     });
     setSubmitting(false);
     if (error) {
-      setErr(error.message);
+      setErr(mensajeError(error, "No se pudo enviar el reporte."));
       return;
     }
     setDone(true);

@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { iniciarPush, loginPush, logoutPush } from "@/lib/push";
+import { iniciarPushNativo, cerrarSesionPushNativo } from "@/lib/nativo";
+import { setUsuarioMonitoreo } from "@/lib/monitoreo";
 
 interface Usuario {
   id: string;
@@ -53,9 +55,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       void iniciarPush();
       if (user?.id) void loginPush(user.id);
+      void iniciarPushNativo(user?.id); // no-op fuera de Capacitor
     } catch {
       /* push nunca bloquea */
     }
+    setUsuarioMonitoreo(user?.id); // Sentry: asocia errores al usuario (solo id)
   }, [loading, user?.id]);
 
   const { data: usuario } = useQuery({
@@ -79,7 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         usuario: usuario ?? null,
         loading,
         signOut: async () => {
-          try { void logoutPush(); } catch { /* ignorar */ }
+          try { void logoutPush(); cerrarSesionPushNativo(); } catch { /* ignorar */ }
           await supabase.auth.signOut();
         },
       }}

@@ -64,7 +64,7 @@ function ServicePage() {
           )}
           <div>
             <div className="text-xs text-white/80 font-medium">{cat?.name}</div>
-            <h1 className="text-2xl font-bold tracking-tight text-white">{service}</h1>
+            <h1 className="title-2 text-white">{service}</h1>
           </div>
         </div>
         <p className="text-sm text-white/80 mt-2">

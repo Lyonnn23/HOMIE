@@ -3,6 +3,8 @@ import { useState } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { HomieLogo } from "@/components/Logo";
+import { mensajeError } from "@/lib/errores";
+import { useTemaGuardado } from "@/hooks/use-tema";
 
 export const Route = createFileRoute("/forgot-password")({
   head: () => ({ meta: [
@@ -16,6 +18,7 @@ export const Route = createFileRoute("/forgot-password")({
 });
 
 function ForgotPasswordPage() {
+  useTemaGuardado();
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -29,7 +32,7 @@ function ForgotPasswordPage() {
       redirectTo: `${window.location.origin}/reset-password`,
     });
     setSubmitting(false);
-    if (error) setErr(error.message);
+    if (error) setErr(mensajeError(error, "No pudimos enviar el correo."));
     else setSent(true);
   }
 
@@ -42,7 +45,7 @@ function ForgotPasswordPage() {
         <div className="flex justify-center mb-8">
           <HomieLogo size={48} inverted={false} />
         </div>
-        <h1 className="text-2xl font-bold tracking-tight text-center text-[#111827]">
+        <h1 className="title-2 text-center text-[#111827]">
           Recuperar contraseña
         </h1>
         <p className="text-sm text-gray-500 text-center mt-1">

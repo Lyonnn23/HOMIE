@@ -13,6 +13,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { geocodificar, type GeoPoint } from "@/lib/geocode";
 import { getCategory, type CategoryId } from "@/data/services";
+import { mensajeError } from "@/lib/errores";
 
 export const Route = createFileRoute("/_authenticated/ya")({
   validateSearch: (s: Record<string, unknown>): { id?: string } => (typeof s.id === "string" && s.id ? { id: s.id } : {}),
@@ -197,7 +198,7 @@ function Pedir() {
       toast.success("Buscando un profesional disponible...");
       navigate({ to: "/ya", search: { id: newId } });
     },
-    onError: (e: Error) => toast.error(e.message || "No pudimos crear la urgencia"),
+    onError: (e: Error) => toast.error(mensajeError(e, "No pudimos crear la urgencia.")),
   });
 
   return (
@@ -206,7 +207,7 @@ function Pedir() {
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FF3B6B] text-xs font-bold">
           <Zap className="size-3.5 fill-white" /> Homie Ya
         </div>
-        <h1 className="mt-3 text-2xl font-bold tracking-tight">¿Qué necesitas ahora?</h1>
+        <h1 className="mt-3 title-2">¿Qué necesitas ahora?</h1>
         <p className="mt-1 text-sm text-white/70">
           Avisamos a los profesionales disponibles de tu zona. El primero que acepta va en camino.
         </p>
@@ -394,7 +395,7 @@ function Tracking({ id }: { id: string }) {
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FF3B6B] text-xs font-bold">
           <Zap className="size-3.5 fill-white" /> Homie Ya
         </div>
-        <h1 className="mt-3 text-2xl font-bold tracking-tight">
+        <h1 className="mt-3 title-2">
           {u.estado === "buscando" && !vencida && "Buscando un profesional..."}
           {u.estado === "asignada" && "¡Un profesional aceptó!"}
           {(u.estado === "expirada" || vencida) && "Nadie disponible ahora mismo"}

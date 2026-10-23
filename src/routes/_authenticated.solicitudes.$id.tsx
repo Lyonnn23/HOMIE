@@ -126,7 +126,7 @@ function SolicitudDetalle() {
           {s.urgente && <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-[#FF3B6B] text-white text-[11px] font-semibold"><Zap className="size-3" /> Urgente</span>}
           <span className="text-[11px] text-white/80 font-medium">{cat?.name}{s.servicios?.nombre ? ` · ${s.servicios.nombre}` : ""}</span>
         </div>
-        <h1 className="mt-2 text-2xl font-bold tracking-tight text-white leading-tight">{s.titulo}</h1>
+        <h1 className="mt-2 title-2 text-white">{s.titulo}</h1>
       </header>
 
       <div className="px-5 mt-5 space-y-5 pb-10">
@@ -322,6 +322,7 @@ function AceptarForm({ c, s }: { c: Cotizacion; s: Solicitud }) {
       qc.invalidateQueries({ queryKey: ["solicitudes"] });
       qc.invalidateQueries({ queryKey: ["cotizaciones"] });
       qc.invalidateQueries({ queryKey: ["bookings"] });
+      import("@/lib/nativo").then((m) => m.vibrar("exito")).catch(() => {});
       toast.success("Reserva creada. Ahora paga para confirmar.");
       navigate({ to: "/reservas" });
     },
@@ -358,7 +359,7 @@ function AceptarForm({ c, s }: { c: Cotizacion; s: Solicitud }) {
       <button
         type="submit"
         disabled={aceptar.isPending}
-        className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-[#111827] text-white text-sm font-bold disabled:opacity-50"
+        className="w-full h-12 inline-flex items-center justify-center gap-2 px-4 rounded-2xl bg-[#111827] text-white text-sm font-bold disabled:opacity-50"
       >
         {aceptar.isPending && <Loader2 className="size-4 animate-spin" />}
         Confirmar y crear reserva

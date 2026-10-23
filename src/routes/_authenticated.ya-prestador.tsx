@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { distanciaKm } from "@/lib/geocode";
 import { getCategory } from "@/data/services";
+import { mensajeError } from "@/lib/errores";
 
 export const Route = createFileRoute("/_authenticated/ya-prestador")({
   head: () => ({ meta: [
@@ -108,6 +109,7 @@ function YaPrestadorPage() {
       return data as string;
     },
     onSuccess: () => {
+      import("@/lib/nativo").then((m) => m.vibrar("exito")).catch(() => {});
       toast.success("¡Urgencia aceptada! El cliente debe pagar para confirmar. Revisa tu panel.");
       qc.invalidateQueries({ queryKey: ["urgencias-abiertas"] });
       qc.invalidateQueries({ queryKey: ["urgencias-asignadas"] });
@@ -115,7 +117,7 @@ function YaPrestadorPage() {
       navigate({ to: "/panel" });
     },
     onError: (e: Error) => {
-      toast.error(e.message || "No se pudo aceptar la urgencia");
+      toast.error(mensajeError(e, "No se pudo aceptar la urgencia."));
       qc.invalidateQueries({ queryKey: ["urgencias-abiertas"] });
     },
   });
@@ -143,7 +145,7 @@ function YaPrestadorPage() {
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FF3B6B] text-xs font-bold">
           <Zap className="size-3.5 fill-white" /> Homie Ya
         </div>
-        <h1 className="mt-3 text-2xl font-bold tracking-tight">Urgencias en tu rubro</h1>
+        <h1 className="mt-3 title-2">Urgencias en tu rubro</h1>
         <p className="mt-1 text-sm text-white/70">
           {cat ? `${cat.name} · ` : ""}El primero en aceptar se la queda. Se actualiza cada 5 segundos.
         </p>

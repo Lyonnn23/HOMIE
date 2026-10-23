@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Flame, Phone, Navigation, Clock, MapPin, RefreshCw, AlertTriangle } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { EstadoVacio } from "@/components/EstadoVacio";
+import { ListaSkeleton } from "@/components/Skeletons";
 import { HomieYaBanner } from "@/components/HomieYaBanner";
 
 export const Route = createFileRoute("/gas")({
@@ -65,7 +67,7 @@ function GasPage() {
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FF6B00]/15 text-[#C2410C] text-xs font-bold">
           <Flame className="size-3.5" /> Servicio de emergencia
         </div>
-        <h1 className="mt-3 text-2xl font-bold tracking-tight">Gas cerca de ti</h1>
+        <h1 className="mt-3 title-1">Gas cerca de ti</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Distribuidoras de gas licuado cerca de tu ubicación. Llama directo o pide cómo llegar. Se actualiza cada hora.
         </p>
@@ -86,14 +88,19 @@ function GasPage() {
       </div>
 
       <div className="px-5 mt-4 space-y-2">
-        {q.isLoading && <p className="text-sm text-muted-foreground py-8 text-center">Buscando distribuidoras...</p>}
+        {q.isLoading && <ListaSkeleton items={4} conAvatar={false} />}
         {q.isError && (
           <div className="p-4 rounded-2xl bg-[#FEF3C7] text-sm text-[#92400E] flex gap-2">
             <AlertTriangle className="size-4 shrink-0 mt-0.5" /> No pudimos cargar el listado. Revisa tu conexión e intenta de nuevo.
           </div>
         )}
         {!q.isLoading && !q.isError && lugares.length === 0 && (
-          <p className="text-sm text-muted-foreground py-8 text-center">No encontramos distribuidoras en este radio. Prueba con 10 km.</p>
+          <EstadoVacio
+            icon={Flame}
+            titulo="Sin distribuidoras en este radio"
+            descripcion="Prueba ampliando la búsqueda a 10 km."
+            accion={radio < 10000 ? { label: "Buscar en 10 km", onClick: () => setRadio(10000) } : undefined}
+          />
         )}
         {abiertos.length > 0 && <h2 className="section-title pt-2">Abiertas o sin horario informado</h2>}
         {abiertos.map((l) => <LugarCard key={l.id} l={l} />)}

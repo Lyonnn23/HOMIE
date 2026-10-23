@@ -9,6 +9,8 @@ import {
 } from "lucide-react";
 import { HorarioEditor, parseHorario, validarHorario, type Horario } from "@/components/HorarioEditor";
 import { AppShell } from "@/components/AppShell";
+import { ListaSkeleton } from "@/components/Skeletons";
+import { PullRefresh } from "@/components/PullRefresh";
 import { ProviderAvatar } from "@/components/Avatar";
 import {
   useProviderBookings, useUpdateBookingStatus, useCompletarConCodigo,
@@ -23,6 +25,7 @@ import { COMUNAS_SUGERIDAS } from "@/data/comunas";
 import { comprimirImagen } from "@/lib/imagen";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
+import { mensajeError } from "@/lib/errores";
 
 export const Route = createFileRoute("/_authenticated/panel")({
   head: () => ({ meta: [
@@ -56,7 +59,7 @@ function PanelPage() {
         <div className="px-5 pt-16 text-center">
           <h1 className="text-xl font-bold">Solo prestadores</h1>
           <p className="mt-2 text-sm text-muted-foreground">Esta sección es para cuentas de tipo prestador.</p>
-          <Link to="/" className="inline-block mt-6 px-5 py-3 rounded-2xl bg-foreground text-background font-semibold text-sm">Ir al inicio</Link>
+          <Link to="/" className="inline-flex h-12 items-center justify-center mt-6 px-5 rounded-2xl bg-foreground text-background font-semibold text-sm">Ir al inicio</Link>
         </div>
       </AppShell>
     );
@@ -68,7 +71,7 @@ function PanelPage() {
         <div className="px-5 pt-16 text-center">
           <h1 className="text-xl font-bold">Completa tu perfil</h1>
           <p className="mt-2 text-sm text-muted-foreground">Necesitas completar tu onboarding de prestador.</p>
-          <Link to="/onboarding-prestador" className="inline-block mt-6 px-5 py-3 rounded-2xl bg-foreground text-background font-semibold text-sm">
+          <Link to="/onboarding-prestador" className="inline-flex h-12 items-center justify-center mt-6 px-5 rounded-2xl bg-foreground text-background font-semibold text-sm">
             Completar perfil
           </Link>
         </div>
@@ -78,8 +81,9 @@ function PanelPage() {
 
   return (
     <AppShell>
-      <header className="bg-[#111827] text-white px-5 pt-8 pb-6 -mt-px">
-        <h1 className="text-3xl font-bold tracking-tight">Mi panel</h1>
+      <PullRefresh queryKey={["bookings"]} />
+      <header className="bg-[#111827] text-white px-5 pt-6 pb-6 -mt-px">
+        <h1 className="title-1 text-white">Mi panel</h1>
         <p className="text-sm text-white/70 mt-1">Hola {usuario?.nombre?.split(" ")[0] ?? ""}, aquí gestionas tu negocio</p>
       </header>
 
@@ -87,7 +91,7 @@ function PanelPage() {
 
       <div className="px-5 mt-5">
         {isLoading ? (
-          <div className="py-16 text-center text-muted-foreground"><Loader2 className="size-5 mx-auto animate-spin" /></div>
+          <ListaSkeleton items={4} conAvatar={false} />
         ) : tab === "resumen" ? (
           <Resumen bookings={bookings} />
         ) : tab === "pendientes" ? (
@@ -379,7 +383,10 @@ function ProviderBookingCard({ b }: { b: Booking }) {
     if (codigo.length !== 4) { toast.error("Ingresa el código de 4 dígitos"); return; }
     try {
       const ok = await completar.mutateAsync({ reservaId: b.id, codigo });
-      if (ok) { toast.success("Trabajo completado"); setCodigo(""); }
+      if (ok) {
+        import("@/lib/nativo").then((m) => m.vibrar("exito")).catch(() => {});
+        toast.success("Trabajo completado"); setCodigo("");
+      }
       else toast.error("Código incorrecto");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "No se pudo completar");
@@ -721,7 +728,7 @@ function EditorPerfil() {
       .update({ bio, direccion, ...(geo ? { lat: geo.lat, lng: geo.lng } : {}) })
       .eq("id", row.id);
     setSaving(false);
-    if (p.error) { setMsg(p.error.message); toast.error(p.error.message); return; }
+    if (p.error) { const m = mensajeError(p.error, "No se pudo guardar."); setMsg(m); toast.error(m); return; }
     setMsg("Perfil actualizado");
     toast.success("Perfil actualizado");
     qc.invalidateQueries({ queryKey: ["prestador-row"] });
@@ -733,7 +740,7 @@ function EditorPerfil() {
     const existing = misServicios.find((s) => s.nombre === nombre);
     if (existing) {
       const { error } = await supabase.from("prestador_servicios").delete().eq("id", existing.id);
-      if (error) { toast.error(error.message); return; }
+      if (error) { toast.error(mensajeError(error, "No se pudo guardar.")); return; }
       await syncRangoPrestador(misServicios.filter((s) => s.id !== existing.id));
     } else {
       const { data: srv } = await supabase
@@ -743,7 +750,7 @@ function EditorPerfil() {
         const { error } = await supabase.from("prestador_servicios").insert({
           prestador_id: row.id, servicio_id: srv.id, precio, precio_hasta: sugerirHasta(precio),
         });
-        if (error) { toast.error(error.message); return; }
+        if (error) { toast.error(mensajeError(error, "No se pudo guardar.")); return; }
       }
     }
     qc.invalidateQueries({ queryKey: ["mis-servicios"] });
@@ -1314,7 +1321,7 @@ function HorarioCard({ prestadorId, horarioRaw }: { prestadorId: string; horario
     setSaving(true);
     const { error } = await supabase.from("prestadores").update({ horario }).eq("id", prestadorId);
     setSaving(false);
-    if (error) { toast.error(error.message); return; }
+    if (error) { toast.error(mensajeError(error, "No se pudo guardar.")); return; }
     toast.success("Horario actualizado");
     qc.invalidateQueries({ queryKey: ["prestador-row"] });
     qc.invalidateQueries({ queryKey: ["provider"] });

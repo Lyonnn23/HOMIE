@@ -1,8 +1,10 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { ArrowLeft, Star, Clock, ShieldCheck, BadgeCheck, ChevronRight, ChevronDown, Crown, Car, Wrench, Receipt, MapPin, Languages, Timer } from "lucide-react";
+import { ArrowLeft, Star, Clock, ShieldCheck, BadgeCheck, ChevronRight, ChevronDown, Crown, Car, Wrench, Receipt, MapPin, Languages, Timer, UserX } from "lucide-react";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { AppShell } from "@/components/AppShell";
+import { EstadoVacio } from "@/components/EstadoVacio";
+import { PerfilSkeleton } from "@/components/Skeletons";
 import { ProviderAvatar } from "@/components/Avatar";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import {
@@ -51,7 +53,7 @@ function ProviderPage() {
   if (isLoading) {
     return (
       <AppShell>
-        <div className="p-8 text-center text-muted-foreground">Cargando perfil...</div>
+        <PerfilSkeleton />
       </AppShell>
     );
   }
@@ -59,10 +61,12 @@ function ProviderPage() {
   if (!p) {
     return (
       <AppShell>
-        <div className="p-8 text-center">
-          <p className="text-muted-foreground">Prestador no encontrado</p>
-          <Link to="/" className="inline-block mt-4 underline">Volver al inicio</Link>
-        </div>
+        <EstadoVacio
+          icon={UserX}
+          titulo="No encontramos este profesional"
+          descripcion="Puede que ya no esté disponible en Homie."
+          accion={{ label: "Buscar otros profesionales", to: "/buscar" }}
+        />
       </AppShell>
     );
   }
@@ -278,8 +282,8 @@ function ProviderPage() {
       </div>
 
       {!isOwner && (
-        <div className="fixed bottom-0 inset-x-0 z-30 border-t border-[#E5E7EB] bg-white/95 backdrop-blur">
-          <div className="mx-auto max-w-2xl px-5 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex items-center gap-3">
+        <div className="fixed inset-x-0 z-30 border-t border-[#E5E7EB] bg-white/95 backdrop-blur bottom-[calc(56px+env(safe-area-inset-bottom,0px))]">
+          <div className="mx-auto max-w-2xl px-5 py-3 flex items-center gap-3">
             <div className="flex-1">
               <div className="text-xs text-[#9CA3AF]">Estimado</div>
               <div className="text-lg font-bold text-[#111827]">
@@ -291,8 +295,7 @@ function ProviderPage() {
               to="/reservar/$id"
               params={{ id: p.id }}
               search={{ service: selectedService }}
-              className="px-6 py-3 rounded-2xl text-white font-semibold text-sm"
-              style={{ backgroundColor: p.disponibleAhora ? "#111827" : "#6B7280" }}
+              className={`h-12 inline-flex items-center px-6 rounded-2xl font-semibold text-sm ${p.disponibleAhora ? "bg-foreground text-background" : "bg-[#6B7280] text-white"}`}
             >
               {p.disponibleAhora ? "Contratar" : "Agendar"}
             </Link>

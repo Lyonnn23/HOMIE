@@ -5,6 +5,9 @@ import { Search, Star, MapPin, SlidersHorizontal, X, Zap, Home as HomeIcon, Map 
 import { z } from "zod";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { AppShell } from "@/components/AppShell";
+import { EstadoVacio } from "@/components/EstadoVacio";
+import { ListaSkeleton } from "@/components/Skeletons";
+import { PullRefresh } from "@/components/PullRefresh";
 import { MapaPrestadores } from "@/components/MapaPrestadores";
 import { HomieYaBanner } from "@/components/HomieYaBanner";
 import { ProviderAvatar } from "@/components/Avatar";
@@ -221,9 +224,10 @@ function Buscar() {
 
   return (
     <AppShell>
+      <PullRefresh queryKey={["search"]} />
       {/* Sticky header con fondo #111827 */}
       <div className="sticky top-0 z-30 bg-[#111827] text-white px-5 pt-6 pb-4 -mt-px">
-        <h1 className="text-2xl font-bold tracking-tight mb-3">Buscar</h1>
+        <h1 className="title-2 text-white mb-3">Buscar</h1>
         <div className="relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-[#EF9F27]" />
           <input
@@ -389,19 +393,15 @@ function Buscar() {
         )}
 
         <div className={vista === "mapa" ? "hidden" : "mt-3"}>
-          {!isLoading && results.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="mx-auto size-16 rounded-full border-2 border-[#EF9F27] flex items-center justify-center">
-                <HomeIcon className="size-7 text-[#EF9F27]" />
-              </div>
-              <p className="mt-4 text-base font-semibold text-[#111827]">No encontramos resultados</p>
-              <p className="text-sm text-muted-foreground mt-1">Prueba con otra palabra clave o ajusta los filtros</p>
-              {activeCount > 0 && (
-                <button onClick={clearAll} className="mt-4 px-4 py-2 rounded-xl bg-[#EF9F27] text-[#111827] text-sm font-semibold">
-                  Limpiar filtros
-                </button>
-              )}
-            </div>
+          {isLoading ? (
+            <ListaSkeleton items={5} />
+          ) : results.length === 0 ? (
+            <EstadoVacio
+              icon={HomeIcon}
+              titulo="No encontramos resultados"
+              descripcion="Prueba con otra palabra clave o ajusta los filtros"
+              accion={activeCount > 0 ? { label: "Limpiar filtros", onClick: clearAll } : undefined}
+            />
           ) : (
             <div className="space-y-2">
               {results.map((r) => {

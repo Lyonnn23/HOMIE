@@ -421,7 +421,7 @@ function OnboardingPrestador() {
     <div className="min-h-screen bg-[#F5F5F0] pb-32">
       <header className="bg-[#111827] text-white px-5 pt-6 pb-5">
         <div className="max-w-lg md:max-w-2xl mx-auto">
-          <h1 className="text-2xl font-bold tracking-tight">Completa tu perfil</h1>
+          <h1 className="title-2">Completa tu perfil</h1>
           <p className="text-sm text-white/70 mt-1">
             Paso {paso + 1} de {PASOS.length} · {PASOS[paso]}
           </p>

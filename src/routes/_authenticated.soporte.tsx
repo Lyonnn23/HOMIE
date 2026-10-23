@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
+import { mensajeError } from "@/lib/errores";
 
 export const Route = createFileRoute("/_authenticated/soporte")({
   head: () => ({ meta: [
@@ -99,7 +100,7 @@ function SoportePage() {
       setText("");
       qc.invalidateQueries({ queryKey: ["soporte-mensajes"] });
     },
-    onError: (e: Error) => toast.error(e.message || "No se pudo enviar"),
+    onError: (e: Error) => toast.error(mensajeError(e, "No se pudo enviar el mensaje.")),
   });
 
   function send() {
@@ -122,7 +123,7 @@ function SoportePage() {
         <button onClick={() => router.history.back()} className="p-2 -ml-2 rounded-full hover:bg-[#F5F5F0]" aria-label="Volver">
           <ArrowLeft className="size-5" />
         </button>
-        <h1 className="mt-3 text-2xl font-bold tracking-tight flex items-center gap-2">
+        <h1 className="mt-3 title-2 flex items-center gap-2">
           <LifeBuoy className="size-6 text-[#EF9F27]" /> Soporte Homie
         </h1>
         <p className="mt-1 text-sm text-[#6B7280]">Respondemos en menos de 24 h (lun–sáb).</p>

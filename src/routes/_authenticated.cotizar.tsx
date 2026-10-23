@@ -6,6 +6,8 @@ import {
   Zap, MapPin, CalendarDays, Wallet, Loader2, ShieldAlert, ChevronDown, Check, Inbox, FileText, X,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { EstadoVacio } from "@/components/EstadoVacio";
+import { ListaSkeleton } from "@/components/Skeletons";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { getCategory, formatCLP, RANGO_MAX_FACTOR } from "@/data/services";
@@ -116,12 +118,12 @@ function CotizarPage() {
   if (usuario && usuario.tipo !== "prestador") {
     return (
       <AppShell>
-        <header className="px-5 pt-8 pb-4"><h1 className="text-3xl font-bold tracking-tight">Cotizar</h1></header>
+        <header className="px-5 pt-6 pb-4"><h1 className="title-1">Cotizar</h1></header>
         <div className="px-5">
           <div className="p-5 rounded-3xl bg-white border border-border">
             <div className="font-semibold">Esta sección es para profesionales</div>
             <p className="mt-1 text-sm text-muted-foreground">¿Necesitas un servicio? Pide cotizaciones y elige la mejor propuesta.</p>
-            <Link to="/solicitar" className="mt-4 inline-flex w-full items-center justify-center px-5 py-3 rounded-2xl bg-[#EF9F27] text-[#111827] font-bold text-sm">
+            <Link to="/solicitar" className="mt-4 inline-flex w-full h-12 items-center justify-center px-5 rounded-2xl bg-[#EF9F27] text-[#111827] font-bold text-sm">
               Pedir cotizaciones
             </Link>
           </div>
@@ -136,8 +138,8 @@ function CotizarPage() {
 
   return (
     <AppShell>
-      <header className="bg-[#111827] text-white px-5 pt-8 pb-5">
-        <h1 className="text-3xl font-bold tracking-tight">Cotizar</h1>
+      <header className="bg-[#111827] text-white px-5 pt-6 pb-5">
+        <h1 className="title-1 text-white">Cotizar</h1>
         <p className="text-sm text-white/70 mt-1">
           Solicitudes abiertas en {cat ? cat.name : "tu rubro"}. Cotiza y consigue clientes nuevos.
         </p>
@@ -169,7 +171,7 @@ function CotizarPage() {
         )}
 
         {loading ? (
-          <div className="py-16 text-center text-muted-foreground"><Loader2 className="size-5 mx-auto animate-spin" /></div>
+          <ListaSkeleton items={3} conAvatar={false} />
         ) : !prestador ? (
           <div className="p-6 rounded-2xl bg-white border border-border text-center text-sm text-muted-foreground">
             Completa tu perfil de profesional para cotizar.
@@ -200,16 +202,8 @@ function CotizarPage() {
   );
 }
 
-function Empty({ icon: Icon, title, sub }: { icon: typeof Inbox; title: string; sub: string }) {
-  return (
-    <div className="mt-6 text-center">
-      <div className="mx-auto size-16 rounded-full bg-muted flex items-center justify-center">
-        <Icon className="size-7 text-muted-foreground" />
-      </div>
-      <h2 className="mt-4 font-semibold">{title}</h2>
-      <p className="mt-1 text-sm text-muted-foreground">{sub}</p>
-    </div>
-  );
+function Empty({ icon, title, sub }: { icon: typeof Inbox; title: string; sub: string }) {
+  return <EstadoVacio icon={icon} titulo={title} descripcion={sub} className="py-8" />;
 }
 
 function SolicitudCard({ s, prestadorId, mia, onFoto }: { s: Solicitud; prestadorId: string; mia?: MiCotizacion; onFoto: (u: string) => void }) {
@@ -371,7 +365,7 @@ function QuoteForm({ s, prestadorId, onDone }: { s: Solicitud; prestadorId: stri
       <button
         type="submit"
         disabled={!valid || enviar.isPending}
-        className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-[#EF9F27] text-[#111827] text-sm font-bold disabled:opacity-50"
+        className="w-full h-12 inline-flex items-center justify-center gap-2 px-4 rounded-2xl bg-[#EF9F27] text-[#111827] text-sm font-bold disabled:opacity-50"
       >
         {enviar.isPending && <Loader2 className="size-4 animate-spin" />}
         Enviar cotización
@@ -414,7 +408,7 @@ function MiCotizacionCard({ c }: { c: MiCotizacion }) {
       </div>
       <p className="mt-1 text-xs text-muted-foreground line-clamp-2 whitespace-pre-wrap">{c.mensaje}</p>
       {c.estado === "aceptada" && (
-        <Link to="/panel" className="mt-3 inline-flex w-full items-center justify-center px-3 py-2.5 rounded-xl bg-[#111827] text-white text-xs font-semibold">
+        <Link to="/panel" className="mt-3 inline-flex w-full h-11 items-center justify-center px-3 rounded-xl bg-[#111827] text-white text-xs font-semibold">
           Ver reserva en mi panel
         </Link>
       )}

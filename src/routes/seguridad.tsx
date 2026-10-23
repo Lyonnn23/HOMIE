@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ShieldCheck, ChevronLeft, IdCard, Camera, FileCheck, UserCheck, AlertTriangle, Phone, MessageCircle } from "lucide-react";
+import { useTemaGuardado } from "@/hooks/use-tema";
 
 export const Route = createFileRoute("/seguridad")({
   head: () => ({
@@ -24,6 +25,7 @@ const PASOS = [
 ];
 
 function Seguridad() {
+  useTemaGuardado();
   return (
     <div className="min-h-screen bg-white">
       <header className="bg-[#111827] text-white px-5 pt-6 pb-8">

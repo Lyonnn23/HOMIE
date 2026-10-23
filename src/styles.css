@@ -306,6 +306,219 @@
 }
 
 /* =========================================================
+   Modo oscuro (central)
+   - Explícito: html[data-theme="dark"]
+   - Sistema:   @media (prefers-color-scheme: dark) y sin data-theme="light"
+   Los tokens --dk-* solo existen en oscuro; las reglas de abajo usan
+   var(--dk-x, <valor claro>) para no tener que duplicar cada regla.
+   ========================================================= */
+html[data-theme="dark"] {
+    --dk-btn-bg: #F3F4F6;
+    --dk-btn-fg: #111827;
+    --dk-btn-bg-hover: #E5E7EB;
+  --dk-on: 1;
+  --dk-bg: #0F131B;
+  --dk-surface: #171B26;
+  --dk-surface-2: #1F2430;
+  --dk-surface-3: #262C3A;
+  --dk-surface-lift: #2A3140;
+  --dk-border: #2A3140;
+  --dk-border-2: #3A4253;
+  --dk-text: #F3F4F6;
+  --dk-text-2: #D1D5DB;
+  --dk-text-3: #B4BAC6;
+  --dk-muted: #9CA3AF;
+  --dk-muted-2: #7C8595;
+  --dk-exito: #34D399;
+  --dk-alerta: #FB7185;
+  --dk-naranja: #FB923C;
+  --dk-ambar-text: #F5B651;
+  --dk-ambar-tint: rgba(239, 159, 39, 0.14);
+  --dk-coral-tint: rgba(255, 59, 107, 0.16);
+  --dk-pacifico: #22D3EE;
+  --dk-pacifico-tint: rgba(14, 116, 144, 0.22);
+  --dk-map-filter: brightness(0.8) contrast(1.05);
+  --dk-shadow-float: 0 18px 40px -20px rgba(0, 0, 0, 0.7);
+
+  --background: var(--dk-bg);
+  --foreground: var(--dk-text);
+  --card: var(--dk-surface);
+  --card-foreground: var(--dk-text);
+  --popover: var(--dk-surface);
+  --popover-foreground: var(--dk-text);
+  --primary: #F3F4F6;
+  --primary-foreground: #111827;
+  --secondary: var(--dk-surface-2);
+  --secondary-foreground: var(--dk-text);
+  --muted: var(--dk-surface-2);
+  --muted-foreground: var(--dk-muted);
+  --accent-foreground: #111827;
+  --border: var(--dk-border);
+  --input: var(--dk-border-2);
+  --niebla: var(--dk-surface-2);
+  --soft: var(--dk-surface-2);
+  --shadow-float: var(--dk-shadow-float);
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) {
+    --dk-btn-bg: #F3F4F6;
+    --dk-btn-fg: #111827;
+    --dk-btn-bg-hover: #E5E7EB;
+    --dk-on: 1;
+    --dk-bg: #0F131B;
+    --dk-surface: #171B26;
+    --dk-surface-2: #1F2430;
+    --dk-surface-3: #262C3A;
+    --dk-surface-lift: #2A3140;
+    --dk-border: #2A3140;
+    --dk-border-2: #3A4253;
+    --dk-text: #F3F4F6;
+    --dk-text-2: #D1D5DB;
+    --dk-text-3: #B4BAC6;
+    --dk-muted: #9CA3AF;
+    --dk-muted-2: #7C8595;
+    --dk-exito: #34D399;
+    --dk-alerta: #FB7185;
+    --dk-naranja: #FB923C;
+    --dk-ambar-text: #F5B651;
+    --dk-ambar-tint: rgba(239, 159, 39, 0.14);
+    --dk-coral-tint: rgba(255, 59, 107, 0.16);
+    --dk-pacifico: #22D3EE;
+    --dk-pacifico-tint: rgba(14, 116, 144, 0.22);
+    --dk-map-filter: brightness(0.8) contrast(1.05);
+    --dk-shadow-float: 0 18px 40px -20px rgba(0, 0, 0, 0.7);
+
+    --background: var(--dk-bg);
+    --foreground: var(--dk-text);
+    --card: var(--dk-surface);
+    --card-foreground: var(--dk-text);
+    --popover: var(--dk-surface);
+    --popover-foreground: var(--dk-text);
+    --primary: #F3F4F6;
+    --primary-foreground: #111827;
+    --secondary: var(--dk-surface-2);
+    --secondary-foreground: var(--dk-text);
+    --muted: var(--dk-surface-2);
+    --muted-foreground: var(--dk-muted);
+    --accent-foreground: #111827;
+    --border: var(--dk-border);
+    --input: var(--dk-border-2);
+    --niebla: var(--dk-surface-2);
+    --soft: var(--dk-surface-2);
+    --shadow-float: var(--dk-shadow-float);
+    color-scheme: dark;
+  }
+}
+
+@layer base {
+  body { background-color: var(--dk-bg, #FFFFFF); }
+  input, select, textarea {
+    color: var(--dk-text, inherit);
+  }
+  ::placeholder { color: var(--dk-muted-2, #9CA3AF); }
+  select option { background-color: var(--dk-surface, #FFFFFF); color: var(--dk-text, #111827); }
+  /* Evita el zoom automático de iOS: ningún campo bajo 16px en móvil. */
+  @media (max-width: 767px) {
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea { font-size: 16px; }
+  }
+  /* Respuesta táctil inmediata (sin retraso de doble toque). */
+  a, button, [role="button"], input, select, textarea, summary, label { touch-action: manipulation; }
+  button, [role="button"] { -webkit-tap-highlight-color: transparent; }
+}
+
+@layer components {
+  .card { background: var(--dk-surface, #FFFFFF); border-color: var(--dk-border, #E5E7EB); }
+  .card-link:hover { border-color: var(--dk-border-2, #9CA3AF); }
+  .btn-secondary { color: var(--dk-text, var(--pizarra)); border-color: var(--dk-border-2, #D1D5DB); }
+  .btn-secondary:hover { border-color: var(--dk-text, var(--pizarra)); }
+  .btn-ghost:hover { background: var(--dk-surface-3, #E5E7EB); }
+  .ticket-sep { border-top-color: var(--dk-border-2, #D1D5DB); }
+  .prose-legal { color: var(--dk-text-2, #1F2937); }
+  .prose-legal h2, .prose-legal h3, .prose-legal strong { color: var(--dk-text, var(--pizarra)); }
+  .prose-legal a { color: var(--dk-pacifico, var(--pacifico)); }
+}
+
+@layer utilities {
+  .section-title { color: var(--dk-text, #111827); }
+  .skeleton { background-color: var(--dk-surface-3, #F5F5F0); }
+
+  /* ---- Fondos ---- */
+  .bg-white { background-color: var(--dk-surface, #FFFFFF); }
+  .bg-\[\#F5F5F0\] { background-color: var(--dk-surface-2, #F5F5F0); }
+  .bg-\[\#F3F4F6\] { background-color: var(--dk-surface-2, #F3F4F6); }
+  .bg-\[\#FAFAFA\] { background-color: var(--dk-surface-2, #FAFAFA); }
+  .bg-\[\#F9FAFB\] { background-color: var(--dk-surface-2, #F9FAFB); }
+  .bg-\[\#E5E7EB\] { background-color: var(--dk-surface-lift, #E5E7EB); }
+  .bg-\[\#D1D5DB\] { background-color: var(--dk-border-2, #D1D5DB); }
+  .bg-\[\#FFF6E5\] { background-color: var(--dk-ambar-tint, #FFF6E5); }
+  .bg-\[\#FEF3E2\] { background-color: var(--dk-ambar-tint, #FEF3E2); }
+  .bg-\[\#FFF7E8\] { background-color: var(--dk-ambar-tint, #FFF7E8); }
+  .bg-\[\#FEF3C7\] { background-color: var(--dk-ambar-tint, #FEF3C7); }
+  .bg-\[\#FEE2E2\] { background-color: var(--dk-coral-tint, #FEE2E2); }
+  .bg-\[\#E0F2FE\] { background-color: var(--dk-pacifico-tint, #E0F2FE); }
+  /* Superficies "blancas" dentro de la marca oscura (hero, header) se elevan un tono. */
+  .bg-\[\#111827\] .bg-white { background-color: var(--dk-surface-lift, #FFFFFF); }
+  .bg-\[\#111827\] .bg-\[\#F5F5F0\], .bg-\[\#111827\] .bg-\[\#F3F4F6\] { background-color: var(--dk-surface-lift, #F5F5F0); }
+  .bg-white\/95 { background-color: color-mix(in oklab, var(--dk-surface, #FFFFFF) 95%, transparent); }
+  .bg-white\/90 { background-color: color-mix(in oklab, var(--dk-surface, #FFFFFF) 90%, transparent); }
+  .hover\:bg-black\/5:hover { background-color: var(--dk-surface-lift, rgba(0, 0, 0, 0.05)); }
+  /* Tarjetas/pastillas de marca oscura: en oscuro se elevan para no fundirse con el fondo
+     (el header y los heros sin radio conservan #111827). */
+  .bg-\[\#111827\]:where(.rounded-xl, .rounded-2xl, .rounded-3xl, .rounded-\[24px\], .rounded-full, .rounded-lg) {
+    background-color: var(--dk-surface-3, #111827);
+  }
+  /* Botones/enlaces de marca oscura se invierten (claros sobre fondo oscuro). */
+  :is(button, a, [role="button"]).bg-\[\#111827\]:where(.text-white) {
+    background-color: var(--dk-btn-bg, #111827);
+    color: var(--dk-btn-fg, #FFFFFF);
+  }
+  :is(button, a, [role="button"]).bg-\[\#111827\]:where(.text-white):hover { background-color: var(--dk-btn-bg-hover, #111827); }
+  :is(button, a, [role="button"]).bg-\[\#111827\]:where(.text-white) .text-white { color: var(--dk-btn-fg, #FFFFFF); }
+  :is(button, a, [role="button"]).bg-\[\#111827\].hover\:bg-\[\#1F2937\]:hover { background-color: var(--dk-btn-bg-hover, #1F2937); }
+
+  /* ---- Textos ---- */
+  .text-\[\#111827\]:where(:not(.bg-\[\#EF9F27\]):not(.bg-\[\#FAC775\]):not(.bg-\[\#F7BB5E\]):not(.bg-\[\#E08F17\]):not(.btn-primary)) { color: var(--dk-text, #111827); }
+  /* Texto dentro de superficies ámbar (claras en ambos modos) sigue oscuro. */
+  :is(.bg-\[\#EF9F27\], .bg-\[\#FAC775\], .bg-\[\#F7BB5E\], .btn-primary, .ticket) .text-\[\#111827\] { color: #111827; }
+  .text-\[\#374151\] { color: var(--dk-text-2, #374151); }
+  .text-\[\#4B5563\] { color: var(--dk-text-3, #4B5563); }
+  .text-\[\#6B7280\] { color: var(--dk-muted, #6B7280); }
+  .text-gray-500 { color: var(--dk-muted, #6a7282); }
+  .text-\[\#9CA3AF\] { color: var(--dk-muted-2, #9CA3AF); }
+  .text-\[\#00754F\] { color: var(--dk-exito, #00754F); }
+  .text-\[\#B3123F\] { color: var(--dk-alerta, #B3123F); }
+  .text-\[\#B91C1C\] { color: var(--dk-alerta, #B91C1C); }
+  .text-\[\#C2410C\] { color: var(--dk-naranja, #C2410C); }
+  .text-\[\#854F0B\] { color: var(--dk-ambar-text, #854F0B); }
+  .text-\[\#B45309\] { color: var(--dk-ambar-text, #B45309); }
+  .text-\[\#92400E\] { color: var(--dk-ambar-text, #92400E); }
+  .text-\[\#0E7490\] { color: var(--dk-pacifico, #0E7490); }
+  .hover\:text-\[\#111827\]:hover { color: var(--dk-text, #111827); }
+
+  /* ---- Bordes ---- */
+  .border-\[\#E5E7EB\] { border-color: var(--dk-border, #E5E7EB); }
+  .border-\[\#F3F4F6\] { border-color: var(--dk-border, #F3F4F6); }
+  .border-\[\#D1D5DB\] { border-color: var(--dk-border-2, #D1D5DB); }
+  .border-\[\#9CA3AF\] { border-color: var(--dk-border-2, #9CA3AF); }
+  .border-\[\#111827\]:where(:not(.bg-\[\#EF9F27\])) { border-color: var(--dk-text-2, #111827); }
+  .divide-\[\#E5E7EB\] > :not([hidden]) ~ :not([hidden]) { border-color: var(--dk-border, #E5E7EB); }
+
+  /* ---- Mapa (Leaflet): solo las teselas se atenúan ---- */
+  .leaflet-container { background: var(--dk-surface-2, #ddd); }
+  .leaflet-tile-pane { filter: var(--dk-map-filter, none); }
+
+  /* ---- Transición de página ---- */
+  .page-enter { animation: homie-page-in 220ms cubic-bezier(.2, .7, .2, 1) both; }
+  @keyframes homie-page-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .page-enter { animation: none; } }
+
+  /* ---- Safe area (barra inferior fija / pies de página fijos) ---- */
+  .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .pb-nav { padding-bottom: calc(7rem + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* =========================================================
    Modo fácil (accesibilidad): letras grandes, más contraste,
    objetivos táctiles amplios y sin animaciones.
    Se activa con data-modo-facil="1" en <html>.
@@ -313,19 +526,19 @@
 html[data-modo-facil="1"] {
   font-size: 20px;
   line-height: 1.6;
-  --foreground: #000000;
-  --card-foreground: #000000;
-  --popover-foreground: #000000;
-  --secondary-foreground: #000000;
+  --foreground: var(--dk-text, #000000);
+  --card-foreground: var(--dk-text, #000000);
+  --popover-foreground: var(--dk-text, #000000);
+  --secondary-foreground: var(--dk-text, #000000);
   --accent-foreground: #000000;
-  --muted-foreground: #1F2937;
-  --border: #374151;
-  --input: #374151;
+  --muted-foreground: var(--dk-text-2, #1F2937);
+  --border: var(--dk-border-2, #374151);
+  --input: var(--dk-border-2, #374151);
 }
 
 html[data-modo-facil="1"] body {
-  color: #000000;
-  background-color: #FFFFFF;
+  color: var(--dk-text, #000000);
+  background-color: var(--dk-bg, #FFFFFF);
   line-height: 1.6;
 }
 
@@ -344,7 +557,7 @@ html[data-modo-facil="1"] .text-base {
 html[data-modo-facil="1"] .text-\[\#6B7280\],
 html[data-modo-facil="1"] .text-\[\#9CA3AF\],
 html[data-modo-facil="1"] .text-muted-foreground {
-  color: #1F2937 !important;
+  color: var(--dk-text-2, #1F2937) !important;
 }
 html[data-modo-facil="1"] .text-white\/70,
 html[data-modo-facil="1"] .text-white\/60 {
@@ -354,7 +567,7 @@ html[data-modo-facil="1"] .text-white\/60 {
 /* Bordes más marcados */
 html[data-modo-facil="1"] .border-\[\#E5E7EB\],
 html[data-modo-facil="1"] .border-border {
-  border-color: #374151 !important;
+  border-color: var(--dk-border-2, #374151) !important;
 }
 
 /* Objetivos táctiles amplios */

@@ -60,7 +60,7 @@ function NotifConfigPage() {
         <button onClick={() => router.history.back()} className="p-2 -ml-2 rounded-full hover:bg-[#F5F5F0]">
           <ArrowLeft className="size-5" />
         </button>
-        <h1 className="mt-3 text-2xl font-bold tracking-tight">Notificaciones</h1>
+        <h1 className="mt-3 title-2">Notificaciones</h1>
         <p className="mt-1 text-sm text-[#6B7280]">
           Elige cómo y cuándo quieres recibir avisos.
         </p>

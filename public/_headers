@@ -1,0 +1,9 @@
+# Cloudflare (Workers static assets / Pages): cabeceras por ruta.
+# iOS exige que apple-app-site-association se sirva como JSON sin extensión.
+/.well-known/apple-app-site-association
+  Content-Type: application/json
+  Cache-Control: public, max-age=3600
+
+/.well-known/assetlinks.json
+  Content-Type: application/json
+  Cache-Control: public, max-age=3600

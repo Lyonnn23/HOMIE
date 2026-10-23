@@ -8,6 +8,7 @@ import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { groups, categoriesOfGroup, formatCLP } from "@/data/services";
+import { useEnvioUnico } from "@/lib/doble-envio";
 
 export const Route = createFileRoute("/_authenticated/solicitar")({
   head: () => ({ meta: [
@@ -41,6 +42,7 @@ function SolicitarPage() {
   const [urgente, setUrgente] = useState(false);
   const [presupuesto, setPresupuesto] = useState("");
   const [sending, setSending] = useState(false);
+  const [enviando, ejecutar] = useEnvioUnico();
 
   const previews = useMemo(() => fotos.map((f) => URL.createObjectURL(f)), [fotos]);
 
@@ -71,8 +73,12 @@ function SolicitarPage() {
     if (fileRef.current) fileRef.current.value = "";
   }
 
-  async function submit(e: React.FormEvent) {
+  function submit(e: React.FormEvent) {
     e.preventDefault();
+    void ejecutar(enviarSolicitud);
+  }
+
+  async function enviarSolicitud() {
     if (!valid || !usuario || !user) return;
     setSending(true);
     try {
@@ -298,7 +304,7 @@ function SolicitarPage() {
 
         <button
           type="submit"
-          disabled={!valid || sending}
+          disabled={!valid || sending || enviando}
           className="w-full inline-flex items-center justify-center gap-2 px-5 py-4 rounded-2xl bg-[#EF9F27] text-[#111827] font-bold text-sm disabled:opacity-50"
         >
           {sending ? <Loader2 className="size-4 animate-spin" /> : null}

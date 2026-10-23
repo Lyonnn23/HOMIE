@@ -175,7 +175,7 @@ export default function OnboardingGate({ children }: { children: React.ReactNode
     <div className="fixed inset-0 z-[9999] flex flex-col bg-white">
       {/* Skip */}
       <div className="flex justify-end px-6 pt-5">
-        <button onClick={skip} className="text-sm" style={{ color: "#6B7280" }}>
+        <button onClick={skip} className="text-sm text-[#6B7280] px-2 py-1 rounded-md">
           Saltar
         </button>
       </div>
@@ -197,15 +197,15 @@ export default function OnboardingGate({ children }: { children: React.ReactNode
           {SLIDES.map((s, i) => (
             <div key={i} className="h-full flex flex-col items-center justify-center px-8" style={{ width: `${100 / SLIDES.length}%` }}>
               <div
-                className="flex items-center justify-center mb-10"
-                style={{ width: 160, height: 160, background: "#F5F5F0", borderRadius: 24 }}
+                className="flex items-center justify-center mb-10 bg-[#F5F5F0]"
+                style={{ width: 160, height: 160, borderRadius: 24 }}
               >
                 <s.Icon size={72} color="#EF9F27" strokeWidth={1.8} />
               </div>
-              <h2 className="text-[22px] font-bold text-center whitespace-pre-line" style={{ color: "#111827" }}>
+              <h2 className="text-[22px] font-bold text-center whitespace-pre-line text-[#111827]">
                 {s.title.join("\n")}
               </h2>
-              <p className="mt-3 text-[15px] text-center px-2" style={{ color: "#6B7280" }}>
+              <p className="mt-3 text-[15px] text-center px-2 text-[#6B7280]">
                 {s.subtitle}
               </p>
             </div>
@@ -220,12 +220,11 @@ export default function OnboardingGate({ children }: { children: React.ReactNode
             key={i}
             onClick={() => setSlide(i)}
             aria-label={`Ir al slide ${i + 1}`}
-            className="transition-all"
+            className={`transition-all ${i === slide ? "bg-[#EF9F27]" : "bg-[#E5E7EB]"}`}
             style={{
               width: i === slide ? 20 : 8,
               height: 8,
               borderRadius: 4,
-              background: i === slide ? "#EF9F27" : "#E5E7EB",
             }}
           />
         ))}
@@ -235,13 +234,8 @@ export default function OnboardingGate({ children }: { children: React.ReactNode
       <div className="px-6 pb-8">
         <button
           onClick={next}
-          className="w-full font-bold transition-colors"
-          style={{
-            background: isLast ? "#EF9F27" : "#111827",
-            color: isLast ? "#111827" : "#FFFFFF",
-            height: 56,
-            borderRadius: 14,
-          }}
+          className={`w-full font-bold transition-colors ${isLast ? "bg-[#EF9F27] text-[#111827]" : "bg-foreground text-background"}`}
+          style={{ height: 56, borderRadius: 14 }}
         >
           {isLast ? "Empezar →" : "Siguiente"}
         </button>

@@ -35,8 +35,8 @@ const FAQS = [
 function AyudaPage() {
   return (
     <AppShell>
-      <header className="px-5 pt-8 pb-4">
-        <h1 className="text-3xl font-bold tracking-tight">Ayuda y soporte</h1>
+      <header className="px-5 pt-6 pb-4">
+        <h1 className="title-1">Ayuda y soporte</h1>
         <p className="mt-1 text-sm text-[#6B7280]">Respuestas rápidas a las dudas más comunes.</p>
       </header>
 

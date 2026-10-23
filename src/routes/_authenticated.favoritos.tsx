@@ -42,8 +42,8 @@ function FavoritosPage() {
 
   return (
     <AppShell>
-      <header className="px-5 pt-8 pb-4">
-        <h1 className="text-3xl font-bold tracking-tight">Mis favoritos</h1>
+      <header className="px-5 pt-6 pb-4">
+        <h1 className="title-1">Mis favoritos</h1>
         <p className="mt-1 text-sm text-[#6B7280]">
           Prestadores que has guardado para reservar rápido.
         </p>
@@ -118,7 +118,7 @@ function FavoritosPage() {
                     <Link
                       to="/reservar/$id"
                       params={{ id: p.id }}
-                      className="w-full text-center px-3 py-2 rounded-xl bg-[#EF9F27] text-[#111827] text-xs font-bold"
+                      className="w-full h-11 inline-flex items-center justify-center px-3 rounded-xl bg-[#EF9F27] text-[#111827] text-xs font-bold"
                     >
                       Reservar
                     </Link>

@@ -5,6 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/hooks/use-auth";
 import { HomieLogo } from "@/components/Logo";
+import { mensajeError } from "@/lib/errores";
+import { useTemaGuardado } from "@/hooks/use-tema";
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [
@@ -18,6 +20,7 @@ export const Route = createFileRoute("/login")({
 });
 
 function LoginPage() {
+  useTemaGuardado();
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const [email, setEmail] = useState("");
@@ -38,7 +41,7 @@ function LoginPage() {
     manejandoLogin.current = true;
     const { data: auth, error } = await supabase.auth.signInWithPassword({ email, password });
     setSubmitting(false);
-    if (error) { manejandoLogin.current = false; setErr(error.message); }
+    if (error) { manejandoLogin.current = false; setErr(mensajeError(error, "No pudimos iniciar sesión.")); }
     else {
       // Prestador sin perfil completo → directo al asistente de perfil profesional
       const { data: u } = await supabase.from("usuarios").select("id, tipo").eq("user_id", auth.user.id).maybeSingle();
@@ -55,7 +58,7 @@ function LoginPage() {
     const res = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: window.location.origin,
     });
-    if (res.error) setErr(res.error.message);
+    if (res.error) setErr(mensajeError(res.error, "No pudimos iniciar sesión con Google."));
   }
 
   const fieldClass =
@@ -68,7 +71,7 @@ function LoginPage() {
           <HomieLogo size={48} inverted={false} withTagline />
         </div>
 
-        <h1 className="text-2xl font-bold tracking-tight text-center text-[#111827]">
+        <h1 className="title-2 text-center text-[#111827]">
           Bienvenido de vuelta
         </h1>
         <p className="text-sm text-gray-500 text-center mt-1">

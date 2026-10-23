@@ -130,7 +130,7 @@ function EstadisticasPage() {
       <header className="bg-[#111827] text-white px-5 pt-8 pb-6 -mt-px">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Estadísticas</h1>
+            <h1 className="title-1">Estadísticas</h1>
             <p className="text-sm text-white/70 mt-1">Así va tu negocio en Homie</p>
           </div>
           {pro ? (

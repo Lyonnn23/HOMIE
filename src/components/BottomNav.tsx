@@ -31,7 +31,7 @@ export function BottomNav() {
             <Link
               key={to}
               to={to}
-              className={`relative flex flex-col items-center gap-1 pt-2.5 pb-2 transition-colors ${
+              className={`relative flex flex-col items-center gap-1 pt-2.5 pb-2 min-h-[52px] transition-colors select-none ${
                 accent ? "text-[#FF3B6B]" : active ? "text-[#EF9F27]" : "text-[#9CA3AF] hover:text-[#111827]"
               }`}
             >
@@ -54,7 +54,7 @@ export function BottomNav() {
           );
         })}
       </div>
-      <div className="h-[env(safe-area-inset-bottom)]" />
+      <div className="h-[env(safe-area-inset-bottom,0px)]" />
     </nav>
   );
 }
