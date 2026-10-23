@@ -49,7 +49,7 @@ beforeAll(() => {
       FROM pg_class WHERE oid IN ('public.config_privada'::regclass,'public.calificaciones_cliente'::regclass,'public.cupones'::regclass,'public.cupon_usos'::regclass,'public.soporte_mensajes'::regclass)),
     'supportColumns', (SELECT json_agg(json_build_object('column_name',attname,'privilege_type','UPDATE'))
       FROM pg_attribute WHERE attrelid='public.soporte_mensajes'::regclass AND attnum>0 AND NOT attisdropped
-      AND has_column_privilege('authenticated',attrelid,attnum,'UPDATE')),
+      AND has_column_privilege('authenticated',attrelid,attname,'UPDATE')),
     'policies', (SELECT json_agg(json_build_object('policyname',policyname,'qual',qual,'with_check',with_check)) FROM pg_policies
       WHERE (schemaname='public' AND tablename IN ('calificaciones_cliente','soporte_mensajes')) OR (schemaname='storage' AND policyname IN ('chat owner insert','chat participantes leen'))),
     'defaults', (SELECT json_agg(json_build_object('column_name',column_name,'column_default',column_default)) FROM information_schema.columns WHERE table_schema='public'
