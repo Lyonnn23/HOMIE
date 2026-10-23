@@ -85,6 +85,13 @@
       "when": 1792718038369,
       "tag": "0011_20261022020000_homie_crecimiento",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1792718204925,
+      "tag": "0012_homie_crecimiento_permisos_efectivos",
+      "breakpoints": true
     }
   ]
 }
