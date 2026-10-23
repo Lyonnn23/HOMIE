@@ -39,10 +39,13 @@ export const createPaymentPreference = createServerFn({ method: "POST" })
     if (!total || total <= 0) throw new Error("No se pudo validar el precio del servicio");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rc } = await supabaseAdmin
-      .from("reservas").select("comision, estado").eq("id", reserva.id).maybeSingle();
+      .from("reservas").select("comision, estado, descuento").eq("id", reserva.id).maybeSingle();
     if (rc?.estado === "cancelada") throw new Error("La reserva está cancelada");
-    const comision = Number(rc?.comision ?? Math.round(total - total / 1.15));
-    const montoPrestador = total - comision;
+    // El descuento de un cupón lo absorbe Homie (sale de la comisión), nunca el profesional.
+    const descuento = Number(rc?.descuento ?? 0);
+    const comisionBruta = Number(rc?.comision ?? Math.round(total - total / 1.15));
+    const montoPrestador = total - comisionBruta + descuento;
+    const comision = Math.max(0, total - montoPrestador);
     const serviceName =
       (reserva.servicios as { nombre?: string } | null)?.nombre ?? "Servicio Homie";
 

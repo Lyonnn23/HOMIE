@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { useQuery } from "@tanstack/react-query";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { iniciarPush, loginPush, logoutPush } from "@/lib/push";
 
 interface Usuario {
   id: string;
@@ -46,6 +47,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const user = session?.user ?? null;
 
+  // Push: inicializa OneSignal una vez que la sesión es conocida y asocia el dispositivo al usuario.
+  useEffect(() => {
+    if (loading) return;
+    try {
+      void iniciarPush();
+      if (user?.id) void loginPush(user.id);
+    } catch {
+      /* push nunca bloquea */
+    }
+  }, [loading, user?.id]);
+
   const { data: usuario } = useQuery({
     queryKey: ["usuario", user?.id],
     enabled: !!user,
@@ -67,6 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         usuario: usuario ?? null,
         loading,
         signOut: async () => {
+          try { void logoutPush(); } catch { /* ignorar */ }
           await supabase.auth.signOut();
         },
       }}

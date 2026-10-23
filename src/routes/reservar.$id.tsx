@@ -1,6 +1,7 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Ticket, X, Loader2 } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -79,6 +80,28 @@ function useHorasOcupadas(prestadorId: string | undefined, fecha: string) {
   });
 }
 
+interface CuponAplicado { codigo: string; descuento: number; mensaje: string }
+
+/** Cupones personales del usuario (referidos, regalos) para elegir con un toque. */
+function useMisCupones() {
+  const { usuario } = useAuth();
+  return useQuery({
+    queryKey: ["cupones", "mios", usuario?.id],
+    enabled: !!usuario?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("cupones")
+        .select("codigo, descripcion, tipo, valor, minimo, vence_at")
+        .eq("usuario_id", usuario!.id)
+        .eq("activo", true)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      const now = Date.now();
+      return (data ?? []).filter((c) => !c.vence_at || new Date(c.vence_at).getTime() > now);
+    },
+  });
+}
+
 function BookingPage() {
   const { id } = Route.useParams();
   const { service: incoming } = Route.useSearch();
@@ -86,6 +109,10 @@ function BookingPage() {
   const { data: p, isLoading } = useProvider(id);
   const addBooking = useAddBooking();
   const createPreference = useServerFn(createPaymentPreference);
+  const misCupones = useMisCupones();
+  const [cuponInput, setCuponInput] = useState("");
+  const [cupon, setCupon] = useState<CuponAplicado | null>(null);
+  const [validando, setValidando] = useState(false);
 
   const days = useMemo(() => nextDays(10), []);
   const [date, setDate] = useState(days[0].value);
@@ -125,7 +152,35 @@ function BookingPage() {
   const tasa = pro ? 0.12 : 0.15;
   const base = selected?.price ?? 0;
   const fee = Math.round(base * tasa);
-  const total = base + fee;
+  // El descuento se aplica sobre la tarifa del profesional; el total nunca baja de la comisión (igual que el trigger de la BD).
+  const descuento = cupon ? Math.min(cupon.descuento, base) : 0;
+  const total = Math.max(base + fee - descuento, fee);
+
+  async function aplicarCupon(codigoRaw: string) {
+    const codigo = codigoRaw.trim().toUpperCase();
+    if (!codigo) return;
+    setValidando(true);
+    try {
+      const { data, error } = await supabase.rpc("validar_cupon", { _codigo: codigo, _precio: base });
+      if (error) throw error;
+      const r = data?.[0];
+      if (!r || !r.valido) {
+        setCupon(null);
+        toast.error(r?.mensaje || "Cupón no válido");
+        return;
+      }
+      setCupon({ codigo, descuento: r.descuento, mensaje: r.mensaje });
+      setCuponInput(codigo);
+      toast.success(`${r.mensaje}: -${formatCLP(r.descuento)}`);
+    } catch (err) {
+      setCupon(null);
+      toast.error(err instanceof Error ? err.message : "No se pudo validar el cupón");
+    } finally {
+      setValidando(false);
+    }
+  }
+
+  function quitarCupon() { setCupon(null); setCuponInput(""); }
 
   const modalidadesServicio = (selected?.modalidades ?? ["domicilio"]) as Modalidad[];
   const elegirModalidad = modalidadesServicio.includes("online") && modalidadesServicio.length > 1;
@@ -147,8 +202,10 @@ function BookingPage() {
         providerId: p.id,
         serviceId: selected.id,
         service: selected.name,
-        date, time, address: esOnline ? "Online" : address.trim(), note, price: total,
+        // Se envía el total sin descuento: el trigger de la BD valida el cupón y descuenta.
+        date, time, address: esOnline ? "Online" : address.trim(), note, price: base + fee,
         modalidad: modalidadEfectiva,
+        cuponCodigo: cupon?.codigo ?? null,
       });
       reservaId = reserva.id;
     } catch (err) {
@@ -287,9 +344,62 @@ function BookingPage() {
       </section>
 
       <section className="px-5 mt-6">
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">¿Tienes un cupón?</h2>
+        {(misCupones.data?.length ?? 0) > 0 && (
+          <div className="mt-2 flex flex-wrap gap-2">
+            {misCupones.data!.map((c) => {
+              const on = cupon?.codigo === c.codigo;
+              return (
+                <button key={c.codigo} type="button" disabled={validando}
+                  onClick={() => (on ? quitarCupon() : aplicarCupon(c.codigo))}
+                  title={c.descripcion ?? undefined}
+                  className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-semibold border transition disabled:opacity-50 ${
+                    on ? "bg-[#111827] text-white border-[#111827]" : "bg-white border-[#EF9F27] text-[#111827]"
+                  }`}>
+                  <Ticket className={`size-3.5 ${on ? "text-[#EF9F27]" : "text-[#EF9F27]"}`} />
+                  {c.codigo} · {c.tipo === "monto" ? formatCLP(c.valor) : `${c.valor}%`}
+                </button>
+              );
+            })}
+          </div>
+        )}
+        <div className="mt-2 flex gap-2">
+          <input
+            value={cuponInput}
+            onChange={(e) => { setCuponInput(e.target.value.toUpperCase()); if (cupon) setCupon(null); }}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); aplicarCupon(cuponInput); } }}
+            placeholder="Código (ej. HOMIE20)"
+            autoCapitalize="characters" autoCorrect="off" spellCheck={false}
+            aria-label="Código de cupón"
+            className="flex-1 h-12 px-4 rounded-2xl bg-white border border-border outline-none focus:border-foreground/30 font-mono tracking-wide uppercase"
+          />
+          {cupon ? (
+            <button type="button" onClick={quitarCupon}
+              className="inline-flex items-center gap-1 px-4 rounded-2xl border border-border text-sm font-semibold hover:bg-muted">
+              <X className="size-4" /> Quitar
+            </button>
+          ) : (
+            <button type="button" onClick={() => aplicarCupon(cuponInput)} disabled={validando || !cuponInput.trim() || !base}
+              className="inline-flex items-center gap-1 px-4 rounded-2xl bg-[#111827] text-white text-sm font-semibold disabled:opacity-50">
+              {validando ? <Loader2 className="size-4 animate-spin" /> : null} Aplicar
+            </button>
+          )}
+        </div>
+        {cupon && (
+          <p className="mt-1.5 text-xs text-[#00754F] font-medium">✓ {cupon.mensaje} · ahorras {formatCLP(descuento)}</p>
+        )}
+      </section>
+
+      <section className="px-5 mt-6">
         <div className="p-4 rounded-2xl bg-[#F5F5F0] border border-border space-y-2 text-sm">
           <Row label={selected?.name ?? ""} value={formatCLP(base)} />
           <Row label={`Comisión de servicio (${Math.round(tasa * 100)}%)${pro ? " · Pro" : ""}`} value={formatCLP(fee)} />
+          {cupon && descuento > 0 && (
+            <div className="flex items-center justify-between gap-3 text-[#00754F]">
+              <span className="inline-flex items-center gap-1"><Ticket className="size-3.5" /> Cupón {cupon.codigo}</span>
+              <span className="font-semibold">−{formatCLP(descuento)}</span>
+            </div>
+          )}
           {selected && selected.priceTo > selected.price && (
             <div className="mt-1 p-3 rounded-xl bg-white border border-border text-xs text-[#374151]">
               <div className="font-semibold text-[#111827]">Estimado del trabajo: {formatCLP(selected.price)} – {formatCLP(selected.priceTo)}</div>

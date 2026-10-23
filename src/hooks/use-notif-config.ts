@@ -11,12 +11,14 @@ export type NotifKey =
   | "completada"
   | "recordatorio"
   | "favorito_disponible"
-  | "marketing";
+  | "marketing"
+  | "push";
 
 export type NotifConfig = Record<NotifKey, boolean>;
 
 export const DEFAULT_NOTIF_CONFIG: NotifConfig = {
   master: true,
+  push: true,
   reserva_recibida: true,
   reserva_confirmada: true,
   reserva_rechazada: true,
@@ -36,6 +38,7 @@ export const NOTIF_LABELS: Record<Exclude<NotifKey, "master">, { title: string; 
   recordatorio: { title: "Recordatorios", sub: "1 hora antes de tu reserva" },
   favorito_disponible: { title: "Favoritos disponibles", sub: "Cuando un favorito tiene cupos" },
   marketing: { title: "Promociones", sub: "Ofertas y novedades de Homie" },
+  push: { title: "Avisos push", sub: "Recibir avisos en el teléfono o navegador" },
 };
 
 export function useUpdateNotifConfig() {

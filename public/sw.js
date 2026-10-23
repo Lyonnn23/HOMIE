@@ -1,3 +1,6 @@
+/* OneSignal (push): el worker de OneSignal debe vivir en el mismo SW que el de la app */
+importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js");
+
 /* Homie service worker: app shell offline + network-first para todo lo demás */
 const CACHE = "homie-v1";
 const SHELL = ["/", "/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png", "/favicon.svg"];

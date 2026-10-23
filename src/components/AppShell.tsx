@@ -1,5 +1,7 @@
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link, useLocation } from "@tanstack/react-router";
+import { BellRing, X } from "lucide-react";
+import { estadoPush, pedirPermisoPush, pushDisponible } from "@/lib/push";
 import { BottomNav } from "./BottomNav";
 import { AccesibilidadBoton } from "./AccesibilidadBoton";
 import { NotificationsBell } from "./NotificationsBell";
@@ -76,6 +78,8 @@ export function AppShell({ children, wide = false }: Props) {
         </div>
       </header>
 
+      {user && loc.pathname !== "/notif-config" && <PushBanner />}
+
       <main className={`flex-1 ${wide ? "w-full pb-24 md:pb-0" : "mx-auto w-full max-w-2xl pb-28 md:pb-16"}`}>
         {children}
       </main>
@@ -85,6 +89,42 @@ export function AppShell({ children, wide = false }: Props) {
       {/* En la web de escritorio (visitantes) la navegación va en el header; el BottomNav es para la app. */}
       <div className={wide ? "lg:hidden" : ""}><BottomNav /></div>
       <AccesibilidadBoton />
+    </div>
+  );
+}
+
+const PUSH_BANNER_KEY = "homie_push_banner_ocultado";
+
+/** Línea discreta para pedir permiso de push; se oculta al activar o al cerrar (localStorage). */
+function PushBanner() {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(PUSH_BANNER_KEY)) return;
+    } catch { /* sin storage */ }
+    if (pushDisponible() && estadoPush() === "default") setVisible(true);
+  }, []);
+
+  function cerrar() {
+    setVisible(false);
+    try { localStorage.setItem(PUSH_BANNER_KEY, "1"); } catch { /* ignorar */ }
+  }
+
+  async function activar() {
+    const res = await pedirPermisoPush();
+    if (res !== "default") cerrar();
+  }
+
+  if (!visible) return null;
+  return (
+    <div className="bg-[#FFF6E5] border-b border-[#EF9F27]/40 text-[#111827]">
+      <div className="mx-auto max-w-5xl px-4 py-1.5 flex items-center gap-2 text-xs">
+        <BellRing className="size-3.5 text-[#B45309] shrink-0" />
+        <span className="flex-1 min-w-0 truncate">Activa las notificaciones para no perder reservas</span>
+        <button onClick={activar} className="shrink-0 px-2.5 py-1 rounded-lg bg-[#111827] text-white font-semibold">Activar</button>
+        <button onClick={cerrar} aria-label="Cerrar" className="shrink-0 p-1 rounded-md hover:bg-black/5"><X className="size-3.5" /></button>
+      </div>
     </div>
   );
 }

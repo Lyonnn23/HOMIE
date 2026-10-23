@@ -1,8 +1,10 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { ArrowLeft } from "lucide-react";
-import { useMemo } from "react";
+import { ArrowLeft, BellRing, Loader2 } from "lucide-react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/hooks/use-auth";
+import { PUSH_APP_ID, estadoPush, iniciarPush, pedirPermisoPush, type EstadoPush } from "@/lib/push";
 import {
   DEFAULT_NOTIF_CONFIG,
   NOTIF_LABELS,
@@ -41,6 +43,7 @@ function NotifConfigPage() {
   }
 
   const keys: Exclude<NotifKey, "master">[] = [
+    "push",
     "reserva_recibida",
     "reserva_confirmada",
     "reserva_rechazada",
@@ -75,6 +78,8 @@ function NotifConfigPage() {
         </div>
       </section>
 
+      <PushCard />
+
       <section className="px-5 mt-4">
         <div className={`rounded-2xl bg-white border border-[#E5E7EB] divide-y divide-[#E5E7EB] overflow-hidden ${!config.master ? "opacity-50 pointer-events-none" : ""}`}>
           {keys.map((k) => (
@@ -92,6 +97,63 @@ function NotifConfigPage() {
         )}
       </section>
     </AppShell>
+  );
+}
+
+function PushCard() {
+  const [estado, setEstado] = useState<EstadoPush>("unsupported");
+  const [pidiendo, setPidiendo] = useState(false);
+
+  useEffect(() => {
+    setEstado(estadoPush());
+    void iniciarPush();
+  }, []);
+
+  async function activar() {
+    setPidiendo(true);
+    const res = await pedirPermisoPush();
+    setPidiendo(false);
+    setEstado(res);
+    if (res === "granted") toast.success("Notificaciones activadas en este dispositivo");
+    else if (res === "denied") toast.error("El navegador bloqueó las notificaciones");
+  }
+
+  let cuerpo: ReactNode;
+  if (!PUSH_APP_ID) {
+    cuerpo = <p className="text-sm text-[#6B7280]">Push aún no configurado por Homie. Mientras tanto recibirás los avisos dentro de la app.</p>;
+  } else if (estado === "unsupported") {
+    cuerpo = <p className="text-sm text-[#6B7280]">Este navegador no admite notificaciones push. En iPhone, agrega Homie a la pantalla de inicio (Compartir → Agregar a inicio) y vuelve aquí.</p>;
+  } else if (estado === "granted") {
+    cuerpo = (
+      <p className="text-sm text-[#00754F] font-medium flex items-center gap-1.5">
+        <BellRing className="size-4" /> Activadas en este dispositivo.
+      </p>
+    );
+  } else if (estado === "denied") {
+    cuerpo = (
+      <div className="text-sm text-[#6B7280] space-y-1">
+        <p className="font-medium text-[#B45309]">Bloqueadas por el navegador.</p>
+        <p>Para activarlas: toca el candado o el ícono junto a la dirección del sitio → Permisos → Notificaciones → Permitir. En el teléfono, revisa Ajustes → Notificaciones → tu navegador.</p>
+      </div>
+    );
+  } else {
+    cuerpo = (
+      <div className="space-y-3">
+        <p className="text-sm text-[#6B7280]">Recibe avisos al instante cuando confirmen tu reserva, el profesional esté en camino o te escriban por el chat.</p>
+        <button onClick={activar} disabled={pidiendo} className="btn-primary btn-sm inline-flex items-center gap-2">
+          {pidiendo ? <Loader2 className="size-4 animate-spin" /> : <BellRing className="size-4" />} Activar notificaciones
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <section className="px-5 mt-4">
+      <div className="rounded-2xl bg-white border border-[#E5E7EB] p-4">
+        <div className="text-sm font-semibold text-[#111827] mb-2">Notificaciones push en este dispositivo</div>
+        {cuerpo}
+      </div>
+    </section>
   );
 }
 

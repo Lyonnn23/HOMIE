@@ -7,7 +7,10 @@ import { HomieLogo } from "@/components/Logo";
 import { groups, categoriesOfGroup } from "@/data/services";
 
 export const Route = createFileRoute("/registro")({
-  validateSearch: (s: Record<string, unknown>): { tipo?: "prestador" } => (s.tipo === "prestador" ? { tipo: "prestador" } : {}),
+  validateSearch: (s: Record<string, unknown>): { tipo?: "prestador"; ref?: string } => ({
+    ...(s.tipo === "prestador" ? { tipo: "prestador" as const } : {}),
+    ...(typeof s.ref === "string" && s.ref.trim() ? { ref: s.ref.trim().toUpperCase().slice(0, 12) } : {}),
+  }),
   head: () => ({ meta: [
     { name: "description", content: "Crea tu cuenta de cliente o profesional en Homie." },
     { property: "og:title", content: "Crear cuenta — Homie" },
@@ -27,6 +30,7 @@ function RegistroPage() {
   const [showPw, setShowPw] = useState(false);
   const search = Route.useSearch();
   const [tipo, setTipo] = useState<"cliente" | "prestador">(search.tipo ?? "cliente");
+  const [refCode, setRefCode] = useState(search.ref ?? "");
   const [categoriaId, setCategoriaId] = useState<string>("");
   const [pendienteEmail, setPendienteEmail] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -48,6 +52,11 @@ function RegistroPage() {
       return;
     }
     setSubmitting(true);
+    // El código de invitación se canjea tras el primer login (ver _authenticated.tsx), cuando ya existe la fila de usuarios.
+    try {
+      if (refCode.trim()) localStorage.setItem("homie_ref", refCode.trim().toUpperCase());
+      else localStorage.removeItem("homie_ref");
+    } catch { /* ignore */ }
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -75,6 +84,7 @@ function RegistroPage() {
   }
 
   async function onGoogle() {
+    try { if (refCode.trim()) localStorage.setItem("homie_ref", refCode.trim().toUpperCase()); } catch { /* ignore */ }
     const res = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: window.location.origin,
     });
@@ -198,6 +208,19 @@ function RegistroPage() {
             onChange={(e) => setConfirmPw(e.target.value)}
             className={fieldClass}
           />
+
+          <div>
+            <input
+              placeholder="Código de invitación (opcional)"
+              value={refCode}
+              onChange={(e) => setRefCode(e.target.value.toUpperCase().replace(/\s/g, "").slice(0, 12))}
+              autoCapitalize="characters" autoCorrect="off" spellCheck={false}
+              className={`${fieldClass} font-mono tracking-widest uppercase`}
+            />
+            {refCode && (
+              <p className="mt-1 px-1 text-xs text-[#00754F]">Recibirás $3.000 de regalo para tu primera reserva.</p>
+            )}
+          </div>
 
           {/* Campos extra para prestador */}
           {tipo === "prestador" && (

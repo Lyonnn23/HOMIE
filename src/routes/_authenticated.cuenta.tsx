@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronRight, Bell, CreditCard, HelpCircle, MapPin, Shield, LogOut, Heart, Scale, Accessibility, ShieldCheck, MessageSquareQuote } from "lucide-react";
+import { ChevronRight, Bell, CreditCard, HelpCircle, MapPin, Shield, LogOut, Heart, Scale, Accessibility, ShieldCheck, MessageSquareQuote, Gift, Star, LifeBuoy } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { useBookings } from "@/store/bookings";
 import { useFavoritos } from "@/hooks/use-favoritos";
@@ -38,6 +38,21 @@ function Cuenta() {
       return (data ?? []).length > 0;
     },
   });
+  // Reputación como cliente (la dejan los profesionales al completar un servicio).
+  const reputacionQ = useQuery({
+    queryKey: ["reputacion-cliente", usuario?.id],
+    enabled: !!usuario?.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("usuarios")
+        .select("calificacion_cliente, calificaciones_cliente_count")
+        .eq("id", usuario!.id)
+        .maybeSingle();
+      return data;
+    },
+  });
+  const repScore = Number(reputacionQ.data?.calificacion_cliente ?? 0);
+  const repCount = reputacionQ.data?.calificaciones_cliente_count ?? 0;
   const completed = bookings.filter((b) => b.status === "completado").length;
   const initials = (usuario?.nombre ?? "U")
     .split(" ")
@@ -50,12 +65,14 @@ function Cuenta() {
     usuario?.tipo === "prestador"
       ? { icon: MessageSquareQuote, label: "Cotizar solicitudes", to: "/cotizar" }
       : { icon: MessageSquareQuote, label: "Mis solicitudes de cotización", to: "/solicitudes" },
+    { icon: Gift, label: "Invita y gana $3.000", to: "/referidos" },
     { icon: MapPin, label: "Direcciones guardadas", to: "/direcciones" },
     { icon: CreditCard, label: "Métodos de pago", badge: "Próximamente" },
     { icon: Heart, label: "Mis favoritos", to: "/favoritos", badge: favs.length ? String(favs.length) : undefined },
     { icon: Bell, label: "Notificaciones", to: "/notif-config" },
     { icon: Shield, label: "Privacidad y seguridad", to: "/seguridad" },
     { icon: HelpCircle, label: "Ayuda y soporte", to: "/ayuda" },
+    { icon: LifeBuoy, label: "Soporte", to: "/soporte" },
     { icon: Scale, label: "Reclamos y sugerencias", to: "/reclamos" },
   ];
 
@@ -80,6 +97,12 @@ function Cuenta() {
             <div className="mt-1 inline-block text-[10px] uppercase tracking-wide px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
               {usuario?.tipo === "prestador" ? "Prestador" : "Cliente"}
             </div>
+            {repScore > 0 && (
+              <div className="mt-1.5 inline-flex items-center gap-1 text-xs text-[#374151]" title="Calificación que te dan los profesionales">
+                <Star className="size-3.5 fill-[#EF9F27] text-[#EF9F27]" />
+                Tu reputación como cliente: <b className="text-[#111827]">{repScore.toFixed(1)}★</b> ({repCount})
+              </div>
+            )}
           </div>
         </div>
       </section>

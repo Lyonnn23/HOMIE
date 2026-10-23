@@ -34,9 +34,11 @@ import { Route as AuthenticatedOnboardingPrestadorRouteImport } from './routes/_
 import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated.panel'
 import { Route as AuthenticatedProRouteImport } from './routes/_authenticated.pro'
 import { Route as AuthenticatedReclamosRouteImport } from './routes/_authenticated.reclamos'
+import { Route as AuthenticatedReferidosRouteImport } from './routes/_authenticated.referidos'
 import { Route as AuthenticatedReservasRouteImport } from './routes/_authenticated.reservas'
 import { Route as AuthenticatedSolicitarRouteImport } from './routes/_authenticated.solicitar'
 import { Route as AuthenticatedSolicitudesRouteImport } from './routes/_authenticated.solicitudes'
+import { Route as AuthenticatedSoporteRouteImport } from './routes/_authenticated.soporte'
 import { Route as AuthenticatedVerificarIdentidadRouteImport } from './routes/_authenticated.verificar-identidad'
 import { Route as AuthenticatedYaRouteImport } from './routes/_authenticated.ya'
 import { Route as AuthenticatedYaPrestadorRouteImport } from './routes/_authenticated.ya-prestador'
@@ -44,11 +46,14 @@ import { Route as PrestadorIdRouteImport } from './routes/prestador.$id'
 import { Route as ReservarIdRouteImport } from './routes/reservar.$id'
 import { Route as ServicioServiceRouteImport } from './routes/servicio.$service'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated.admin.index'
+import { Route as AuthenticatedAdminCuponesRouteImport } from './routes/_authenticated.admin.cupones'
 import { Route as AuthenticatedAdminLiquidacionesRouteImport } from './routes/_authenticated.admin.liquidaciones'
+import { Route as AuthenticatedAdminMetricasRouteImport } from './routes/_authenticated.admin.metricas'
 import { Route as AuthenticatedAdminPrestadoresRouteImport } from './routes/_authenticated.admin.prestadores'
 import { Route as AuthenticatedAdminReclamosRouteImport } from './routes/_authenticated.admin.reclamos'
 import { Route as AuthenticatedAdminReportesRouteImport } from './routes/_authenticated.admin.reportes'
 import { Route as AuthenticatedAdminReservasRouteImport } from './routes/_authenticated.admin.reservas'
+import { Route as AuthenticatedAdminSoporteRouteImport } from './routes/_authenticated.admin.soporte'
 import { Route as AuthenticatedAdminVerificacionesRouteImport } from './routes/_authenticated.admin.verificaciones'
 import { Route as AuthenticatedChatReservaIdRouteImport } from './routes/_authenticated.chat.$reservaId'
 import { Route as AuthenticatedComprobanteReservaIdRouteImport } from './routes/_authenticated.comprobante.$reservaId'
@@ -184,6 +189,11 @@ const AuthenticatedReclamosRoute = AuthenticatedReclamosRouteImport.update({
   path: '/reclamos',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedReferidosRoute = AuthenticatedReferidosRouteImport.update({
+  id: '/referidos',
+  path: '/referidos',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedReservasRoute = AuthenticatedReservasRouteImport.update({
   id: '/reservas',
   path: '/reservas',
@@ -200,6 +210,11 @@ const AuthenticatedSolicitudesRoute =
     path: '/solicitudes',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedSoporteRoute = AuthenticatedSoporteRouteImport.update({
+  id: '/soporte',
+  path: '/soporte',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedVerificarIdentidadRoute =
   AuthenticatedVerificarIdentidadRouteImport.update({
     id: '/verificar-identidad',
@@ -237,10 +252,22 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/admin/',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedAdminCuponesRoute =
+  AuthenticatedAdminCuponesRouteImport.update({
+    id: '/admin/cupones',
+    path: '/admin/cupones',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedAdminLiquidacionesRoute =
   AuthenticatedAdminLiquidacionesRouteImport.update({
     id: '/admin/liquidaciones',
     path: '/admin/liquidaciones',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedAdminMetricasRoute =
+  AuthenticatedAdminMetricasRouteImport.update({
+    id: '/admin/metricas',
+    path: '/admin/metricas',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedAdminPrestadoresRoute =
@@ -265,6 +292,12 @@ const AuthenticatedAdminReservasRoute =
   AuthenticatedAdminReservasRouteImport.update({
     id: '/admin/reservas',
     path: '/admin/reservas',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedAdminSoporteRoute =
+  AuthenticatedAdminSoporteRouteImport.update({
+    id: '/admin/soporte',
+    path: '/admin/soporte',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedAdminVerificacionesRoute =
@@ -323,20 +356,25 @@ export interface FileRoutesByFullPath {
   '/panel': typeof AuthenticatedPanelRoute
   '/pro': typeof AuthenticatedProRoute
   '/reclamos': typeof AuthenticatedReclamosRoute
+  '/referidos': typeof AuthenticatedReferidosRoute
   '/reservas': typeof AuthenticatedReservasRoute
   '/solicitar': typeof AuthenticatedSolicitarRoute
   '/solicitudes': typeof AuthenticatedSolicitudesRouteWithChildren
+  '/soporte': typeof AuthenticatedSoporteRoute
   '/verificar-identidad': typeof AuthenticatedVerificarIdentidadRoute
   '/ya': typeof AuthenticatedYaRoute
   '/ya-prestador': typeof AuthenticatedYaPrestadorRoute
   '/prestador/$id': typeof PrestadorIdRoute
   '/reservar/$id': typeof ReservarIdRoute
   '/servicio/$service': typeof ServicioServiceRoute
+  '/admin/cupones': typeof AuthenticatedAdminCuponesRoute
   '/admin/liquidaciones': typeof AuthenticatedAdminLiquidacionesRoute
+  '/admin/metricas': typeof AuthenticatedAdminMetricasRoute
   '/admin/prestadores': typeof AuthenticatedAdminPrestadoresRoute
   '/admin/reclamos': typeof AuthenticatedAdminReclamosRoute
   '/admin/reportes': typeof AuthenticatedAdminReportesRoute
   '/admin/reservas': typeof AuthenticatedAdminReservasRoute
+  '/admin/soporte': typeof AuthenticatedAdminSoporteRoute
   '/admin/verificaciones': typeof AuthenticatedAdminVerificacionesRoute
   '/chat/$reservaId': typeof AuthenticatedChatReservaIdRoute
   '/comprobante/$reservaId': typeof AuthenticatedComprobanteReservaIdRoute
@@ -369,20 +407,25 @@ export interface FileRoutesByTo {
   '/panel': typeof AuthenticatedPanelRoute
   '/pro': typeof AuthenticatedProRoute
   '/reclamos': typeof AuthenticatedReclamosRoute
+  '/referidos': typeof AuthenticatedReferidosRoute
   '/reservas': typeof AuthenticatedReservasRoute
   '/solicitar': typeof AuthenticatedSolicitarRoute
   '/solicitudes': typeof AuthenticatedSolicitudesRouteWithChildren
+  '/soporte': typeof AuthenticatedSoporteRoute
   '/verificar-identidad': typeof AuthenticatedVerificarIdentidadRoute
   '/ya': typeof AuthenticatedYaRoute
   '/ya-prestador': typeof AuthenticatedYaPrestadorRoute
   '/prestador/$id': typeof PrestadorIdRoute
   '/reservar/$id': typeof ReservarIdRoute
   '/servicio/$service': typeof ServicioServiceRoute
+  '/admin/cupones': typeof AuthenticatedAdminCuponesRoute
   '/admin/liquidaciones': typeof AuthenticatedAdminLiquidacionesRoute
+  '/admin/metricas': typeof AuthenticatedAdminMetricasRoute
   '/admin/prestadores': typeof AuthenticatedAdminPrestadoresRoute
   '/admin/reclamos': typeof AuthenticatedAdminReclamosRoute
   '/admin/reportes': typeof AuthenticatedAdminReportesRoute
   '/admin/reservas': typeof AuthenticatedAdminReservasRoute
+  '/admin/soporte': typeof AuthenticatedAdminSoporteRoute
   '/admin/verificaciones': typeof AuthenticatedAdminVerificacionesRoute
   '/chat/$reservaId': typeof AuthenticatedChatReservaIdRoute
   '/comprobante/$reservaId': typeof AuthenticatedComprobanteReservaIdRoute
@@ -417,20 +460,25 @@ export interface FileRoutesById {
   '/_authenticated/panel': typeof AuthenticatedPanelRoute
   '/_authenticated/pro': typeof AuthenticatedProRoute
   '/_authenticated/reclamos': typeof AuthenticatedReclamosRoute
+  '/_authenticated/referidos': typeof AuthenticatedReferidosRoute
   '/_authenticated/reservas': typeof AuthenticatedReservasRoute
   '/_authenticated/solicitar': typeof AuthenticatedSolicitarRoute
   '/_authenticated/solicitudes': typeof AuthenticatedSolicitudesRouteWithChildren
+  '/_authenticated/soporte': typeof AuthenticatedSoporteRoute
   '/_authenticated/verificar-identidad': typeof AuthenticatedVerificarIdentidadRoute
   '/_authenticated/ya': typeof AuthenticatedYaRoute
   '/_authenticated/ya-prestador': typeof AuthenticatedYaPrestadorRoute
   '/prestador/$id': typeof PrestadorIdRoute
   '/reservar/$id': typeof ReservarIdRoute
   '/servicio/$service': typeof ServicioServiceRoute
+  '/_authenticated/admin/cupones': typeof AuthenticatedAdminCuponesRoute
   '/_authenticated/admin/liquidaciones': typeof AuthenticatedAdminLiquidacionesRoute
+  '/_authenticated/admin/metricas': typeof AuthenticatedAdminMetricasRoute
   '/_authenticated/admin/prestadores': typeof AuthenticatedAdminPrestadoresRoute
   '/_authenticated/admin/reclamos': typeof AuthenticatedAdminReclamosRoute
   '/_authenticated/admin/reportes': typeof AuthenticatedAdminReportesRoute
   '/_authenticated/admin/reservas': typeof AuthenticatedAdminReservasRoute
+  '/_authenticated/admin/soporte': typeof AuthenticatedAdminSoporteRoute
   '/_authenticated/admin/verificaciones': typeof AuthenticatedAdminVerificacionesRoute
   '/_authenticated/chat/$reservaId': typeof AuthenticatedChatReservaIdRoute
   '/_authenticated/comprobante/$reservaId': typeof AuthenticatedComprobanteReservaIdRoute
@@ -465,20 +513,25 @@ export interface FileRouteTypes {
     | '/panel'
     | '/pro'
     | '/reclamos'
+    | '/referidos'
     | '/reservas'
     | '/solicitar'
     | '/solicitudes'
+    | '/soporte'
     | '/verificar-identidad'
     | '/ya'
     | '/ya-prestador'
     | '/prestador/$id'
     | '/reservar/$id'
     | '/servicio/$service'
+    | '/admin/cupones'
     | '/admin/liquidaciones'
+    | '/admin/metricas'
     | '/admin/prestadores'
     | '/admin/reclamos'
     | '/admin/reportes'
     | '/admin/reservas'
+    | '/admin/soporte'
     | '/admin/verificaciones'
     | '/chat/$reservaId'
     | '/comprobante/$reservaId'
@@ -511,20 +564,25 @@ export interface FileRouteTypes {
     | '/panel'
     | '/pro'
     | '/reclamos'
+    | '/referidos'
     | '/reservas'
     | '/solicitar'
     | '/solicitudes'
+    | '/soporte'
     | '/verificar-identidad'
     | '/ya'
     | '/ya-prestador'
     | '/prestador/$id'
     | '/reservar/$id'
     | '/servicio/$service'
+    | '/admin/cupones'
     | '/admin/liquidaciones'
+    | '/admin/metricas'
     | '/admin/prestadores'
     | '/admin/reclamos'
     | '/admin/reportes'
     | '/admin/reservas'
+    | '/admin/soporte'
     | '/admin/verificaciones'
     | '/chat/$reservaId'
     | '/comprobante/$reservaId'
@@ -558,20 +616,25 @@ export interface FileRouteTypes {
     | '/_authenticated/panel'
     | '/_authenticated/pro'
     | '/_authenticated/reclamos'
+    | '/_authenticated/referidos'
     | '/_authenticated/reservas'
     | '/_authenticated/solicitar'
     | '/_authenticated/solicitudes'
+    | '/_authenticated/soporte'
     | '/_authenticated/verificar-identidad'
     | '/_authenticated/ya'
     | '/_authenticated/ya-prestador'
     | '/prestador/$id'
     | '/reservar/$id'
     | '/servicio/$service'
+    | '/_authenticated/admin/cupones'
     | '/_authenticated/admin/liquidaciones'
+    | '/_authenticated/admin/metricas'
     | '/_authenticated/admin/prestadores'
     | '/_authenticated/admin/reclamos'
     | '/_authenticated/admin/reportes'
     | '/_authenticated/admin/reservas'
+    | '/_authenticated/admin/soporte'
     | '/_authenticated/admin/verificaciones'
     | '/_authenticated/chat/$reservaId'
     | '/_authenticated/comprobante/$reservaId'
@@ -777,6 +840,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedReclamosRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/referidos': {
+      id: '/_authenticated/referidos'
+      path: '/referidos'
+      fullPath: '/referidos'
+      preLoaderRoute: typeof AuthenticatedReferidosRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/reservas': {
       id: '/_authenticated/reservas'
       path: '/reservas'
@@ -796,6 +866,13 @@ declare module '@tanstack/react-router' {
       path: '/solicitudes'
       fullPath: '/solicitudes'
       preLoaderRoute: typeof AuthenticatedSolicitudesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/soporte': {
+      id: '/_authenticated/soporte'
+      path: '/soporte'
+      fullPath: '/soporte'
+      preLoaderRoute: typeof AuthenticatedSoporteRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/verificar-identidad': {
@@ -847,11 +924,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin/cupones': {
+      id: '/_authenticated/admin/cupones'
+      path: '/admin/cupones'
+      fullPath: '/admin/cupones'
+      preLoaderRoute: typeof AuthenticatedAdminCuponesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/admin/liquidaciones': {
       id: '/_authenticated/admin/liquidaciones'
       path: '/admin/liquidaciones'
       fullPath: '/admin/liquidaciones'
       preLoaderRoute: typeof AuthenticatedAdminLiquidacionesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/admin/metricas': {
+      id: '/_authenticated/admin/metricas'
+      path: '/admin/metricas'
+      fullPath: '/admin/metricas'
+      preLoaderRoute: typeof AuthenticatedAdminMetricasRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/admin/prestadores': {
@@ -880,6 +971,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/reservas'
       fullPath: '/admin/reservas'
       preLoaderRoute: typeof AuthenticatedAdminReservasRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/admin/soporte': {
+      id: '/_authenticated/admin/soporte'
+      path: '/admin/soporte'
+      fullPath: '/admin/soporte'
+      preLoaderRoute: typeof AuthenticatedAdminSoporteRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/admin/verificaciones': {
@@ -947,17 +1045,22 @@ interface AuthenticatedRouteChildren {
   AuthenticatedPanelRoute: typeof AuthenticatedPanelRoute
   AuthenticatedProRoute: typeof AuthenticatedProRoute
   AuthenticatedReclamosRoute: typeof AuthenticatedReclamosRoute
+  AuthenticatedReferidosRoute: typeof AuthenticatedReferidosRoute
   AuthenticatedReservasRoute: typeof AuthenticatedReservasRoute
   AuthenticatedSolicitarRoute: typeof AuthenticatedSolicitarRoute
   AuthenticatedSolicitudesRoute: typeof AuthenticatedSolicitudesRouteWithChildren
+  AuthenticatedSoporteRoute: typeof AuthenticatedSoporteRoute
   AuthenticatedVerificarIdentidadRoute: typeof AuthenticatedVerificarIdentidadRoute
   AuthenticatedYaRoute: typeof AuthenticatedYaRoute
   AuthenticatedYaPrestadorRoute: typeof AuthenticatedYaPrestadorRoute
+  AuthenticatedAdminCuponesRoute: typeof AuthenticatedAdminCuponesRoute
   AuthenticatedAdminLiquidacionesRoute: typeof AuthenticatedAdminLiquidacionesRoute
+  AuthenticatedAdminMetricasRoute: typeof AuthenticatedAdminMetricasRoute
   AuthenticatedAdminPrestadoresRoute: typeof AuthenticatedAdminPrestadoresRoute
   AuthenticatedAdminReclamosRoute: typeof AuthenticatedAdminReclamosRoute
   AuthenticatedAdminReportesRoute: typeof AuthenticatedAdminReportesRoute
   AuthenticatedAdminReservasRoute: typeof AuthenticatedAdminReservasRoute
+  AuthenticatedAdminSoporteRoute: typeof AuthenticatedAdminSoporteRoute
   AuthenticatedAdminVerificacionesRoute: typeof AuthenticatedAdminVerificacionesRoute
   AuthenticatedChatReservaIdRoute: typeof AuthenticatedChatReservaIdRoute
   AuthenticatedComprobanteReservaIdRoute: typeof AuthenticatedComprobanteReservaIdRoute
@@ -977,17 +1080,22 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedPanelRoute: AuthenticatedPanelRoute,
   AuthenticatedProRoute: AuthenticatedProRoute,
   AuthenticatedReclamosRoute: AuthenticatedReclamosRoute,
+  AuthenticatedReferidosRoute: AuthenticatedReferidosRoute,
   AuthenticatedReservasRoute: AuthenticatedReservasRoute,
   AuthenticatedSolicitarRoute: AuthenticatedSolicitarRoute,
   AuthenticatedSolicitudesRoute: AuthenticatedSolicitudesRouteWithChildren,
+  AuthenticatedSoporteRoute: AuthenticatedSoporteRoute,
   AuthenticatedVerificarIdentidadRoute: AuthenticatedVerificarIdentidadRoute,
   AuthenticatedYaRoute: AuthenticatedYaRoute,
   AuthenticatedYaPrestadorRoute: AuthenticatedYaPrestadorRoute,
+  AuthenticatedAdminCuponesRoute: AuthenticatedAdminCuponesRoute,
   AuthenticatedAdminLiquidacionesRoute: AuthenticatedAdminLiquidacionesRoute,
+  AuthenticatedAdminMetricasRoute: AuthenticatedAdminMetricasRoute,
   AuthenticatedAdminPrestadoresRoute: AuthenticatedAdminPrestadoresRoute,
   AuthenticatedAdminReclamosRoute: AuthenticatedAdminReclamosRoute,
   AuthenticatedAdminReportesRoute: AuthenticatedAdminReportesRoute,
   AuthenticatedAdminReservasRoute: AuthenticatedAdminReservasRoute,
+  AuthenticatedAdminSoporteRoute: AuthenticatedAdminSoporteRoute,
   AuthenticatedAdminVerificacionesRoute: AuthenticatedAdminVerificacionesRoute,
   AuthenticatedChatReservaIdRoute: AuthenticatedChatReservaIdRoute,
   AuthenticatedComprobanteReservaIdRoute:

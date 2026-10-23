@@ -131,12 +131,19 @@ function ProviderPage() {
               {cat.name}{p.comuna ? ` · ${p.comuna}` : ""}{p.anosExperiencia ? ` · ${p.anosExperiencia} años de experiencia` : ""}
             </div>
           </div>
-          <span
-            className={`shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold text-white ${p.disponibleAhora ? "bg-[#00C288]" : "bg-[#FF3B6B]"}`}
-          >
-            <span className="size-1.5 rounded-full bg-white" />
-            {p.disponibleAhora ? "Disponible" : "No disponible"}
-          </span>
+          <div className="shrink-0 flex flex-col items-end gap-1">
+            <span
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold text-white ${p.disponibleAhora ? "bg-[#00C288]" : "bg-[#FF3B6B]"}`}
+            >
+              <span className="size-1.5 rounded-full bg-white" />
+              {p.disponibleAhora ? "Disponible" : "No disponible"}
+            </span>
+            {p.availability && !/^(disponible ahora|no disponible|disponible)$/i.test(p.availability.trim()) && (
+              <span className="inline-flex items-center gap-1 text-[11px] text-[#6B7280]">
+                <Clock className="size-3" /> {p.availability}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* RATING */}

@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ChevronDown, Mail, Scale } from "lucide-react";
+import { ChevronDown, LifeBuoy, Mail, Scale } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 
 export const Route = createFileRoute("/_authenticated/ayuda")({
@@ -40,6 +40,22 @@ function AyudaPage() {
         <p className="mt-1 text-sm text-[#6B7280]">Respuestas rápidas a las dudas más comunes.</p>
       </header>
 
+      <section className="px-5 mb-3">
+        <Link
+          to="/soporte"
+          className="flex items-center gap-4 p-5 rounded-2xl bg-[#111827] text-white hover:bg-[#1F2937] transition"
+        >
+          <span className="size-12 rounded-full bg-[#EF9F27] text-[#111827] flex items-center justify-center shrink-0">
+            <LifeBuoy className="size-6" />
+          </span>
+          <span className="flex-1 min-w-0">
+            <span className="block font-bold">Hablar con soporte</span>
+            <span className="block text-sm text-white/70 mt-0.5">Chat con el equipo de Homie. Respondemos en menos de 24 h (lun–sáb).</span>
+          </span>
+          <ChevronDown className="size-5 text-white/60 -rotate-90 shrink-0" />
+        </Link>
+      </section>
+
       <section className="px-5 mb-6">
         <Link
           to="/reclamos"
@@ -78,13 +94,18 @@ function AyudaPage() {
       <section className="px-5 mt-6 pb-10">
         <div className="p-5 rounded-2xl bg-[#111827] text-white">
           <h2 className="font-semibold">¿Necesitas más ayuda?</h2>
-          <p className="mt-1 text-sm text-white/70">Escríbenos y te responderemos lo antes posible.</p>
-          <a
-            href="mailto:soporte@homie.cl?subject=Necesito%20ayuda%20con%20Homie"
-            className="mt-4 inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-[#EF9F27] text-[#111827] font-semibold text-sm"
-          >
-            <Mail className="size-4" /> soporte@homie.cl
-          </a>
+          <p className="mt-1 text-sm text-white/70">Escríbenos desde la app o por correo y te responderemos lo antes posible.</p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link to="/soporte" className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-[#EF9F27] text-[#111827] font-semibold text-sm">
+              <LifeBuoy className="size-4" /> Hablar con soporte
+            </Link>
+            <a
+              href="mailto:soporte@homie.cl?subject=Necesito%20ayuda%20con%20Homie"
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-white/10 text-white font-semibold text-sm"
+            >
+              <Mail className="size-4" /> soporte@homie.cl
+            </a>
+          </div>
         </div>
       </section>
     </AppShell>

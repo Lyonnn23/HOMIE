@@ -296,7 +296,7 @@ function BookingCard({ b, timesHired }: { b: Booking; timesHired: number }) {
           className="mt-3 w-full inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-[#F5F5F0] border border-[#EF9F27] text-[#111827] text-xs font-bold hover:bg-[#EF9F27]/10"
         >
           <RotateCcw className="size-3.5 text-[#EF9F27]" />
-          Volver a contratar → {b.providerName}
+          Volver a reservar con {b.providerName}
         </Link>
       )}
 

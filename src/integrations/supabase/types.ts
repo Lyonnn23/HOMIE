@@ -253,27 +253,33 @@ export type Database = {
       }
       mensajes: {
         Row: {
+          foto_url: string | null
+          lat: number | null
+          lng: number | null
           contenido: string
           created_at: string
-          foto_url: string | null
           id: string
           leido: boolean
           remitente_id: string
           reserva_id: string
         }
         Insert: {
+          foto_url?: string | null
+          lat?: number | null
+          lng?: number | null
           contenido: string
           created_at?: string
-          foto_url?: string | null
           id?: string
           leido?: boolean
           remitente_id: string
           reserva_id: string
         }
         Update: {
+          foto_url?: string | null
+          lat?: number | null
+          lng?: number | null
           contenido?: string
           created_at?: string
-          foto_url?: string | null
           id?: string
           leido?: boolean
           remitente_id?: string
@@ -466,6 +472,30 @@ export type Database = {
             referencedColumns: ["prestador_id"]
           },
         ]
+      }
+      calificaciones_cliente: {
+        Row: { id: string; reserva_id: string; prestador_id: string; cliente_id: string; puntaje: number; comentario: string | null; created_at: string }
+        Insert: { id?: string; reserva_id: string; prestador_id: string; cliente_id: string; puntaje: number; comentario?: string | null; created_at?: string }
+        Update: { id?: string; reserva_id?: string; prestador_id?: string; cliente_id?: string; puntaje?: number; comentario?: string | null; created_at?: string }
+        Relationships: []
+      }
+      cupones: {
+        Row: { codigo: string; descripcion: string | null; tipo: string; valor: number; tope: number | null; minimo: number; usos_max: number | null; usos_por_usuario: number; usos: number; solo_primera_compra: boolean; usuario_id: string | null; activo: boolean; vence_at: string | null; created_at: string }
+        Insert: { codigo: string; descripcion?: string | null; tipo: string; valor: number; tope?: number | null; minimo?: number; usos_max?: number | null; usos_por_usuario?: number; usos?: number; solo_primera_compra?: boolean; usuario_id?: string | null; activo?: boolean; vence_at?: string | null; created_at?: string }
+        Update: { codigo?: string; descripcion?: string | null; tipo?: string; valor?: number; tope?: number | null; minimo?: number; usos_max?: number | null; usos_por_usuario?: number; usos?: number; solo_primera_compra?: boolean; usuario_id?: string | null; activo?: boolean; vence_at?: string | null; created_at?: string }
+        Relationships: []
+      }
+      cupon_usos: {
+        Row: { id: string; codigo: string; usuario_id: string; reserva_id: string | null; descuento: number; created_at: string }
+        Insert: { id?: string; codigo: string; usuario_id: string; reserva_id?: string | null; descuento: number; created_at?: string }
+        Update: { id?: string; codigo?: string; usuario_id?: string; reserva_id?: string | null; descuento?: number; created_at?: string }
+        Relationships: []
+      }
+      soporte_mensajes: {
+        Row: { id: string; usuario_id: string; de_admin: boolean; contenido: string; leido: boolean; created_at: string }
+        Insert: { id?: string; usuario_id: string; de_admin?: boolean; contenido: string; leido?: boolean; created_at?: string }
+        Update: { id?: string; usuario_id?: string; de_admin?: boolean; contenido?: string; leido?: boolean; created_at?: string }
+        Relationships: []
       }
       prestador_servicios: {
         Row: {
@@ -908,6 +938,12 @@ export type Database = {
       }
       reservas: {
         Row: {
+          cupon_codigo: string | null
+          descuento: number
+          cliente_calificacion: number | null
+          recordatorio_enviado: boolean
+          aviso_pago_enviado: boolean
+          aviso_resena_enviado: boolean
           cancelada_por: string | null
           cliente_foto_url: string | null
           cliente_id: string
@@ -931,6 +967,12 @@ export type Database = {
           total: number
         }
         Insert: {
+          cupon_codigo?: string | null
+          descuento?: number
+          cliente_calificacion?: number | null
+          recordatorio_enviado?: boolean
+          aviso_pago_enviado?: boolean
+          aviso_resena_enviado?: boolean
           cancelada_por?: string | null
           cliente_foto_url?: string | null
           cliente_id: string
@@ -954,6 +996,12 @@ export type Database = {
           total: number
         }
         Update: {
+          cupon_codigo?: string | null
+          descuento?: number
+          cliente_calificacion?: number | null
+          recordatorio_enviado?: boolean
+          aviso_pago_enviado?: boolean
+          aviso_resena_enviado?: boolean
           cancelada_por?: string | null
           cliente_foto_url?: string | null
           cliente_id?: string
@@ -1317,6 +1365,11 @@ export type Database = {
       }
       usuarios: {
         Row: {
+          calificacion_cliente: number | null
+          calificaciones_cliente_count: number
+          codigo_referido: string | null
+          referido_por: string | null
+          bono_referido_pagado: boolean
           created_at: string
           email: string | null
           foto_url: string | null
@@ -1328,6 +1381,11 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          calificacion_cliente?: number | null
+          calificaciones_cliente_count?: number
+          codigo_referido?: string | null
+          referido_por?: string | null
+          bono_referido_pagado?: boolean
           created_at?: string
           email?: string | null
           foto_url?: string | null
@@ -1339,6 +1397,11 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          calificacion_cliente?: number | null
+          calificaciones_cliente_count?: number
+          codigo_referido?: string | null
+          referido_por?: string | null
+          bono_referido_pagado?: boolean
           created_at?: string
           email?: string | null
           foto_url?: string | null
@@ -1434,6 +1497,10 @@ export type Database = {
       }
     }
     Functions: {
+      validar_cupon: { Args: { _codigo: string; _precio: number }; Returns: { valido: boolean; descuento: number; mensaje: string }[] }
+      usar_codigo_referido: { Args: { _codigo: string }; Returns: string }
+      admin_embudo: { Args: { _dias?: number }; Returns: { registros: number; clientes: number; prestadores_registrados: number; prestadores_con_perfil: number; prestadores_verificados: number; reservas_creadas: number; reservas_pagadas: number; reservas_completadas: number; reservas_canceladas: number; solicitudes: number; cotizaciones: number; urgencias: number; urgencias_asignadas: number; ingresos: number; comisiones: number; ticket_promedio: number; pro_activos: number }[] }
+      admin_serie_diaria: { Args: { _dias?: number }; Returns: { dia: string; registros: number; reservas: number; pagos: number; ingresos: number }[] }
       aceptar_cotizacion: {
         Args: {
           _cotizacion_id: string

@@ -22,6 +22,10 @@ export interface Booking {
   completadaAt?: string | null;
   canceladaPor?: "cliente" | "prestador" | "admin" | null;
   motivoCancelacion?: string | null;
+  /** Calificación promedio del cliente (vista por el profesional), null si es cliente nuevo. */
+  clienteCalificacion?: number | null;
+  cuponCodigo?: string | null;
+  descuento?: number;
 }
 
 export type DbEstado = "pendiente" | "confirmada" | "en_camino" | "completada" | "cancelada";
@@ -37,6 +41,7 @@ const DB_TO_UI: Record<string, Booking["status"]> = {
 const SELECT = `
   id, fecha, hora, direccion, estado, nota, total, created_at,
   completada_at, cancelada_por, motivo_cancelacion,
+  cliente_calificacion, cupon_codigo, descuento,
   prestador_id, cliente_id, servicio_id,
   prestador_nombre, cliente_nombre,
   servicios ( nombre ),
@@ -47,6 +52,7 @@ type Row = {
   id: string; fecha: string; hora: string; direccion: string;
   estado: string; nota: string | null; total: number; created_at: string;
   completada_at?: string | null; cancelada_por?: string | null; motivo_cancelacion?: string | null;
+  cliente_calificacion?: number | null; cupon_codigo?: string | null; descuento?: number | null;
   prestador_id: string; cliente_id: string; servicio_id: string | null;
   prestador_nombre: string | null;
   cliente_nombre: string | null;
@@ -74,6 +80,9 @@ function mapRow(r: Row): Booking {
     completadaAt: r.completada_at ?? null,
     canceladaPor: (r.cancelada_por as Booking["canceladaPor"]) ?? null,
     motivoCancelacion: r.motivo_cancelacion ?? null,
+    clienteCalificacion: r.cliente_calificacion != null ? Number(r.cliente_calificacion) : null,
+    cuponCodigo: r.cupon_codigo ?? null,
+    descuento: r.descuento ?? 0,
   };
 }
 
@@ -173,6 +182,8 @@ export interface NewBookingInput {
   note?: string;
   price: number;
   modalidad?: "domicilio" | "online" | "local";
+  /** Código de cupón; la BD lo valida y descuenta del total (nunca bajo la comisión). */
+  cuponCodigo?: string | null;
 }
 
 export function useAddBooking() {
@@ -194,6 +205,7 @@ export function useAddBooking() {
           total: b.price,
           estado: "pendiente",
           ...(b.modalidad ? { modalidad: b.modalidad } : {}),
+          ...(b.cuponCodigo?.trim() ? { cupon_codigo: b.cuponCodigo.trim().toUpperCase() } : {}),
         })
         .select()
         .single();

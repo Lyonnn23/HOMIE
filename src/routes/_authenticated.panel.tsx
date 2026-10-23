@@ -280,6 +280,95 @@ function Empty({ icon: Icon, title, sub }: { icon: typeof ListTodo; title: strin
   );
 }
 
+/** Calificaciones que este profesional ya dejó a sus clientes (reserva_id → puntaje). */
+function useMisCalificacionesCliente() {
+  const { usuario } = useAuth();
+  return useQuery({
+    queryKey: ["calificaciones-cliente", "mias", usuario?.id],
+    enabled: !!usuario?.id && usuario.tipo === "prestador",
+    queryFn: async (): Promise<Record<string, number>> => {
+      const { data, error } = await supabase.from("calificaciones_cliente").select("reserva_id, puntaje");
+      if (error) throw error;
+      const out: Record<string, number> = {};
+      for (const r of data ?? []) out[r.reserva_id] = r.puntaje;
+      return out;
+    },
+  });
+}
+
+function CalificarCliente({ b }: { b: Booking }) {
+  const qc = useQueryClient();
+  const calif = useMisCalificacionesCliente();
+  const [open, setOpen] = useState(false);
+  const [puntaje, setPuntaje] = useState(0);
+  const [comentario, setComentario] = useState("");
+
+  const m = useMutation({
+    mutationFn: async () => {
+      if (puntaje < 1) throw new Error("Elige de 1 a 5 estrellas");
+      const { error } = await supabase.from("calificaciones_cliente").insert({
+        reserva_id: b.id, prestador_id: b.providerId, cliente_id: b.clientId,
+        puntaje, comentario: comentario.trim() || null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Gracias por calificar a tu cliente");
+      setOpen(false);
+      qc.invalidateQueries({ queryKey: ["calificaciones-cliente"] });
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "No se pudo calificar"),
+  });
+
+  const hecha = calif.data?.[b.id];
+  if (hecha) {
+    return (
+      <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+        <Star className="size-3.5 fill-[#EF9F27] text-[#EF9F27]" /> Calificaste {hecha}★
+      </span>
+    );
+  }
+  if (!open) {
+    return (
+      <button type="button" onClick={() => setOpen(true)}
+        className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-[#EF9F27] text-[#111827] text-xs font-semibold">
+        <Star className="size-3.5" /> Calificar cliente
+      </button>
+    );
+  }
+  return (
+    <div className="w-full mt-1 p-3 rounded-xl bg-[#F5F5F0] border border-border">
+      <div className="text-xs font-semibold text-[#111827]">¿Cómo fue trabajar con {b.clientName}?</div>
+      <div className="mt-2 flex gap-1" role="radiogroup" aria-label="Puntaje">
+        {[1, 2, 3, 4, 5].map((n) => (
+          <button key={n} type="button" role="radio" aria-checked={puntaje === n} aria-label={`${n} estrellas`}
+            onClick={() => setPuntaje(n)} className="p-1">
+            <Star className={`size-6 ${n <= puntaje ? "fill-[#EF9F27] text-[#EF9F27]" : "text-[#D1D5DB]"}`} />
+          </button>
+        ))}
+      </div>
+      <textarea
+        value={comentario} onChange={(e) => setComentario(e.target.value.slice(0, 300))} rows={2} maxLength={300}
+        placeholder="Comentario (opcional): puntualidad, trato, claridad..."
+        className="mt-2 w-full p-3 rounded-xl bg-white border border-border text-sm outline-none focus:border-foreground/30 resize-none"
+      />
+      <div className="mt-2 flex items-center justify-between gap-2">
+        <span className="text-[11px] text-muted-foreground">{comentario.length}/300 · Solo lo ven otros profesionales</span>
+        <div className="flex gap-2">
+          <button type="button" onClick={() => setOpen(false)} disabled={m.isPending}
+            className="px-3 py-2 rounded-xl border border-border text-xs font-semibold hover:bg-muted disabled:opacity-50">
+            Cancelar
+          </button>
+          <button type="button" onClick={() => m.mutate()} disabled={m.isPending || puntaje < 1}
+            className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-foreground text-background text-xs font-semibold disabled:opacity-50">
+            {m.isPending && <Loader2 className="size-3.5 animate-spin" />} Enviar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ProviderBookingCard({ b }: { b: Booking }) {
   const update = useUpdateBookingStatus();
   const set = (estado: DbEstado) => update.mutate({ id: b.id, estado });
@@ -303,6 +392,15 @@ function ProviderBookingCard({ b }: { b: Booking }) {
         <div className="min-w-0">
           <div className="font-semibold truncate">{b.service}</div>
           <div className="text-sm text-muted-foreground">para {b.clientName}</div>
+          {b.status === "pendiente" && (
+            <span className="mt-1 inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+              {b.clienteCalificacion != null && b.clienteCalificacion > 0 ? (
+                <><Star className="size-3 fill-[#EF9F27] text-[#EF9F27]" /> Cliente {b.clienteCalificacion.toFixed(1)}★</>
+              ) : (
+                <>Cliente nuevo</>
+              )}
+            </span>
+          )}
         </div>
         <span className={`shrink-0 px-2.5 py-1 rounded-full text-xs font-medium ${STATUS_STYLE[b.status]}`}>{b.status}</span>
       </div>
@@ -352,6 +450,11 @@ function ProviderBookingCard({ b }: { b: Booking }) {
           )}
         </div>
       </div>
+      {b.status === "completado" && (
+        <div className="mt-3 pt-3 border-t border-border flex justify-end">
+          <CalificarCliente b={b} />
+        </div>
+      )}
       {b.status === "en camino" && (
         <div className="mt-3 pt-3 border-t border-border">
           <p className="text-xs text-muted-foreground mb-2">Pide al cliente su código de confirmación cuando termines el trabajo.</p>

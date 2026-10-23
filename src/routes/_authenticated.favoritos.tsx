@@ -1,9 +1,28 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Heart, Star } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Heart, Star, Bell } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { ProviderAvatar } from "@/components/Avatar";
 import { useFavoritos, useToggleFavorito } from "@/hooks/use-favoritos";
 import { formatCLP } from "@/data/services";
+import { supabase } from "@/integrations/supabase/client";
+
+/** Disponibilidad actual de los favoritos (id → disponible_ahora). */
+function useDisponibilidad(ids: string[]) {
+  const key = [...ids].sort().join(",");
+  return useQuery({
+    queryKey: ["favoritos-disponibilidad", key],
+    enabled: ids.length > 0,
+    refetchInterval: 60_000,
+    queryFn: async (): Promise<Record<string, boolean>> => {
+      const { data, error } = await supabase.from("prestadores").select("id, disponible_ahora").in("id", ids);
+      if (error) throw error;
+      const out: Record<string, boolean> = {};
+      for (const r of data ?? []) out[r.id] = !!r.disponible_ahora;
+      return out;
+    },
+  });
+}
 
 export const Route = createFileRoute("/_authenticated/favoritos")({
   head: () => ({ meta: [
@@ -19,6 +38,7 @@ export const Route = createFileRoute("/_authenticated/favoritos")({
 function FavoritosPage() {
   const favs = useFavoritos();
   const toggle = useToggleFavorito();
+  const dispo = useDisponibilidad(favs.map((f) => f.prestador_id));
 
   return (
     <AppShell>
@@ -47,13 +67,31 @@ function FavoritosPage() {
             </Link>
           </div>
         ) : (
+          <>
+          <Link
+            to="/notif-config"
+            className="mb-3 flex items-center gap-3 p-3 rounded-2xl bg-[#F5F5F0] border border-[#E5E7EB] text-xs text-[#374151] hover:bg-[#EF9F27]/10 transition"
+          >
+            <Bell className="size-4 text-[#EF9F27] shrink-0" />
+            <span className="flex-1">Te avisamos cuando estén disponibles. <span className="font-semibold text-[#111827] underline">Configurar avisos</span></span>
+          </Link>
           <div className="grid grid-cols-2 gap-3">
             {favs.map((f) => {
               const p = f.prestador;
               if (!p) return null;
               const name = p.nombre ?? "Prestador";
+              const on = dispo.data?.[p.id];
               return (
                 <div key={f.id} className="relative p-4 rounded-2xl bg-white border border-[#E5E7EB]">
+                  {on !== undefined && (
+                    <span
+                      className={`absolute top-3 left-3 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold text-white ${on ? "bg-[#00C288]" : "bg-[#FF3B6B]"}`}
+                      title={on ? "Disponible ahora" : "No disponible"}
+                    >
+                      <span className="size-1.5 rounded-full bg-white" />
+                      {on ? "Disponible" : "No disp."}
+                    </span>
+                  )}
                   <button
                     onClick={() => toggle.mutate({ prestadorId: p.id, isFav: true })}
                     disabled={toggle.isPending}
@@ -96,6 +134,7 @@ function FavoritosPage() {
               );
             })}
           </div>
+          </>
         )}
       </div>
     </AppShell>
