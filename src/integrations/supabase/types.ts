@@ -26,6 +26,65 @@ export type Database = {
         }
         Relationships: []
       }
+      calificaciones_cliente: {
+        Row: {
+          cliente_id: string
+          comentario: string | null
+          created_at: string
+          id: string
+          prestador_id: string
+          puntaje: number
+          reserva_id: string
+        }
+        Insert: {
+          cliente_id: string
+          comentario?: string | null
+          created_at?: string
+          id?: string
+          prestador_id: string
+          puntaje: number
+          reserva_id: string
+        }
+        Update: {
+          cliente_id?: string
+          comentario?: string | null
+          created_at?: string
+          id?: string
+          prestador_id?: string
+          puntaje?: number
+          reserva_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calificaciones_cliente_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calificaciones_cliente_prestador_id_fkey"
+            columns: ["prestador_id"]
+            isOneToOne: false
+            referencedRelation: "prestadores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calificaciones_cliente_prestador_id_fkey"
+            columns: ["prestador_id"]
+            isOneToOne: false
+            referencedRelation: "saldos_prestadores"
+            referencedColumns: ["prestador_id"]
+          },
+          {
+            foreignKeyName: "calificaciones_cliente_reserva_id_fkey"
+            columns: ["reserva_id"]
+            isOneToOne: true
+            referencedRelation: "reservas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categorias: {
         Row: {
           color_fondo: string
@@ -50,6 +109,21 @@ export type Database = {
           id?: string
           nombre?: string
           slug?: string | null
+        }
+        Relationships: []
+      }
+      config_privada: {
+        Row: {
+          clave: string
+          valor: string
+        }
+        Insert: {
+          clave: string
+          valor: string
+        }
+        Update: {
+          clave?: string
+          valor?: string
         }
         Relationships: []
       }
@@ -134,6 +208,114 @@ export type Database = {
           usuario_id?: string
         }
         Relationships: []
+      }
+      cupon_usos: {
+        Row: {
+          codigo: string
+          created_at: string
+          descuento: number
+          id: string
+          reserva_id: string | null
+          usuario_id: string
+        }
+        Insert: {
+          codigo: string
+          created_at?: string
+          descuento: number
+          id?: string
+          reserva_id?: string | null
+          usuario_id: string
+        }
+        Update: {
+          codigo?: string
+          created_at?: string
+          descuento?: number
+          id?: string
+          reserva_id?: string | null
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cupon_usos_codigo_fkey"
+            columns: ["codigo"]
+            isOneToOne: false
+            referencedRelation: "cupones"
+            referencedColumns: ["codigo"]
+          },
+          {
+            foreignKeyName: "cupon_usos_reserva_id_fkey"
+            columns: ["reserva_id"]
+            isOneToOne: false
+            referencedRelation: "reservas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cupon_usos_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cupones: {
+        Row: {
+          activo: boolean
+          codigo: string
+          created_at: string
+          descripcion: string | null
+          minimo: number
+          solo_primera_compra: boolean
+          tipo: string
+          tope: number | null
+          usos: number
+          usos_max: number | null
+          usos_por_usuario: number
+          usuario_id: string | null
+          valor: number
+          vence_at: string | null
+        }
+        Insert: {
+          activo?: boolean
+          codigo: string
+          created_at?: string
+          descripcion?: string | null
+          minimo?: number
+          solo_primera_compra?: boolean
+          tipo: string
+          tope?: number | null
+          usos?: number
+          usos_max?: number | null
+          usos_por_usuario?: number
+          usuario_id?: string | null
+          valor: number
+          vence_at?: string | null
+        }
+        Update: {
+          activo?: boolean
+          codigo?: string
+          created_at?: string
+          descripcion?: string | null
+          minimo?: number
+          solo_primera_compra?: boolean
+          tipo?: string
+          tope?: number | null
+          usos?: number
+          usos_max?: number | null
+          usos_por_usuario?: number
+          usuario_id?: string | null
+          valor?: number
+          vence_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cupones_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       direcciones_guardadas: {
         Row: {
@@ -257,7 +439,9 @@ export type Database = {
           created_at: string
           foto_url: string | null
           id: string
+          lat: number | null
           leido: boolean
+          lng: number | null
           remitente_id: string
           reserva_id: string
         }
@@ -266,7 +450,9 @@ export type Database = {
           created_at?: string
           foto_url?: string | null
           id?: string
+          lat?: number | null
           leido?: boolean
+          lng?: number | null
           remitente_id: string
           reserva_id: string
         }
@@ -275,7 +461,9 @@ export type Database = {
           created_at?: string
           foto_url?: string | null
           id?: string
+          lat?: number | null
           leido?: boolean
+          lng?: number | null
           remitente_id?: string
           reserva_id?: string
         }
@@ -908,13 +1096,18 @@ export type Database = {
       }
       reservas: {
         Row: {
+          aviso_pago_enviado: boolean
+          aviso_resena_enviado: boolean
           cancelada_por: string | null
+          cliente_calificacion: number | null
           cliente_foto_url: string | null
           cliente_id: string
           cliente_nombre: string | null
           comision: number
           completada_at: string | null
           created_at: string
+          cupon_codigo: string | null
+          descuento: number
           direccion: string
           estado: Database["public"]["Enums"]["reserva_estado"]
           fecha: string
@@ -927,17 +1120,23 @@ export type Database = {
           prestador_id: string
           prestador_nombre: string | null
           prestador_usuario_id: string | null
+          recordatorio_enviado: boolean
           servicio_id: string | null
           total: number
         }
         Insert: {
+          aviso_pago_enviado?: boolean
+          aviso_resena_enviado?: boolean
           cancelada_por?: string | null
+          cliente_calificacion?: number | null
           cliente_foto_url?: string | null
           cliente_id: string
           cliente_nombre?: string | null
           comision?: number
           completada_at?: string | null
           created_at?: string
+          cupon_codigo?: string | null
+          descuento?: number
           direccion: string
           estado?: Database["public"]["Enums"]["reserva_estado"]
           fecha: string
@@ -950,17 +1149,23 @@ export type Database = {
           prestador_id: string
           prestador_nombre?: string | null
           prestador_usuario_id?: string | null
+          recordatorio_enviado?: boolean
           servicio_id?: string | null
           total: number
         }
         Update: {
+          aviso_pago_enviado?: boolean
+          aviso_resena_enviado?: boolean
           cancelada_por?: string | null
+          cliente_calificacion?: number | null
           cliente_foto_url?: string | null
           cliente_id?: string
           cliente_nombre?: string | null
           comision?: number
           completada_at?: string | null
           created_at?: string
+          cupon_codigo?: string | null
+          descuento?: number
           direccion?: string
           estado?: Database["public"]["Enums"]["reserva_estado"]
           fecha?: string
@@ -973,6 +1178,7 @@ export type Database = {
           prestador_id?: string
           prestador_nombre?: string | null
           prestador_usuario_id?: string | null
+          recordatorio_enviado?: boolean
           servicio_id?: string | null
           total?: number
         }
@@ -1125,6 +1331,41 @@ export type Database = {
             columns: ["servicio_id"]
             isOneToOne: false
             referencedRelation: "servicios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      soporte_mensajes: {
+        Row: {
+          contenido: string
+          created_at: string
+          de_admin: boolean
+          id: string
+          leido: boolean
+          usuario_id: string
+        }
+        Insert: {
+          contenido: string
+          created_at?: string
+          de_admin?: boolean
+          id?: string
+          leido?: boolean
+          usuario_id: string
+        }
+        Update: {
+          contenido?: string
+          created_at?: string
+          de_admin?: boolean
+          id?: string
+          leido?: boolean
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "soporte_mensajes_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
         ]
@@ -1317,6 +1558,10 @@ export type Database = {
       }
       usuarios: {
         Row: {
+          bono_referido_pagado: boolean
+          calificacion_cliente: number | null
+          calificaciones_cliente_count: number
+          codigo_referido: string | null
           created_at: string
           email: string | null
           foto_url: string | null
@@ -1324,10 +1569,15 @@ export type Database = {
           nombre: string
           notif_config: Json
           onesignal_player_id: string | null
+          referido_por: string | null
           tipo: Database["public"]["Enums"]["user_type"]
           user_id: string | null
         }
         Insert: {
+          bono_referido_pagado?: boolean
+          calificacion_cliente?: number | null
+          calificaciones_cliente_count?: number
+          codigo_referido?: string | null
           created_at?: string
           email?: string | null
           foto_url?: string | null
@@ -1335,10 +1585,15 @@ export type Database = {
           nombre: string
           notif_config?: Json
           onesignal_player_id?: string | null
+          referido_por?: string | null
           tipo?: Database["public"]["Enums"]["user_type"]
           user_id?: string | null
         }
         Update: {
+          bono_referido_pagado?: boolean
+          calificacion_cliente?: number | null
+          calificaciones_cliente_count?: number
+          codigo_referido?: string | null
           created_at?: string
           email?: string | null
           foto_url?: string | null
@@ -1346,10 +1601,19 @@ export type Database = {
           nombre?: string
           notif_config?: Json
           onesignal_player_id?: string | null
+          referido_por?: string | null
           tipo?: Database["public"]["Enums"]["user_type"]
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "usuarios_referido_por_fkey"
+            columns: ["referido_por"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       verificaciones_prestador: {
         Row: {
@@ -1452,6 +1716,28 @@ export type Database = {
         Returns: undefined
       }
       activar_prueba_pro: { Args: never; Returns: string }
+      admin_embudo: {
+        Args: { _dias?: number }
+        Returns: {
+          clientes: number
+          comisiones: number
+          cotizaciones: number
+          ingresos: number
+          prestadores_con_perfil: number
+          prestadores_registrados: number
+          prestadores_verificados: number
+          pro_activos: number
+          registros: number
+          reservas_canceladas: number
+          reservas_completadas: number
+          reservas_creadas: number
+          reservas_pagadas: number
+          solicitudes: number
+          ticket_promedio: number
+          urgencias: number
+          urgencias_asignadas: number
+        }[]
+      }
       admin_resumen: {
         Args: never
         Returns: {
@@ -1465,6 +1751,16 @@ export type Database = {
           reservas_mes: number
           reservas_pendientes: number
           verificaciones_pendientes: number
+        }[]
+      }
+      admin_serie_diaria: {
+        Args: { _dias?: number }
+        Returns: {
+          dia: string
+          ingresos: number
+          pagos: number
+          registros: number
+          reservas: number
         }[]
       }
       asignar_admin_por_email: { Args: { _email: string }; Returns: undefined }
@@ -1485,6 +1781,7 @@ export type Database = {
         Args: { lat1: number; lat2: number; lng1: number; lng2: number }
         Returns: number
       }
+      enviar_recordatorios: { Args: never; Returns: undefined }
       es_pro: { Args: { _prestador_id: string }; Returns: boolean }
       has_role: {
         Args: {
@@ -1548,6 +1845,15 @@ export type Database = {
       }
       tasa_comision: { Args: { _prestador_id: string }; Returns: number }
       unaccent_safe: { Args: { _t: string }; Returns: string }
+      usar_codigo_referido: { Args: { _codigo: string }; Returns: string }
+      validar_cupon: {
+        Args: { _codigo: string; _precio: number }
+        Returns: {
+          descuento: number
+          mensaje: string
+          valido: boolean
+        }[]
+      }
     }
     Enums: {
       app_role: "user" | "admin" | "superadmin"
