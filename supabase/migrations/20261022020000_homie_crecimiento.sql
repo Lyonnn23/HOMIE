@@ -8,6 +8,7 @@ CREATE EXTENSION IF NOT EXISTS pg_cron;
 
 -- ---------------- Configuración privada (claves de servicios) ----------------
 CREATE TABLE IF NOT EXISTS public.config_privada (clave text PRIMARY KEY, valor text NOT NULL);
+GRANT ALL ON public.config_privada TO service_role;
 ALTER TABLE public.config_privada ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.config_privada FROM anon, authenticated;
 -- Rellenar desde el panel de Lovable Cloud (SQL):
@@ -112,7 +113,7 @@ REVOKE EXECUTE ON FUNCTION public.enviar_recordatorios() FROM PUBLIC, anon, auth
 DO $$ BEGIN
   PERFORM cron.unschedule('homie_recordatorios');
 EXCEPTION WHEN OTHERS THEN NULL; END $$;
-SELECT cron.schedule('homie_recordatorios', '*/15 * * * *', $$SELECT public.enviar_recordatorios();$$);
+-- Schedule homie_recordatorios separately through the managed data tool.
 
 -- ---------------- Calificación del cliente por el profesional ----------------
 CREATE TABLE IF NOT EXISTS public.calificaciones_cliente (
@@ -124,12 +125,14 @@ CREATE TABLE IF NOT EXISTS public.calificaciones_cliente (
   comentario text CHECK (comentario IS NULL OR char_length(comentario) <= 300),
   created_at timestamptz NOT NULL DEFAULT now()
 );
+GRANT SELECT, INSERT ON public.calificaciones_cliente TO authenticated;
+GRANT ALL ON public.calificaciones_cliente TO service_role;
 ALTER TABLE public.calificaciones_cliente ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "prestador califica cliente" ON public.calificaciones_cliente;
 CREATE POLICY "prestador califica cliente" ON public.calificaciones_cliente FOR INSERT TO authenticated
   WITH CHECK (
     prestador_id IN (SELECT id FROM public.prestadores WHERE usuario_id = public.current_usuario_id())
-    AND EXISTS (SELECT 1 FROM public.reservas r WHERE r.id = reserva_id AND r.prestador_id = calificaciones_cliente.prestador_id AND r.estado = 'completada')
+    AND EXISTS (SELECT 1 FROM public.reservas r WHERE r.id = reserva_id AND r.prestador_id = calificaciones_cliente.prestador_id AND r.cliente_id = calificaciones_cliente.cliente_id AND r.estado = 'completada')
   );
 DROP POLICY IF EXISTS "lee calificaciones cliente" ON public.calificaciones_cliente;
 CREATE POLICY "lee calificaciones cliente" ON public.calificaciones_cliente FOR SELECT TO authenticated
@@ -180,6 +183,8 @@ CREATE TABLE IF NOT EXISTS public.cupones (
   vence_at timestamptz,
   created_at timestamptz NOT NULL DEFAULT now()
 );
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.cupones TO authenticated;
+GRANT ALL ON public.cupones TO service_role;
 ALTER TABLE public.cupones ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "admin gestiona cupones" ON public.cupones;
 CREATE POLICY "admin gestiona cupones" ON public.cupones FOR ALL TO authenticated USING (public.is_admin()) WITH CHECK (public.is_admin());
@@ -194,6 +199,8 @@ CREATE TABLE IF NOT EXISTS public.cupon_usos (
   descuento integer NOT NULL,
   created_at timestamptz NOT NULL DEFAULT now()
 );
+GRANT SELECT ON public.cupon_usos TO authenticated;
+GRANT ALL ON public.cupon_usos TO service_role;
 ALTER TABLE public.cupon_usos ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "lee mis usos" ON public.cupon_usos;
 CREATE POLICY "lee mis usos" ON public.cupon_usos FOR SELECT TO authenticated USING (usuario_id = public.current_usuario_id() OR public.is_admin());
@@ -207,6 +214,8 @@ RETURNS TABLE (valido boolean, descuento integer, mensaje text)
 LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = public AS $$
 DECLARE c record; v_me uuid := public.current_usuario_id(); v_usos int; v_desc int;
 BEGIN
+  IF v_me IS NULL THEN RAISE EXCEPTION 'No autorizado'; END IF;
+  IF _precio IS NULL OR _precio <= 0 THEN RETURN QUERY SELECT false, 0, 'Precio no válido'; RETURN; END IF;
   SELECT * INTO c FROM public.cupones WHERE upper(codigo) = upper(trim(_codigo));
   IF c IS NULL OR NOT c.activo THEN RETURN QUERY SELECT false, 0, 'Cupón no válido'; RETURN; END IF;
   IF c.vence_at IS NOT NULL AND c.vence_at < now() THEN RETURN QUERY SELECT false, 0, 'Cupón vencido'; RETURN; END IF;
@@ -223,6 +232,7 @@ BEGIN
   v_desc := LEAST(v_desc, _precio);
   RETURN QUERY SELECT true, v_desc, COALESCE(c.descripcion, 'Descuento aplicado');
 END; $$;
+REVOKE EXECUTE ON FUNCTION public.validar_cupon(text, integer) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.validar_cupon(text, integer) TO authenticated;
 
 -- Aplicar cupón al crear la reserva: el trigger de precio descuenta del total y registra el uso
@@ -230,12 +240,16 @@ CREATE OR REPLACE FUNCTION public.aplicar_cupon_reserva()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE v record;
 BEGIN
-  IF NEW.cupon_codigo IS NULL OR auth.uid() IS NULL THEN RETURN NEW; END IF;
+  NEW.descuento := 0;
+  IF NEW.cupon_codigo IS NULL THEN RETURN NEW; END IF;
+  IF auth.uid() IS NULL OR NEW.cliente_id IS DISTINCT FROM public.current_usuario_id() THEN RAISE EXCEPTION 'No autorizado'; END IF;
+  PERFORM 1 FROM public.usuarios WHERE id = NEW.cliente_id FOR UPDATE;
+  PERFORM 1 FROM public.cupones WHERE upper(codigo) = upper(trim(NEW.cupon_codigo)) FOR UPDATE;
   SELECT * INTO v FROM public.validar_cupon(NEW.cupon_codigo, NEW.total - NEW.comision);
   IF NOT v.valido THEN RAISE EXCEPTION '%', v.mensaje; END IF;
   NEW.descuento := v.descuento;
   NEW.total := GREATEST(NEW.total - v.descuento, NEW.comision);
-  NEW.cupon_codigo := upper(trim(NEW.cupon_codigo));
+  SELECT codigo INTO NEW.cupon_codigo FROM public.cupones WHERE upper(codigo) = upper(trim(NEW.cupon_codigo));
   RETURN NEW;
 END; $$;
 DROP TRIGGER IF EXISTS trg_aplicar_cupon ON public.reservas;
@@ -273,7 +287,8 @@ CREATE OR REPLACE FUNCTION public.usar_codigo_referido(_codigo text)
 RETURNS text LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE v_me record; v_ref record; v_cupon text;
 BEGIN
-  SELECT * INTO v_me FROM public.usuarios WHERE id = public.current_usuario_id();
+  SELECT * INTO v_me FROM public.usuarios WHERE id = public.current_usuario_id() FOR UPDATE;
+  IF v_me IS NULL THEN RAISE EXCEPTION 'No autorizado'; END IF;
   IF v_me.referido_por IS NOT NULL THEN RAISE EXCEPTION 'Ya usaste un código de invitación'; END IF;
   IF v_me.created_at < now() - interval '7 days' THEN RAISE EXCEPTION 'El código solo se puede usar en tu primera semana'; END IF;
   SELECT * INTO v_ref FROM public.usuarios WHERE upper(codigo_referido) = upper(trim(_codigo));
@@ -287,6 +302,7 @@ BEGIN
   VALUES (v_me.id, 'cupon', 'Tienes $3.000 de regalo', 'Usa el cupón ' || v_cupon || ' en tu primera reserva.');
   RETURN v_cupon;
 END; $$;
+REVOKE EXECUTE ON FUNCTION public.usar_codigo_referido(text) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.usar_codigo_referido(text) TO authenticated;
 
 -- Bono al que invita: cuando el invitado completa su primer servicio pagado
@@ -295,7 +311,8 @@ RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE v_cli record; v_cupon text;
 BEGIN
   IF NEW.estado <> 'completada' OR OLD.estado = 'completada' THEN RETURN NEW; END IF;
-  SELECT * INTO v_cli FROM public.usuarios WHERE id = NEW.cliente_id;
+  IF NOT EXISTS (SELECT 1 FROM public.pagos WHERE reserva_id = NEW.id AND estado = 'pagado') THEN RETURN NEW; END IF;
+  SELECT * INTO v_cli FROM public.usuarios WHERE id = NEW.cliente_id FOR UPDATE;
   IF v_cli.referido_por IS NULL OR v_cli.bono_referido_pagado THEN RETURN NEW; END IF;
   UPDATE public.usuarios SET bono_referido_pagado = true WHERE id = v_cli.id;
   v_cupon := 'GRACIAS-' || upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 6));
@@ -309,15 +326,14 @@ DROP TRIGGER IF EXISTS trg_bono_referidor ON public.reservas;
 CREATE TRIGGER trg_bono_referidor AFTER UPDATE ON public.reservas FOR EACH ROW EXECUTE FUNCTION public.bono_referidor();
 
 -- Cupón de lanzamiento (edítalo o desactívalo desde /admin/cupones)
-INSERT INTO public.cupones (codigo, descripcion, tipo, valor, tope, minimo, usos_max, solo_primera_compra, vence_at)
-VALUES ('HOMIE20', '20% de descuento en tu primera reserva', 'porcentaje', 20, 10000, 10000, 500, true, now() + interval '90 days')
-ON CONFLICT DO NOTHING;
+-- Insert HOMIE20 separately through the managed data tool.
 
 -- ---------------- Favoritos: aviso cuando el profesional se pone disponible ----------------
 CREATE OR REPLACE FUNCTION public.notify_favorito_disponible()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
   IF NEW.disponible_ahora = true AND OLD.disponible_ahora = false THEN
+    IF NOT NEW.verificado OR NEW.suspendido THEN RETURN NEW; END IF;
     INSERT INTO public.notificaciones (usuario_id, tipo, titulo, mensaje)
     SELECT f.cliente_id, 'favorito', COALESCE(NEW.nombre, 'Tu profesional favorito') || ' está disponible ahora',
            'Reserva antes de que se llene su agenda.'
@@ -334,15 +350,17 @@ CREATE TRIGGER trg_notify_favorito AFTER UPDATE OF disponible_ahora ON public.pr
 ALTER TABLE public.mensajes ADD COLUMN IF NOT EXISTS foto_url text;
 ALTER TABLE public.mensajes ADD COLUMN IF NOT EXISTS lat numeric(9,6);
 ALTER TABLE public.mensajes ADD COLUMN IF NOT EXISTS lng numeric(9,6);
-INSERT INTO storage.buckets (id, name, public) VALUES ('chat','chat', false) ON CONFLICT (id) DO NOTHING;
+-- The private chat bucket is created through the managed storage tool.
 DROP POLICY IF EXISTS "chat owner insert" ON storage.objects;
 CREATE POLICY "chat owner insert" ON storage.objects FOR INSERT TO authenticated
-  WITH CHECK (bucket_id = 'chat' AND auth.uid()::text = (storage.foldername(name))[1]);
+  WITH CHECK (bucket_id = 'chat' AND auth.uid()::text = (storage.foldername(name))[1]
+    AND EXISTS (SELECT 1 FROM public.reservas r WHERE r.id::text = (storage.foldername(name))[2]
+      AND (r.cliente_id = public.current_usuario_id()
+        OR r.prestador_id IN (SELECT id FROM public.prestadores WHERE usuario_id = public.current_usuario_id()))));
 DROP POLICY IF EXISTS "chat participantes leen" ON storage.objects;
 CREATE POLICY "chat participantes leen" ON storage.objects FOR SELECT TO authenticated
   USING (bucket_id = 'chat' AND (
-    auth.uid()::text = (storage.foldername(name))[1]
-    OR EXISTS (SELECT 1 FROM public.reservas r
+    EXISTS (SELECT 1 FROM public.reservas r
                 WHERE r.id::text = (storage.foldername(name))[2]
                   AND (r.cliente_id = public.current_usuario_id()
                        OR r.prestador_id IN (SELECT id FROM public.prestadores WHERE usuario_id = public.current_usuario_id())))
@@ -379,6 +397,9 @@ CREATE TABLE IF NOT EXISTS public.soporte_mensajes (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_soporte_usuario ON public.soporte_mensajes(usuario_id, created_at);
+GRANT SELECT, INSERT ON public.soporte_mensajes TO authenticated;
+GRANT ALL ON public.soporte_mensajes TO service_role;
+GRANT UPDATE (leido) ON public.soporte_mensajes TO authenticated;
 ALTER TABLE public.soporte_mensajes ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "usuario escribe soporte" ON public.soporte_mensajes;
 CREATE POLICY "usuario escribe soporte" ON public.soporte_mensajes FOR INSERT TO authenticated
@@ -398,7 +419,7 @@ BEGIN
   ELSE
     INSERT INTO public.notificaciones (usuario_id, tipo, titulo, mensaje)
     SELECT ur.user_id_usuario, 'soporte', 'Nuevo mensaje de soporte', left(NEW.contenido, 120)
-      FROM (SELECT u.id AS user_id_usuario FROM public.user_roles r JOIN public.usuarios u ON u.user_id = r.user_id WHERE r.role IN ('admin','superadmin')) ur;
+      FROM (SELECT u.id AS user_id_usuario FROM public.user_roles r JOIN public.usuarios u ON u.user_id = r.user_id WHERE r.role IN ('admin','superadmin') GROUP BY u.id) ur;
   END IF;
   RETURN NEW;
 END; $$;
@@ -451,3 +472,50 @@ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
 $$;
 REVOKE EXECUTE ON FUNCTION public.admin_serie_diaria(integer) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.admin_serie_diaria(integer) TO authenticated;
+
+-- Protect derived growth fields from ordinary profile edits and fabricated inserts.
+CREATE OR REPLACE FUNCTION public.protect_usuario_crecimiento()
+RETURNS trigger LANGUAGE plpgsql SET search_path = public AS $$
+BEGIN
+  IF current_user = 'authenticated' AND NOT public.is_admin() THEN
+    IF TG_OP = 'INSERT' THEN
+      IF NEW.referido_por IS NOT NULL OR NEW.bono_referido_pagado
+        OR NEW.calificacion_cliente IS NOT NULL OR NEW.calificaciones_cliente_count <> 0 THEN
+        RAISE EXCEPTION 'No autorizado: campos de crecimiento protegidos';
+      END IF;
+      NEW.codigo_referido := upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 6));
+    ELSIF NEW.codigo_referido IS DISTINCT FROM OLD.codigo_referido
+      OR NEW.referido_por IS DISTINCT FROM OLD.referido_por
+      OR NEW.bono_referido_pagado IS DISTINCT FROM OLD.bono_referido_pagado
+      OR NEW.calificacion_cliente IS DISTINCT FROM OLD.calificacion_cliente
+      OR NEW.calificaciones_cliente_count IS DISTINCT FROM OLD.calificaciones_cliente_count THEN
+      RAISE EXCEPTION 'No autorizado: campos de crecimiento protegidos';
+    END IF;
+  END IF;
+  RETURN NEW;
+END; $$;
+CREATE TRIGGER trg_z_protect_usuario_crecimiento BEFORE INSERT OR UPDATE ON public.usuarios
+  FOR EACH ROW EXECUTE FUNCTION public.protect_usuario_crecimiento();
+
+CREATE OR REPLACE FUNCTION public.protect_reserva_cupon()
+RETURNS trigger LANGUAGE plpgsql SET search_path = public AS $$
+BEGIN
+  IF current_user = 'authenticated' AND NOT public.is_admin() THEN
+    IF NEW.cupon_codigo IS DISTINCT FROM OLD.cupon_codigo OR NEW.descuento IS DISTINCT FROM OLD.descuento
+      OR NEW.cliente_calificacion IS DISTINCT FROM OLD.cliente_calificacion
+      OR (OLD.cupon_codigo IS NOT NULL AND (NEW.total IS DISTINCT FROM OLD.total OR NEW.comision IS DISTINCT FROM OLD.comision)) THEN
+      RAISE EXCEPTION 'No autorizado: descuento y calificación protegidos';
+    END IF;
+  END IF;
+  RETURN NEW;
+END; $$;
+CREATE TRIGGER trg_z_protect_reserva_cupon BEFORE UPDATE ON public.reservas
+  FOR EACH ROW EXECUTE FUNCTION public.protect_reserva_cupon();
+
+-- Trigger functions are not public application endpoints.
+REVOKE EXECUTE ON FUNCTION public.recalc_calificacion_cliente(), public.fill_reserva_cliente_calif(),
+  public.aplicar_cupon_reserva(), public.registrar_uso_cupon(), public.gen_codigo_referido(),
+  public.bono_referidor(), public.notify_favorito_disponible(), public.notify_mensaje(),
+  public.notify_soporte(), public.protect_usuario_crecimiento(), public.protect_reserva_cupon()
+  FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.enviar_recordatorios() TO service_role;
