@@ -1,6 +1,7 @@
 # Migraciones solicitadas
 
-- [ ] Aplicar y verificar 20261022010000_homie_ficha_servicio.sql: campos, valores predeterminados y límites de la ficha de servicio.
+- [x] Aplicar y verificar 20261022010000_homie_ficha_servicio.sql: 13 campos y sus límites comprobados; 25 pruebas pasan y la app compila correctamente.
+- [ ] Comprobar edición y lectura de la ficha desde la app: no hay profesionales verificados visibles y la sesión disponible es de cliente.
 - [x] Aplicar y verificar 20261021060000_homie_pro_ya_modalidad.sql: planes y permisos comprobados, nueve pruebas pasan, urgencia creada y cancelada desde la app.
 - [ ] Comprobar activación y pago de Pro desde la app: requiere una cuenta profesional verificada; la sesión disponible es de cliente.
 - [x] Restringir fotos privadas para cliente, profesionales autorizados y administradores; carga, ampliación y lectura tras cancelar comprobadas, sin lectura anónima.
