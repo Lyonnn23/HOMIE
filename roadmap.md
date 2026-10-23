@@ -1,5 +1,6 @@
 # Migraciones solicitadas
 
+- [ ] Aplicar y verificar 20261022020000_homie_crecimiento.sql: permisos, cupones y referidos, recordatorios, soporte y fotos privadas del chat.
 - [x] Aplicar y verificar 20261022010000_homie_ficha_servicio.sql: 13 campos y sus límites comprobados; 25 pruebas pasan y la app compila correctamente.
 - [ ] Comprobar edición y lectura de la ficha desde la app: no hay profesionales verificados visibles y la sesión disponible es de cliente.
 - [x] Aplicar y verificar 20261021060000_homie_pro_ya_modalidad.sql: planes y permisos comprobados, nueve pruebas pasan, urgencia creada y cancelada desde la app.
