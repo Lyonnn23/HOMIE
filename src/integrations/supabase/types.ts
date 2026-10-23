@@ -470,36 +470,51 @@ export type Database = {
       prestador_servicios: {
         Row: {
           descripcion: string | null
+          duracion_min: number | null
           foto_url: string | null
+          garantia_dias: number
           id: string
           incluye: string | null
+          materiales_incluidos: boolean
           modalidades: string[]
+          no_incluye: string | null
           precio: number
           precio_hasta: number
           prestador_id: string
           servicio_id: string
+          unidad: string
         }
         Insert: {
           descripcion?: string | null
+          duracion_min?: number | null
           foto_url?: string | null
+          garantia_dias?: number
           id?: string
           incluye?: string | null
+          materiales_incluidos?: boolean
           modalidades?: string[]
+          no_incluye?: string | null
           precio: number
           precio_hasta: number
           prestador_id: string
           servicio_id: string
+          unidad?: string
         }
         Update: {
           descripcion?: string | null
+          duracion_min?: number | null
           foto_url?: string | null
+          garantia_dias?: number
           id?: string
           incluye?: string | null
+          materiales_incluidos?: boolean
           modalidades?: string[]
+          no_incluye?: string | null
           precio?: number
           precio_hasta?: number
           prestador_id?: string
           servicio_id?: string
+          unidad?: string
         }
         Relationships: [
           {
@@ -544,14 +559,20 @@ export type Database = {
           color_perfil: string | null
           compartir_ubicacion: boolean
           comuna: string | null
+          comunas_cobertura: string[]
           direccion: string | null
           disponibilidad_texto: string | null
           disponible_ahora: boolean
           distancia_km: number | null
+          emite_boleta: boolean
+          especialidades: string[]
+          formas_pago_extra: string[]
           foto_url: string | null
           gallery_urls: string[]
+          herramientas_propias: boolean
           horario: Json
           id: string
+          idiomas: string[]
           lat: number | null
           lng: number | null
           nombre: string | null
@@ -560,8 +581,10 @@ export type Database = {
           precio_hasta: number
           pro_hasta: string | null
           pro_trial_usado: boolean
+          radio_km: number
           resenas_count: number
           suspendido: boolean
+          tiene_vehiculo: boolean
           titulo_profesional: string | null
           ubicacion_actualizada_at: string | null
           usuario_id: string
@@ -580,14 +603,20 @@ export type Database = {
           color_perfil?: string | null
           compartir_ubicacion?: boolean
           comuna?: string | null
+          comunas_cobertura?: string[]
           direccion?: string | null
           disponibilidad_texto?: string | null
           disponible_ahora?: boolean
           distancia_km?: number | null
+          emite_boleta?: boolean
+          especialidades?: string[]
+          formas_pago_extra?: string[]
           foto_url?: string | null
           gallery_urls?: string[]
+          herramientas_propias?: boolean
           horario?: Json
           id?: string
+          idiomas?: string[]
           lat?: number | null
           lng?: number | null
           nombre?: string | null
@@ -596,8 +625,10 @@ export type Database = {
           precio_hasta?: number
           pro_hasta?: string | null
           pro_trial_usado?: boolean
+          radio_km?: number
           resenas_count?: number
           suspendido?: boolean
+          tiene_vehiculo?: boolean
           titulo_profesional?: string | null
           ubicacion_actualizada_at?: string | null
           usuario_id: string
@@ -616,14 +647,20 @@ export type Database = {
           color_perfil?: string | null
           compartir_ubicacion?: boolean
           comuna?: string | null
+          comunas_cobertura?: string[]
           direccion?: string | null
           disponibilidad_texto?: string | null
           disponible_ahora?: boolean
           distancia_km?: number | null
+          emite_boleta?: boolean
+          especialidades?: string[]
+          formas_pago_extra?: string[]
           foto_url?: string | null
           gallery_urls?: string[]
+          herramientas_propias?: boolean
           horario?: Json
           id?: string
+          idiomas?: string[]
           lat?: number | null
           lng?: number | null
           nombre?: string | null
@@ -632,8 +669,10 @@ export type Database = {
           precio_hasta?: number
           pro_hasta?: string | null
           pro_trial_usado?: boolean
+          radio_km?: number
           resenas_count?: number
           suspendido?: boolean
+          tiene_vehiculo?: boolean
           titulo_profesional?: string | null
           ubicacion_actualizada_at?: string | null
           usuario_id?: string
