@@ -469,11 +469,6 @@ export type Database = {
       }
       prestador_servicios: {
         Row: {
-          unidad: string
-          duracion_min: number | null
-          garantia_dias: number
-          materiales_incluidos: boolean
-          no_incluye: string | null
           descripcion: string | null
           foto_url: string | null
           id: string
@@ -485,11 +480,6 @@ export type Database = {
           servicio_id: string
         }
         Insert: {
-          unidad?: string
-          duracion_min?: number | null
-          garantia_dias?: number
-          materiales_incluidos?: boolean
-          no_incluye?: string | null
           descripcion?: string | null
           foto_url?: string | null
           id?: string
@@ -501,11 +491,6 @@ export type Database = {
           servicio_id: string
         }
         Update: {
-          unidad?: string
-          duracion_min?: number | null
-          garantia_dias?: number
-          materiales_incluidos?: boolean
-          no_incluye?: string | null
           descripcion?: string | null
           foto_url?: string | null
           id?: string
@@ -549,14 +534,6 @@ export type Database = {
       }
       prestadores: {
         Row: {
-          especialidades: string[]
-          comunas_cobertura: string[]
-          radio_km: number
-          idiomas: string[]
-          tiene_vehiculo: boolean
-          herramientas_propias: boolean
-          emite_boleta: boolean
-          formas_pago_extra: string[]
           anos_experiencia: number | null
           antecedentes_ok: boolean
           banner_url: string | null
@@ -593,14 +570,6 @@ export type Database = {
           vistas: number
         }
         Insert: {
-          especialidades?: string[]
-          comunas_cobertura?: string[]
-          radio_km?: number
-          idiomas?: string[]
-          tiene_vehiculo?: boolean
-          herramientas_propias?: boolean
-          emite_boleta?: boolean
-          formas_pago_extra?: string[]
           anos_experiencia?: number | null
           antecedentes_ok?: boolean
           banner_url?: string | null
@@ -637,14 +606,6 @@ export type Database = {
           vistas?: number
         }
         Update: {
-          especialidades?: string[]
-          comunas_cobertura?: string[]
-          radio_km?: number
-          idiomas?: string[]
-          tiene_vehiculo?: boolean
-          herramientas_propias?: boolean
-          emite_boleta?: boolean
-          formas_pago_extra?: string[]
           anos_experiencia?: number | null
           antecedentes_ok?: boolean
           banner_url?: string | null
