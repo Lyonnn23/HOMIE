@@ -8,3 +8,5 @@
 - Store request photos as private object paths and render them through the shared signed-photo component; authorize file reads using the request client and existing quote relationship to prevent public or category-wide access.
 - Parent content routes must render Outlet and show their own list only when no child is matched so detail navigation does not retain the list page.
 - Verify schema defaults and constraint boundaries with read-only database-backed tests so migration checks cannot modify customer records.
+- Keep growth rewards and client ratings writable only by validated database routines; bind ratings to both booking participants, serialize coupon claims, and require a paid completion for referral rewards to prevent forged benefits.
+- Keep chat photos private and bind upload and download access to the booking participants; support clients may update only the read flag to prevent impersonating staff.
