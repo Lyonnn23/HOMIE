@@ -1,11 +1,14 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { ArrowLeft, Star, Clock, ShieldCheck, BadgeCheck, ChevronRight, Crown } from "lucide-react";
+import { ArrowLeft, Star, Clock, ShieldCheck, BadgeCheck, ChevronRight, ChevronDown, Crown, Car, Wrench, Receipt, MapPin, Languages, Timer } from "lucide-react";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { AppShell } from "@/components/AppShell";
 import { ProviderAvatar } from "@/components/Avatar";
 import { FavoriteButton } from "@/components/FavoriteButton";
-import { getCategory, useProvider, formatCLP, DIAS, esPro, MODALIDAD_LABEL, type ProviderReview } from "@/data/services";
+import {
+  getCategory, useProvider, formatCLP, DIAS, esPro, MODALIDAD_LABEL, UNIDAD_LABEL, duracionLabel, garantiaLabel,
+  type ProviderReview, type ProviderService,
+} from "@/data/services";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useReplyReview } from "@/store/bookings";
@@ -157,6 +160,39 @@ function ProviderPage() {
         <section className="mt-6">
           <h2 className="section-title">Sobre mí</h2>
           <p className="mt-2 text-sm leading-relaxed text-[#111827]/80 whitespace-pre-line">{p.bio}</p>
+          {p.especialidades.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {p.especialidades.map((e) => (
+                <span key={e} className="px-2.5 py-1 rounded-full text-[11px] font-semibold text-white" style={{ backgroundColor: color }}>
+                  {e}
+                </span>
+              ))}
+            </div>
+          )}
+          {p.idiomas.length > 0 && (
+            <div className="mt-3 flex items-center flex-wrap gap-1.5">
+              <Languages className="size-3.5 text-[#6B7280]" />
+              {p.idiomas.map((i) => (
+                <span key={i} className="px-2 py-0.5 rounded-full bg-[#F5F5F0] border border-[#E5E7EB] text-[11px] font-medium text-[#374151]">{i}</span>
+              ))}
+            </div>
+          )}
+          <div className="mt-3 p-3 rounded-2xl bg-[#F5F5F0] grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <DatoPractico icon={Car} ok={p.tieneVehiculo} label="Vehículo propio" />
+            <DatoPractico icon={Wrench} ok={p.herramientasPropias} label="Herramientas propias" />
+            <DatoPractico icon={Receipt} ok={p.emiteBoleta} label="Emite boleta" />
+            <div className="flex items-start gap-1.5 col-span-2 sm:col-span-1 min-w-0">
+              <MapPin className="size-4 shrink-0 mt-0.5" style={{ color }} />
+              <div className="min-w-0">
+                <div className="text-[11px] font-semibold text-[#111827]">Cobertura</div>
+                <div className="text-[11px] text-[#6B7280] leading-snug">
+                  {p.comunasCobertura.length > 0
+                    ? p.comunasCobertura.join(", ")
+                    : `Radio ${p.radioKm} km${p.comuna ? ` desde ${p.comuna}` : ""}`}
+                </div>
+              </div>
+            </div>
+          </div>
         </section>
 
         {/* SERVICIOS Y PRECIOS */}
@@ -171,46 +207,7 @@ function ProviderPage() {
           </p>
           <div className="mt-3 space-y-2">
             {p.services.map((s) => (
-              <Link
-                key={s.id}
-                to="/reservar/$id"
-                params={{ id: p.id }}
-                search={{ service: s.name }}
-                className="flex gap-3 p-3 rounded-2xl bg-white border border-[#E5E7EB] hover:border-[#111827]/30 transition"
-              >
-                {s.photoUrl ? (
-                  <img src={s.photoUrl} alt={s.name} loading="lazy" className="size-20 rounded-xl object-cover shrink-0" />
-                ) : (
-                  <div className="size-20 rounded-xl shrink-0 flex items-center justify-center" style={{ backgroundColor: `${color}1A` }}>
-                    <cat.icon className="size-7" style={{ color }} />
-                  </div>
-                )}
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="font-semibold text-sm text-[#111827]">{s.name}</div>
-                    <ChevronRight className="size-4 text-[#9CA3AF] shrink-0" />
-                  </div>
-                  {s.description && (
-                    <p className="text-xs text-[#6B7280] mt-0.5 line-clamp-2">{s.description}</p>
-                  )}
-                  <div className="mt-1.5 flex flex-wrap gap-1">
-                    {s.modalidades.map((m) => (
-                      <span key={m} className="px-1.5 py-0.5 rounded-full bg-[#F5F5F0] border border-[#E5E7EB] text-[10px] font-medium text-[#374151]">
-                        {MODALIDAD_LABEL[m] ?? m}
-                      </span>
-                    ))}
-                  </div>
-                  <div className="mt-2 flex items-baseline gap-1.5">
-                    <span className="text-base font-bold text-[#111827]">{formatCLP(s.price)}</span>
-                    {s.priceTo > s.price && (
-                      <span className="text-xs text-[#6B7280]">– {formatCLP(s.priceTo)}</span>
-                    )}
-                    <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${color}1A`, color }}>
-                      + {tasaPct}% servicio Homie
-                    </span>
-                  </div>
-                </div>
-              </Link>
+              <ServiceCard key={s.id} s={s} providerId={p.id} color={color} icon={cat.icon} tasaPct={tasaPct} />
             ))}
           </div>
         </section>
@@ -301,6 +298,111 @@ function ProviderPage() {
         </div>
       )}
     </AppShell>
+  );
+}
+
+function DatoPractico({ icon: Icon, ok, label }: { icon: typeof Car; ok: boolean; label: string }) {
+  return (
+    <div className={`flex items-center gap-1.5 min-w-0 ${ok ? "" : "opacity-50"}`}>
+      <Icon className={`size-4 shrink-0 ${ok ? "text-[#00754F]" : "text-[#9CA3AF]"}`} />
+      <span className={`text-[11px] font-medium truncate ${ok ? "text-[#111827]" : "text-[#6B7280] line-through"}`}>{label}</span>
+    </div>
+  );
+}
+
+function ServiceCard({
+  s, providerId, color, icon: Icon, tasaPct,
+}: { s: ProviderService; providerId: string; color: string; icon: typeof Car; tasaPct: number }) {
+  const [open, setOpen] = useState(false);
+  const tieneDetalle = !!(s.incluye || s.noIncluye);
+  return (
+    <div className="rounded-2xl bg-white border border-[#E5E7EB] hover:border-[#111827]/30 transition overflow-hidden">
+      <Link
+        to="/reservar/$id"
+        params={{ id: providerId }}
+        search={{ service: s.name }}
+        className="flex gap-3 p-3"
+      >
+        {s.photoUrl ? (
+          <img src={s.photoUrl} alt={s.name} loading="lazy" className="size-20 rounded-xl object-cover shrink-0" />
+        ) : (
+          <div className="size-20 rounded-xl shrink-0 flex items-center justify-center" style={{ backgroundColor: `${color}1A` }}>
+            <Icon className="size-7" style={{ color }} />
+          </div>
+        )}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-2">
+            <div className="font-semibold text-sm text-[#111827]">{s.name}</div>
+            <ChevronRight className="size-4 text-[#9CA3AF] shrink-0" />
+          </div>
+          {s.description && (
+            <p className="text-xs text-[#6B7280] mt-0.5 line-clamp-2">{s.description}</p>
+          )}
+          <div className="mt-1.5 flex flex-wrap gap-1">
+            {s.modalidades.map((m) => (
+              <span key={m} className="px-1.5 py-0.5 rounded-full bg-[#F5F5F0] border border-[#E5E7EB] text-[10px] font-medium text-[#374151]">
+                {MODALIDAD_LABEL[m] ?? m}
+              </span>
+            ))}
+            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-[#F5F5F0] border border-[#E5E7EB] text-[10px] font-medium text-[#374151]">
+              <Timer className="size-3" /> {duracionLabel(s.duracionMin)}
+            </span>
+            {s.garantiaDias > 0 && (
+              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-[#00C28820] text-[#00754F] text-[10px] font-semibold">
+                <ShieldCheck className="size-3" /> {garantiaLabel(s.garantiaDias)}
+              </span>
+            )}
+            {s.materialesIncluidos && (
+              <span className="px-1.5 py-0.5 rounded-full bg-[#F5F5F0] border border-[#E5E7EB] text-[10px] font-medium text-[#374151]">
+                Materiales incluidos
+              </span>
+            )}
+          </div>
+          <div className="mt-2 flex items-baseline gap-1.5 flex-wrap">
+            <span className="text-base font-bold text-[#111827]">{formatCLP(s.price)}</span>
+            {s.priceTo > s.price && (
+              <span className="text-xs text-[#6B7280]">– {formatCLP(s.priceTo)}</span>
+            )}
+            <span className="text-[11px] text-[#6B7280]">{UNIDAD_LABEL[s.unidad]}</span>
+            <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${color}1A`, color }}>
+              + {tasaPct}% servicio Homie
+            </span>
+          </div>
+        </div>
+      </Link>
+      {tieneDetalle && (
+        <div className="border-t border-[#F3F4F6]">
+          <button
+            type="button"
+            onClick={() => setOpen((o) => !o)}
+            aria-expanded={open}
+            className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-[#374151]"
+          >
+            <span>Qué incluye / No incluye</span>
+            <ChevronDown className={`size-4 text-[#9CA3AF] transition ${open ? "rotate-180" : ""}`} />
+          </button>
+          {open && (
+            <div className="px-3 pb-3 space-y-2">
+              {s.incluye && (
+                <div>
+                  <div className="text-[10px] font-semibold uppercase tracking-wide text-[#00754F]">Incluye</div>
+                  <p className="text-xs text-[#111827]/80 whitespace-pre-line mt-0.5">{s.incluye}</p>
+                </div>
+              )}
+              {s.noIncluye && (
+                <div>
+                  <div className="text-[10px] font-semibold uppercase tracking-wide text-[#FF3B6B]">No incluye</div>
+                  <p className="text-xs text-[#111827]/80 whitespace-pre-line mt-0.5">{s.noIncluye}</p>
+                </div>
+              )}
+              {!s.materialesIncluidos && (
+                <p className="text-[11px] text-[#6B7280]">Los materiales se pagan aparte, siempre dentro del precio hasta.</p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 

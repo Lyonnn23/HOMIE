@@ -143,6 +143,42 @@ export const HORARIO_DEFAULT: Horario = {
 /** Tope legal del rango: el precio hasta nunca supera 1.5x el precio desde. */
 export const RANGO_MAX_FACTOR = 1.5;
 
+export type UnidadCobro = "hora" | "visita" | "trabajo" | "sesion" | "dia" | "m2";
+export const UNIDAD_LABEL: Record<UnidadCobro, string> = {
+  trabajo: "por trabajo", hora: "por hora", visita: "por visita", sesion: "por sesión", dia: "por día", m2: "por m²",
+};
+export const UNIDADES: UnidadCobro[] = ["trabajo", "hora", "visita", "sesion", "dia", "m2"];
+export function esUnidad(u: string | null | undefined): u is UnidadCobro {
+  return !!u && (UNIDADES as string[]).includes(u);
+}
+
+/** Opciones de duración estimada (minutos; null = varios días). */
+export const DURACION_OPCIONES: { value: number | null; label: string }[] = [
+  { value: 30, label: "30 min" }, { value: 60, label: "1 h" }, { value: 120, label: "2 h" }, { value: 180, label: "3 h" },
+  { value: 240, label: "Medio día" }, { value: 480, label: "Día completo" }, { value: null, label: "Varios días" },
+];
+export function duracionLabel(min: number | null | undefined): string {
+  if (min === null || min === undefined) return "Varios días";
+  const exact = DURACION_OPCIONES.find((o) => o.value === min);
+  if (exact) return exact.label;
+  if (min < 60) return `${min} min`;
+  const h = Math.floor(min / 60), m = min % 60;
+  return m ? `${h} h ${m} min` : `${h} h`;
+}
+
+export const GARANTIA_OPCIONES: { value: number; label: string }[] = [
+  { value: 0, label: "Sin garantía" }, { value: 7, label: "7 días" }, { value: 30, label: "30 días" },
+  { value: 90, label: "90 días" }, { value: 365, label: "1 año" },
+];
+export function garantiaLabel(dias: number): string {
+  if (!dias) return "Sin garantía";
+  const o = GARANTIA_OPCIONES.find((g) => g.value === dias);
+  return o ? `Garantía ${o.label}` : `Garantía ${dias} días`;
+}
+
+export const IDIOMAS_OPCIONES = ["Español", "Inglés", "Portugués", "Creole", "Lengua de señas chilena"];
+export const FORMAS_PAGO_EXTRA = ["Efectivo", "Transferencia"];
+
 export interface ProviderService {
   id: string;
   name: string;
@@ -151,9 +187,22 @@ export interface ProviderService {
   description: string | null;
   photoUrl: string | null;
   modalidades: string[]; // ⊆ {domicilio, online, local}
+  unidad: UnidadCobro;
+  duracionMin: number | null;
+  garantiaDias: number;
+  materialesIncluidos: boolean;
+  incluye: string | null;
+  noIncluye: string | null;
 }
 
 export interface ProviderDetail extends ProviderListItem {
+  especialidades: string[];
+  comunasCobertura: string[];
+  radioKm: number;
+  idiomas: string[];
+  tieneVehiculo: boolean;
+  herramientasPropias: boolean;
+  emiteBoleta: boolean;
   proHasta: string | null;
   bio: string;
   usuarioId: string | null;
@@ -247,7 +296,8 @@ export function useProvider(id: string) {
           precio_desde, precio_hasta, disponible_ahora, disponibilidad_texto, distancia_km,
           direccion, gallery_urls, usuario_id, comuna, banner_url, color_perfil,
           titulo_profesional, anos_experiencia, horario, verificado, verificado_identidad, antecedentes_ok, pro_hasta,
-          prestador_servicios ( precio, precio_hasta, descripcion, foto_url, modalidades, servicios ( id, nombre ) ),
+          especialidades, comunas_cobertura, radio_km, idiomas, tiene_vehiculo, herramientas_propias, emite_boleta,
+          prestador_servicios ( precio, precio_hasta, descripcion, foto_url, modalidades, unidad, duracion_min, garantia_dias, materiales_incluidos, incluye, no_incluye, servicios ( id, nombre ) ),
           resenas ( id, calificacion, comentario, created_at, foto_url, verificada, respuesta_prestador, respuesta_fecha, cliente_id, cliente_nombre )
         `)
         .eq("id", id)
@@ -266,7 +316,14 @@ export function useProvider(id: string) {
         titulo_profesional: string | null; anos_experiencia: number | null; horario: Horario | null;
         verificado: boolean | null; verificado_identidad: boolean | null; antecedentes_ok: boolean | null;
         pro_hasta: string | null;
-        prestador_servicios: { precio: number; precio_hasta: number | null; descripcion: string | null; foto_url: string | null; modalidades: string[] | null; servicios: { id: string; nombre: string } }[];
+        especialidades: string[] | null; comunas_cobertura: string[] | null; radio_km: number | null; idiomas: string[] | null;
+        tiene_vehiculo: boolean | null; herramientas_propias: boolean | null; emite_boleta: boolean | null;
+        prestador_servicios: {
+          precio: number; precio_hasta: number | null; descripcion: string | null; foto_url: string | null; modalidades: string[] | null;
+          unidad: string | null; duracion_min: number | null; garantia_dias: number | null; materiales_incluidos: boolean | null;
+          incluye: string | null; no_incluye: string | null;
+          servicios: { id: string; nombre: string };
+        }[];
         resenas: {
           id: string; calificacion: number; comentario: string | null; created_at: string;
           foto_url: string | null; verificada: boolean | null;
@@ -302,6 +359,13 @@ export function useProvider(id: string) {
         antecedentesOk: !!r.antecedentes_ok,
         proHasta: r.pro_hasta ?? null,
         priceTo: r.precio_hasta ?? r.precio_desde,
+        especialidades: r.especialidades ?? [],
+        comunasCobertura: r.comunas_cobertura ?? [],
+        radioKm: r.radio_km ?? 15,
+        idiomas: r.idiomas ?? ["Español"],
+        tieneVehiculo: !!r.tiene_vehiculo,
+        herramientasPropias: r.herramientas_propias !== false,
+        emiteBoleta: !!r.emite_boleta,
         services: (r.prestador_servicios ?? []).map((ps) => ({
           id: ps.servicios.id,
           name: ps.servicios.nombre,
@@ -310,6 +374,12 @@ export function useProvider(id: string) {
           description: ps.descripcion,
           photoUrl: ps.foto_url,
           modalidades: ps.modalidades && ps.modalidades.length > 0 ? ps.modalidades : ["domicilio"],
+          unidad: esUnidad(ps.unidad) ? ps.unidad : "trabajo",
+          duracionMin: ps.duracion_min ?? null,
+          garantiaDias: ps.garantia_dias ?? 0,
+          materialesIncluidos: !!ps.materiales_incluidos,
+          incluye: ps.incluye,
+          noIncluye: ps.no_incluye,
         })),
         reviews: (r.resenas ?? []).map((rv) => {
           const author = rv.cliente_nombre ?? "Anónimo";

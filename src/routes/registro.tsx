@@ -1,7 +1,6 @@
-import { comprimirImagen } from "@/lib/imagen";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useRef, useState } from "react";
-import { Eye, EyeOff, Home, Briefcase, Camera } from "lucide-react";
+import { useState } from "react";
+import { Eye, EyeOff, Home, Briefcase, MailCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { HomieLogo } from "@/components/Logo";
@@ -29,29 +28,10 @@ function RegistroPage() {
   const search = Route.useSearch();
   const [tipo, setTipo] = useState<"cliente" | "prestador">(search.tipo ?? "cliente");
   const [categoriaId, setCategoriaId] = useState<string>("");
-  const [precioHora, setPrecioHora] = useState<string>("");
-  const [descripcion, setDescripcion] = useState("");
-  const [fotoFile, setFotoFile] = useState<File | null>(null);
-  const [fotoPreview, setFotoPreview] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [pendienteEmail, setPendienteEmail] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  function onPickFoto(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0];
-    if (!f) return;
-    if (!f.type.startsWith("image/")) {
-      setErr("La foto debe ser una imagen");
-      return;
-    }
-    if (f.size > 5 * 1024 * 1024) {
-      setErr("La foto debe pesar menos de 5MB");
-      return;
-    }
-    setErr(null);
-    setFotoFile(f);
-    setFotoPreview(URL.createObjectURL(f));
-  }
 
   const fieldClass =
     "w-full h-12 px-4 rounded-2xl bg-white border border-[#E5E7EB] outline-none transition focus:border-[#EF9F27] focus:ring-2 focus:ring-[#EF9F27]/20 text-[#111827]";
@@ -77,8 +57,6 @@ function RegistroPage() {
           nombre,
           tipo,
           categoria_id: tipo === "prestador" ? categoriaId : null,
-          precio_hora: tipo === "prestador" ? Number(precioHora) || 0 : null,
-          descripcion: tipo === "prestador" ? descripcion : null,
         },
       },
     });
@@ -88,24 +66,8 @@ function RegistroPage() {
       return;
     }
     if (!data.session) {
-      setErr("Revisa tu email para confirmar la cuenta.");
+      setPendienteEmail(true);
       return;
-    }
-
-    // Subir foto de perfil si se eligió (solo prestador)
-    if (tipo === "prestador" && fotoFile && data.user) {
-      const ext = fotoFile.name.split(".").pop() ?? "jpg";
-      const path = `${data.user.id}/avatar.${ext}`;
-      const up = await supabase.storage
-        .from("avatars")
-        .upload(path, await comprimirImagen(fotoFile), { upsert: true });
-      if (!up.error) {
-        const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
-        await supabase
-          .from("usuarios")
-          .update({ foto_url: pub.publicUrl })
-          .eq("user_id", data.user.id);
-      }
     }
 
     if (tipo === "prestador") navigate({ to: "/onboarding-prestador" });
@@ -117,6 +79,33 @@ function RegistroPage() {
       redirect_uri: window.location.origin,
     });
     if (res.error) setErr(res.error.message);
+  }
+
+  if (pendienteEmail) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center px-5 py-10">
+        <div className="w-full max-w-sm text-center">
+          <div className="flex justify-center mb-6"><HomieLogo size={44} inverted={false} /></div>
+          <div className="mx-auto size-16 rounded-full bg-[#00C28820] flex items-center justify-center">
+            <MailCheck className="size-8 text-[#00754F]" />
+          </div>
+          <h1 className="mt-5 text-2xl font-bold tracking-tight text-[#111827]">Confirma tu correo</h1>
+          <p className="mt-2 text-sm text-[#6B7280]">
+            Te enviamos un enlace a <b className="text-[#111827]">{email}</b>. Ábrelo para activar tu cuenta.
+          </p>
+          {tipo === "prestador" && (
+            <div className="mt-5 p-4 rounded-2xl bg-[#F5F5F0] text-left text-sm text-[#374151]">
+              <b className="text-[#111827]">Siguiente paso:</b> al entrar completarás tu perfil profesional
+              (servicios con precios, horario y verificación con certificado). Solo entonces aparecerás en Homie.
+            </div>
+          )}
+          <p className="mt-4 text-xs text-[#9CA3AF]">¿No llega? Revisa spam o promociones.</p>
+          <Link to="/login" className="mt-6 inline-flex h-12 items-center justify-center px-6 rounded-2xl bg-[#111827] text-white font-semibold text-sm">
+            Ya confirmé, ingresar
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -249,48 +238,26 @@ function RegistroPage() {
                 </div>
               </div>
 
-              <input
-                type="number"
-                min={0}
-                step={1000}
-                placeholder="Precio por hora (CLP)"
-                value={precioHora}
-                onChange={(e) => setPrecioHora(e.target.value)}
-                className={fieldClass}
-              />
-              <textarea
-                placeholder="Breve descripción de tu servicio"
-                value={descripcion}
-                onChange={(e) => setDescripcion(e.target.value)}
-                rows={3}
-                maxLength={300}
-                className="w-full px-4 py-3 rounded-2xl bg-white border border-[#E5E7EB] outline-none transition focus:border-[#EF9F27] focus:ring-2 focus:ring-[#EF9F27]/20 text-[#111827] resize-none"
-              />
-
-              <div className="flex items-center gap-3 pt-1">
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="relative size-16 rounded-full overflow-hidden border-2 border-dashed border-[#E5E7EB] flex items-center justify-center bg-[#F5F5F0] hover:border-[#EF9F27] transition"
-                  aria-label="Subir foto de perfil"
-                >
-                  {fotoPreview ? (
-                    <img src={fotoPreview} alt="" className="size-full object-cover" />
-                  ) : (
-                    <Camera className="size-6 text-[#9CA3AF]" />
-                  )}
-                </button>
-                <div className="text-xs text-[#6B7280]">
-                  <div className="font-semibold text-[#111827]">Foto de perfil</div>
-                  <div>Opcional · JPG o PNG, máx 5MB</div>
-                </div>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={onPickFoto}
-                />
+              <div className="rounded-2xl border border-[#E5E7EB] bg-[#F5F5F0] p-4">
+                <div className="text-sm font-bold text-[#111827]">Después de crear tu cuenta completarás tu perfil profesional</div>
+                <p className="text-xs text-[#6B7280] mt-1">Toma unos 10 minutos. Puedes guardar y seguir después.</p>
+                <ol className="mt-3 space-y-2.5">
+                  {[
+                    ["Tus datos", "Foto, teléfono y WhatsApp, comuna y dirección base."],
+                    ["Tu profesión", "Título, años de experiencia y presentación."],
+                    ["Tus servicios", "Cada servicio con precio desde y hasta, descripción y fotos."],
+                    ["Tu horario", "Días y horas en que atiendes, y si estás disponible ahora."],
+                    ["Verificación", "Cédula, selfie y certificado del rubro. Sin esto no apareces públicamente."],
+                  ].map(([t, d], i) => (
+                    <li key={t} className="flex gap-3">
+                      <span className="size-6 rounded-full bg-[#111827] text-white text-[11px] font-bold flex items-center justify-center shrink-0">{i + 1}</span>
+                      <span className="min-w-0">
+                        <span className="block text-sm font-semibold text-[#111827] leading-tight">{t}</span>
+                        <span className="block text-xs text-[#6B7280]">{d}</span>
+                      </span>
+                    </li>
+                  ))}
+                </ol>
               </div>
             </div>
           )}

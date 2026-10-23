@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
@@ -26,18 +26,28 @@ function LoginPage() {
   const [err, setErr] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  const manejandoLogin = useRef(false);
   useEffect(() => {
-    if (!loading && user) navigate({ to: "/" });
+    if (!loading && user && !manejandoLogin.current) navigate({ to: "/" });
   }, [user, loading, navigate]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErr(null);
     setSubmitting(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    manejandoLogin.current = true;
+    const { data: auth, error } = await supabase.auth.signInWithPassword({ email, password });
     setSubmitting(false);
-    if (error) setErr(error.message);
-    else navigate({ to: "/" });
+    if (error) { manejandoLogin.current = false; setErr(error.message); }
+    else {
+      // Prestador sin perfil completo → directo al asistente de perfil profesional
+      const { data: u } = await supabase.from("usuarios").select("id, tipo").eq("user_id", auth.user.id).maybeSingle();
+      if (u?.tipo === "prestador") {
+        const { data: p } = await supabase.from("prestadores").select("id").eq("usuario_id", u.id).maybeSingle();
+        if (!p) { navigate({ to: "/onboarding-prestador" }); return; }
+      }
+      navigate({ to: "/" });
+    }
   }
 
   async function onGoogle() {

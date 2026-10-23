@@ -15,7 +15,11 @@ import {
   type Booking, type DbEstado,
 } from "@/store/bookings";
 import { geocodificar } from "@/lib/geocode";
-import { formatCLP, categories, esPro, MODALIDAD_LABEL } from "@/data/services";
+import {
+  formatCLP, categories, esPro, MODALIDAD_LABEL, UNIDAD_LABEL, UNIDADES, DURACION_OPCIONES, GARANTIA_OPCIONES,
+  IDIOMAS_OPCIONES, esUnidad, type UnidadCobro,
+} from "@/data/services";
+import { COMUNAS_SUGERIDAS } from "@/data/comunas";
 import { comprimirImagen } from "@/lib/imagen";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -379,7 +383,7 @@ function usePrestadorRow() {
     queryFn: async () => {
       const { data } = await supabase
         .from("prestadores")
-        .select("id, bio, direccion, precio_desde, disponible_ahora, categoria_id, calificacion_promedio, resenas_count, verificado, horario, banner_url, color_perfil, titulo_profesional, anos_experiencia, comuna, pro_hasta, pro_trial_usado, gallery_urls")
+        .select("id, bio, direccion, precio_desde, disponible_ahora, categoria_id, calificacion_promedio, resenas_count, verificado, horario, banner_url, color_perfil, titulo_profesional, anos_experiencia, comuna, pro_hasta, pro_trial_usado, gallery_urls, especialidades, comunas_cobertura, radio_km, idiomas, tiene_vehiculo, herramientas_propias, emite_boleta")
         .eq("usuario_id", usuario!.id)
         .maybeSingle();
       return data;
@@ -481,9 +485,21 @@ interface ServicioRow {
   descripcion: string | null;
   foto_url: string | null;
   modalidades: string[];
+  unidad: UnidadCobro;
+  duracion_min: number | null;
+  garantia_dias: number;
+  materiales_incluidos: boolean;
+  incluye: string | null;
+  no_incluye: string | null;
 }
 
-type ServicioPatch = { precio: number; precio_hasta: number; descripcion: string | null; foto_url: string | null; modalidades: string[] };
+type ServicioPatch = {
+  precio: number; precio_hasta: number; descripcion: string | null; foto_url: string | null; modalidades: string[];
+  unidad: UnidadCobro; duracion_min: number | null; garantia_dias: number; materiales_incluidos: boolean;
+  incluye: string | null; no_incluye: string | null;
+};
+const MAX_INCLUYE = 600;
+const MAX_NO_INCLUYE = 400;
 const MODALIDADES: { id: string; label: string }[] = [
   { id: "domicilio", label: "A domicilio" }, { id: "online", label: "Online" }, { id: "local", label: "En mi local" },
 ];
@@ -539,17 +555,24 @@ function EditorPerfil() {
     queryFn: async (): Promise<ServicioRow[]> => {
       const { data } = await supabase
         .from("prestador_servicios")
-        .select("id, precio, precio_hasta, descripcion, foto_url, modalidades, servicio_id, servicios ( id, nombre )")
+        .select("id, precio, precio_hasta, descripcion, foto_url, modalidades, unidad, duracion_min, garantia_dias, materiales_incluidos, incluye, no_incluye, servicio_id, servicios ( id, nombre )")
         .eq("prestador_id", row!.id);
       type R = {
         id: string; precio: number; precio_hasta: number; descripcion: string | null; foto_url: string | null;
         modalidades: string[] | null;
+        unidad: string | null; duracion_min: number | null; garantia_dias: number | null; materiales_incluidos: boolean | null;
+        incluye: string | null; no_incluye: string | null;
         servicio_id: string; servicios: { id: string; nombre: string } | null;
       };
       return ((data ?? []) as unknown as R[]).map((r) => ({
         id: r.id, servicio_id: r.servicio_id, nombre: r.servicios?.nombre ?? "?",
         precio: r.precio, precio_hasta: r.precio_hasta, descripcion: r.descripcion, foto_url: r.foto_url,
         modalidades: r.modalidades && r.modalidades.length > 0 ? r.modalidades : ["domicilio"],
+        unidad: esUnidad(r.unidad) ? r.unidad : "trabajo",
+        duracion_min: r.duracion_min ?? null,
+        garantia_dias: r.garantia_dias ?? 0,
+        materiales_incluidos: !!r.materiales_incluidos,
+        incluye: r.incluye, no_incluye: r.no_incluye,
       }));
     },
   });
@@ -712,6 +735,9 @@ function EditorPerfil() {
         initial={{
           banner_url: row.banner_url, color_perfil: row.color_perfil, titulo_profesional: row.titulo_profesional,
           anos_experiencia: row.anos_experiencia, comuna: row.comuna,
+          especialidades: row.especialidades ?? [], comunas_cobertura: row.comunas_cobertura ?? [], radio_km: row.radio_km ?? 15,
+          idiomas: row.idiomas ?? ["Español"], tiene_vehiculo: !!row.tiene_vehiculo,
+          herramientas_propias: row.herramientas_propias !== false, emite_boleta: !!row.emite_boleta,
         }}
       />
 
@@ -880,6 +906,12 @@ function ServicioEditCard({
   const [hasta, setHasta] = useState(s.precio_hasta);
   const [desc, setDesc] = useState(s.descripcion ?? "");
   const [modalidades, setModalidades] = useState<string[]>(s.modalidades);
+  const [unidad, setUnidad] = useState<UnidadCobro>(s.unidad);
+  const [duracion, setDuracion] = useState<number | null>(s.duracion_min);
+  const [garantia, setGarantia] = useState(s.garantia_dias);
+  const [materiales, setMateriales] = useState(s.materiales_incluidos);
+  const [incluye, setIncluye] = useState(s.incluye ?? "");
+  const [noIncluye, setNoIncluye] = useState(s.no_incluye ?? "");
   const [fotoUrl, setFotoUrl] = useState<string | null>(s.foto_url);
   const [fotoFile, setFotoFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(s.foto_url);
@@ -890,6 +922,8 @@ function ServicioEditCard({
     setPrecio(s.precio); setHasta(s.precio_hasta); setDesc(s.descripcion ?? "");
     setFotoUrl(s.foto_url); setPreview(s.foto_url); setFotoFile(null);
     setModalidades(s.modalidades);
+    setUnidad(s.unidad); setDuracion(s.duracion_min); setGarantia(s.garantia_dias); setMateriales(s.materiales_incluidos);
+    setIncluye(s.incluye ?? ""); setNoIncluye(s.no_incluye ?? "");
   }, [s]);
 
   function toggleModalidad(id: string) {
@@ -905,11 +939,17 @@ function ServicioEditCard({
     if (hasta > max) { toast.error("El precio hasta no puede superar el 50% sobre el precio desde."); return; }
     if (desc.length > MAX_DESC) { toast.error(`La descripción supera los ${MAX_DESC} caracteres.`); return; }
     if (modalidades.length === 0) { toast.error("Elige al menos una modalidad."); return; }
+    if (incluye.length > MAX_INCLUYE) { toast.error(`"Qué incluye" supera los ${MAX_INCLUYE} caracteres.`); return; }
+    if (noIncluye.length > MAX_NO_INCLUYE) { toast.error(`"Qué no incluye" supera los ${MAX_NO_INCLUYE} caracteres.`); return; }
     setSaving(true);
     try {
       let url = fotoUrl;
       if (fotoFile && userId) url = await subirAPerfiles(userId, fotoFile, `servicio-${s.servicio_id}`);
-      await onSave({ precio, precio_hasta: hasta, descripcion: desc.trim() || null, foto_url: url, modalidades });
+      await onSave({
+        precio, precio_hasta: hasta, descripcion: desc.trim() || null, foto_url: url, modalidades,
+        unidad, duracion_min: duracion, garantia_dias: garantia, materiales_incluidos: materiales,
+        incluye: incluye.trim() || null, no_incluye: noIncluye.trim() || null,
+      });
       setFotoUrl(url); setFotoFile(null);
       toast.success(`"${s.nombre}" actualizado`);
       setOpen(false);
@@ -931,7 +971,7 @@ function ServicioEditCard({
         <div className="min-w-0 flex-1">
           <div className="font-semibold text-sm truncate">{s.nombre}</div>
           <div className="text-xs text-muted-foreground">
-            {formatCLP(s.precio)} – {formatCLP(s.precio_hasta)} · {s.modalidades.map((m) => MODALIDAD_LABEL[m] ?? m).join(", ")}
+            {formatCLP(s.precio)} – {formatCLP(s.precio_hasta)} {UNIDAD_LABEL[s.unidad]} · {s.modalidades.map((m) => MODALIDAD_LABEL[m] ?? m).join(", ")}
           </div>
         </div>
         <ChevronDown className={`size-4 text-muted-foreground transition ${open ? "rotate-180" : ""}`} />
@@ -959,10 +999,61 @@ function ServicioEditCard({
             {precio >= 1000 && <> Máximo permitido: <strong>{formatCLP(max)}</strong>.</>}
           </p>
 
+          <div>
+            <span className="block text-xs font-medium mb-2">Unidad de cobro</span>
+            <SegmentedPanel options={UNIDADES.map((u) => ({ value: u, label: UNIDAD_LABEL[u] }))} value={unidad} onChange={setUnidad} />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <label className="block">
+              <span className="block text-xs font-medium mb-1">Duración estimada</span>
+              <select
+                value={duracion === null ? "null" : String(duracion)}
+                onChange={(e) => setDuracion(e.target.value === "null" ? null : Number(e.target.value))}
+                className="w-full h-11 px-3 rounded-xl bg-muted/50 border border-border outline-none focus:border-foreground/30 text-sm"
+              >
+                {DURACION_OPCIONES.map((o) => (
+                  <option key={String(o.value)} value={o.value === null ? "null" : String(o.value)}>{o.label}</option>
+                ))}
+              </select>
+            </label>
+            <div>
+              <span className="block text-xs font-medium mb-1">Garantía</span>
+              <SegmentedPanel options={GARANTIA_OPCIONES} value={garantia} onChange={setGarantia} />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-muted/40 border border-border">
+            <div className="min-w-0">
+              <div className="text-sm font-medium">Materiales incluidos en el precio</div>
+              <div className="text-xs text-muted-foreground mt-0.5">Si no, el cliente paga materiales aparte dentro del rango hasta.</div>
+            </div>
+            <button type="button" onClick={() => setMateriales((v) => !v)} aria-pressed={materiales}
+              className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition ${materiales ? "bg-[#00C288]" : "bg-[#D1D5DB]"}`}>
+              <span className={`inline-block size-5 rounded-full bg-white shadow transition ${materiales ? "translate-x-6" : "translate-x-1"}`} />
+            </button>
+          </div>
+
+          <label className="block">
+            <span className="block text-xs font-medium mb-1">Qué incluye</span>
+            <textarea rows={3} maxLength={MAX_INCLUYE} value={incluye} onChange={(e) => setIncluye(e.target.value)}
+              placeholder="Ej. Diagnóstico, mano de obra, prueba final y limpieza del área."
+              className="w-full p-3 rounded-xl bg-muted/50 border border-border outline-none focus:border-foreground/30 resize-none text-sm" />
+            <span className="block text-right text-[11px] text-muted-foreground mt-1">{incluye.length}/{MAX_INCLUYE}</span>
+          </label>
+
+          <label className="block">
+            <span className="block text-xs font-medium mb-1">Qué NO incluye</span>
+            <textarea rows={2} maxLength={MAX_NO_INCLUYE} value={noIncluye} onChange={(e) => setNoIncluye(e.target.value)}
+              placeholder="Ej. Materiales, repuestos de marca, trabajos en altura."
+              className="w-full p-3 rounded-xl bg-muted/50 border border-border outline-none focus:border-foreground/30 resize-none text-sm" />
+            <span className="block text-right text-[11px] text-muted-foreground mt-1">{noIncluye.length}/{MAX_NO_INCLUYE}</span>
+          </label>
+
           <label className="block">
             <span className="block text-xs font-medium mb-1">Descripción corta</span>
             <textarea rows={3} maxLength={MAX_DESC} value={desc} onChange={(e) => setDesc(e.target.value)}
-              placeholder="Qué incluye, materiales, tiempo estimado..."
+              placeholder="Una frase que resuma tu servicio y lo que te diferencia..."
               className="w-full p-3 rounded-xl bg-muted/50 border border-border outline-none focus:border-foreground/30 resize-none text-sm" />
             <span className="block text-right text-[11px] text-muted-foreground mt-1">{desc.length}/{MAX_DESC}</span>
           </label>
@@ -1146,6 +1237,13 @@ interface PerfilPublicoInitial {
   titulo_profesional: string | null;
   anos_experiencia: number | null;
   comuna: string | null;
+  especialidades: string[];
+  comunas_cobertura: string[];
+  radio_km: number;
+  idiomas: string[];
+  tiene_vehiculo: boolean;
+  herramientas_propias: boolean;
+  emite_boleta: boolean;
 }
 
 function PerfilPublicoCard({ prestadorId, userId, initial }: { prestadorId: string; userId: string; initial: PerfilPublicoInitial }) {
@@ -1157,10 +1255,19 @@ function PerfilPublicoCard({ prestadorId, userId, initial }: { prestadorId: stri
   const [titulo, setTitulo] = useState(initial.titulo_profesional ?? "");
   const [anos, setAnos] = useState<number>(initial.anos_experiencia ?? 0);
   const [comuna, setComuna] = useState(initial.comuna ?? "");
+  const [especialidades, setEspecialidades] = useState<string[]>(initial.especialidades);
+  const [comunasCobertura, setComunasCobertura] = useState<string[]>(initial.comunas_cobertura);
+  const [radioKm, setRadioKm] = useState(initial.radio_km);
+  const [idiomas, setIdiomas] = useState<string[]>(initial.idiomas);
+  const [tieneVehiculo, setTieneVehiculo] = useState(initial.tiene_vehiculo);
+  const [herramientasPropias, setHerramientasPropias] = useState(initial.herramientas_propias);
+  const [emiteBoleta, setEmiteBoleta] = useState(initial.emite_boleta);
   const [telefono, setTelefono] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [saving, setSaving] = useState(false);
   const bannerRef = useRef<HTMLInputElement>(null);
+  const row = usePrestadorRow();
+  const cat = useMemo(() => categories.find((c) => c.id === row?.categoria_id), [row?.categoria_id]);
 
   useEffect(() => {
     setBannerUrl(initial.banner_url); setBannerPreview(initial.banner_url); setBannerFile(null);
@@ -1169,6 +1276,13 @@ function PerfilPublicoCard({ prestadorId, userId, initial }: { prestadorId: stri
     setAnos(initial.anos_experiencia ?? 0);
     setComuna(initial.comuna ?? "");
   }, [initial.banner_url, initial.color_perfil, initial.titulo_profesional, initial.anos_experiencia, initial.comuna]);
+  const listasKey = `${initial.especialidades.join("|")}~${initial.comunas_cobertura.join("|")}~${initial.idiomas.join("|")}`;
+  useEffect(() => {
+    setEspecialidades(initial.especialidades); setComunasCobertura(initial.comunas_cobertura); setRadioKm(initial.radio_km);
+    setIdiomas(initial.idiomas); setTieneVehiculo(initial.tiene_vehiculo);
+    setHerramientasPropias(initial.herramientas_propias); setEmiteBoleta(initial.emite_boleta);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listasKey, initial.radio_km, initial.tiene_vehiculo, initial.herramientas_propias, initial.emite_boleta]);
 
   const contactoQ = useQuery({
     queryKey: ["prestador-contacto", prestadorId],
@@ -1188,6 +1302,8 @@ function PerfilPublicoCard({ prestadorId, userId, initial }: { prestadorId: stri
   async function guardar() {
     if (titulo.trim().length > 0 && titulo.trim().length < 3) { toast.error("El título profesional es muy corto."); return; }
     if (!Number.isFinite(anos) || anos < 0 || anos > 60) { toast.error("Ingresa tus años de experiencia (0 a 60)."); return; }
+    if (radioKm < 1 || radioKm > 200) { toast.error("El radio de cobertura debe estar entre 1 y 200 km."); return; }
+    if (idiomas.length === 0) { toast.error("Selecciona al menos un idioma."); return; }
     setSaving(true);
     try {
       let url = bannerUrl;
@@ -1195,6 +1311,8 @@ function PerfilPublicoCard({ prestadorId, userId, initial }: { prestadorId: stri
       const p = await supabase.from("prestadores").update({
         banner_url: url, color_perfil: color, titulo_profesional: titulo.trim() || null,
         anos_experiencia: anos, comuna: comuna.trim() || null,
+        especialidades, comunas_cobertura: comunasCobertura, radio_km: radioKm, idiomas,
+        tiene_vehiculo: tieneVehiculo, herramientas_propias: herramientasPropias, emite_boleta: emiteBoleta,
       }).eq("id", prestadorId);
       if (p.error) throw p.error;
       const c = await supabase.from("prestador_contacto").upsert({
@@ -1272,6 +1390,52 @@ function PerfilPublicoCard({ prestadorId, userId, initial }: { prestadorId: stri
             </label>
           </div>
 
+          <div>
+            <span className="block text-xs font-medium mb-1">Especialidades (máx. 8)</span>
+            <ChipsPanel value={especialidades} onChange={setEspecialidades} max={8}
+              suggestions={(cat?.services ?? [])} placeholder="Escribe y presiona Enter" />
+          </div>
+
+          <div>
+            <span className="block text-xs font-medium mb-1">Comunas donde atiendes</span>
+            <ChipsPanel value={comunasCobertura} onChange={setComunasCobertura} max={30}
+              suggestions={COMUNAS_SUGERIDAS} placeholder="Escribe una comuna y presiona Enter" />
+            <p className="text-[11px] text-muted-foreground mt-1">Si no agregas ninguna, se usa el radio en km desde tu dirección base.</p>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs font-medium">Radio de desplazamiento</span>
+              <span className="text-xs font-bold">{radioKm} km</span>
+            </div>
+            <input type="range" min={1} max={60} step={1} value={radioKm} onChange={(e) => setRadioKm(Number(e.target.value))} className="w-full accent-[#EF9F27]" />
+          </div>
+
+          <div>
+            <span className="block text-xs font-medium mb-2">Idiomas</span>
+            <div className="flex flex-wrap gap-2">
+              {IDIOMAS_OPCIONES.map((o) => {
+                const on = idiomas.includes(o);
+                return (
+                  <label key={o} className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl border text-sm cursor-pointer transition ${
+                    on ? "bg-[#111827] text-white border-[#111827]" : "bg-white border-border"
+                  }`}>
+                    <input type="checkbox" className="sr-only" checked={on}
+                      onChange={() => setIdiomas(on ? idiomas.filter((x) => x !== o) : [...idiomas, o])} />
+                    {on && <Check className="size-3.5" />}
+                    {o}
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <TogglePanel label="Tengo vehículo propio" value={tieneVehiculo} onChange={setTieneVehiculo} />
+            <TogglePanel label="Trabajo con mis propias herramientas" value={herramientasPropias} onChange={setHerramientasPropias} />
+            <TogglePanel label="Emito boleta o factura" value={emiteBoleta} onChange={setEmiteBoleta} />
+          </div>
+
           <div className="grid grid-cols-2 gap-3">
             <label className="block">
               <span className="block text-xs font-medium mb-1">Teléfono</span>
@@ -1309,6 +1473,87 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       <span className="block text-sm font-medium mb-2">{label}</span>
       {children}
     </label>
+  );
+}
+
+function SegmentedPanel<T extends string | number>({
+  options, value, onChange,
+}: { options: { value: T; label: string }[]; value: T; onChange: (v: T) => void }) {
+  return (
+    <div className="flex flex-wrap gap-1 p-1 rounded-xl bg-muted/60 border border-border">
+      {options.map((o) => {
+        const on = o.value === value;
+        return (
+          <button key={String(o.value)} type="button" onClick={() => onChange(o.value)} aria-pressed={on}
+            className={`flex-1 min-w-[4.5rem] h-9 px-2 rounded-lg text-xs font-semibold transition ${
+              on ? "bg-[#111827] text-white shadow-sm" : "text-[#374151] hover:bg-white"
+            }`}>
+            {o.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function TogglePanel({ label, value, onChange }: { label: string; value: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-muted/40 border border-border">
+      <div className="text-sm font-medium">{label}</div>
+      <button type="button" onClick={() => onChange(!value)} aria-pressed={value}
+        className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition ${value ? "bg-[#00C288]" : "bg-[#D1D5DB]"}`}>
+        <span className={`inline-block size-5 rounded-full bg-white shadow transition ${value ? "translate-x-6" : "translate-x-1"}`} />
+      </button>
+    </div>
+  );
+}
+
+function ChipsPanel({
+  value, onChange, suggestions, placeholder, max,
+}: { value: string[]; onChange: (v: string[]) => void; suggestions: string[]; placeholder?: string; max: number }) {
+  const [texto, setTexto] = useState("");
+  const lleno = value.length >= max;
+  const norm = (s: string) => s.trim().toLowerCase();
+  function agregar(raw: string) {
+    const v = raw.trim().replace(/\s+/g, " ");
+    if (!v || lleno) return;
+    if (!value.some((x) => norm(x) === norm(v))) onChange([...value, v]);
+    setTexto("");
+  }
+  const filtradas = suggestions
+    .filter((s) => !value.some((x) => norm(x) === norm(s)))
+    .filter((s) => !texto.trim() || norm(s).includes(norm(texto)))
+    .slice(0, 8);
+  return (
+    <div className="space-y-2">
+      {value.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {value.map((v) => (
+            <span key={v} className="inline-flex items-center gap-1 pl-2.5 pr-1 py-1 rounded-full bg-[#111827] text-white text-xs">
+              {v}
+              <button type="button" onClick={() => onChange(value.filter((x) => x !== v))} aria-label={`Quitar ${v}`} className="p-0.5 rounded-full hover:bg-white/20">
+                <X className="size-3" />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+      <input value={texto} onChange={(e) => setTexto(e.target.value)} disabled={lleno}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === ",") { e.preventDefault(); agregar(texto); } }}
+        onBlur={() => { if (texto.trim()) agregar(texto); }}
+        placeholder={lleno ? `Máximo ${max}` : placeholder}
+        className="w-full h-11 px-3 rounded-xl bg-muted/50 border border-border outline-none focus:border-foreground/30 text-sm disabled:opacity-60" />
+      {!lleno && filtradas.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {filtradas.map((s) => (
+            <button key={s} type="button" onClick={() => agregar(s)}
+              className="px-2.5 py-1 rounded-full bg-muted/60 border border-border text-xs text-[#374151] hover:bg-white transition">
+              + {s}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
