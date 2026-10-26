@@ -31,21 +31,20 @@ export const createPaymentPreference = createServerFn({ method: "POST" })
       throw new Error("Solo el cliente de la reserva puede pagar");
     }
 
-    // Use the price locked when the booking was created. The DB trigger
-    // `fill_reserva_total` computed reservas.total/comision server-side at
-    // insert time, so a provider raising prices later can't change what the
-    // client is charged.
+    // Modelo: el cliente paga exactamente el precio del profesional (menos cupón);
+    // la comisión de Homie se descuenta del pago al profesional. Un cupón lo
+    // absorbe Homie (costo de marketing), nunca el profesional.
     const total = Number(reserva.total);
     if (!total || total <= 0) throw new Error("No se pudo validar el precio del servicio");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rc } = await supabaseAdmin
       .from("reservas").select("comision, estado, descuento").eq("id", reserva.id).maybeSingle();
     if (rc?.estado === "cancelada") throw new Error("La reserva está cancelada");
-    // El descuento de un cupón lo absorbe Homie (sale de la comisión), nunca el profesional.
     const descuento = Number(rc?.descuento ?? 0);
-    const comisionBruta = Number(rc?.comision ?? Math.round(total - total / 1.15));
-    const montoPrestador = total - comisionBruta + descuento;
-    const comision = Math.max(0, total - montoPrestador);
+    const precio = total + descuento;
+    const comisionBruta = Number(rc?.comision ?? 0);
+    const montoPrestador = Math.max(0, precio - comisionBruta);
+    const comision = total - montoPrestador; // puede ser negativo si el cupón supera la comisión
     const serviceName =
       (reserva.servicios as { nombre?: string } | null)?.nombre ?? "Servicio Homie";
 
@@ -184,7 +183,7 @@ export const refundReserva = createServerFn({ method: "POST" })
 
 const proSchema = z.object({ planId: z.enum(["mensual", "anual"]) });
 
-/** Pago de Homie Pro (mensual/anual). La activación la hace el webhook al confirmar el pago. */
+/** Pago de Homie Premium (mensual/anual). La activación la hace el webhook al confirmar el pago. */
 export const createProPreference = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => proSchema.parse(input))
@@ -197,7 +196,7 @@ export const createProPreference = createServerFn({ method: "POST" })
     if (!usuario) throw new Error("Usuario no encontrado");
     const { data: prestador } = await context.supabase.from("prestadores").select("id, verificado").eq("usuario_id", usuario.id).maybeSingle();
     if (!prestador) throw new Error("No tienes perfil de profesional");
-    if (!prestador.verificado) throw new Error("Homie Pro se activa cuando tu perfil está verificado");
+    if (!prestador.verificado) throw new Error("Homie Premium se activa cuando tu perfil está verificado");
     const { data: plan } = await supabaseAdmin.from("planes_pro").select("*").eq("id", data.planId).eq("activo", true).maybeSingle();
     if (!plan) throw new Error("Plan no disponible");
 

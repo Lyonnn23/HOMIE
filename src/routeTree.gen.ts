@@ -46,6 +46,7 @@ import { Route as PrestadorIdRouteImport } from './routes/prestador.$id'
 import { Route as ReservarIdRouteImport } from './routes/reservar.$id'
 import { Route as ServicioServiceRouteImport } from './routes/servicio.$service'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated.admin.index'
+import { Route as AuthenticatedAdminConfigRouteImport } from './routes/_authenticated.admin.config'
 import { Route as AuthenticatedAdminCuponesRouteImport } from './routes/_authenticated.admin.cupones'
 import { Route as AuthenticatedAdminLiquidacionesRouteImport } from './routes/_authenticated.admin.liquidaciones'
 import { Route as AuthenticatedAdminMetricasRouteImport } from './routes/_authenticated.admin.metricas'
@@ -252,6 +253,12 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/admin/',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedAdminConfigRoute =
+  AuthenticatedAdminConfigRouteImport.update({
+    id: '/admin/config',
+    path: '/admin/config',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedAdminCuponesRoute =
   AuthenticatedAdminCuponesRouteImport.update({
     id: '/admin/cupones',
@@ -367,6 +374,7 @@ export interface FileRoutesByFullPath {
   '/prestador/$id': typeof PrestadorIdRoute
   '/reservar/$id': typeof ReservarIdRoute
   '/servicio/$service': typeof ServicioServiceRoute
+  '/admin/config': typeof AuthenticatedAdminConfigRoute
   '/admin/cupones': typeof AuthenticatedAdminCuponesRoute
   '/admin/liquidaciones': typeof AuthenticatedAdminLiquidacionesRoute
   '/admin/metricas': typeof AuthenticatedAdminMetricasRoute
@@ -418,6 +426,7 @@ export interface FileRoutesByTo {
   '/prestador/$id': typeof PrestadorIdRoute
   '/reservar/$id': typeof ReservarIdRoute
   '/servicio/$service': typeof ServicioServiceRoute
+  '/admin/config': typeof AuthenticatedAdminConfigRoute
   '/admin/cupones': typeof AuthenticatedAdminCuponesRoute
   '/admin/liquidaciones': typeof AuthenticatedAdminLiquidacionesRoute
   '/admin/metricas': typeof AuthenticatedAdminMetricasRoute
@@ -471,6 +480,7 @@ export interface FileRoutesById {
   '/prestador/$id': typeof PrestadorIdRoute
   '/reservar/$id': typeof ReservarIdRoute
   '/servicio/$service': typeof ServicioServiceRoute
+  '/_authenticated/admin/config': typeof AuthenticatedAdminConfigRoute
   '/_authenticated/admin/cupones': typeof AuthenticatedAdminCuponesRoute
   '/_authenticated/admin/liquidaciones': typeof AuthenticatedAdminLiquidacionesRoute
   '/_authenticated/admin/metricas': typeof AuthenticatedAdminMetricasRoute
@@ -524,6 +534,7 @@ export interface FileRouteTypes {
     | '/prestador/$id'
     | '/reservar/$id'
     | '/servicio/$service'
+    | '/admin/config'
     | '/admin/cupones'
     | '/admin/liquidaciones'
     | '/admin/metricas'
@@ -575,6 +586,7 @@ export interface FileRouteTypes {
     | '/prestador/$id'
     | '/reservar/$id'
     | '/servicio/$service'
+    | '/admin/config'
     | '/admin/cupones'
     | '/admin/liquidaciones'
     | '/admin/metricas'
@@ -627,6 +639,7 @@ export interface FileRouteTypes {
     | '/prestador/$id'
     | '/reservar/$id'
     | '/servicio/$service'
+    | '/_authenticated/admin/config'
     | '/_authenticated/admin/cupones'
     | '/_authenticated/admin/liquidaciones'
     | '/_authenticated/admin/metricas'
@@ -924,6 +937,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin/config': {
+      id: '/_authenticated/admin/config'
+      path: '/admin/config'
+      fullPath: '/admin/config'
+      preLoaderRoute: typeof AuthenticatedAdminConfigRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/admin/cupones': {
       id: '/_authenticated/admin/cupones'
       path: '/admin/cupones'
@@ -1053,6 +1073,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedVerificarIdentidadRoute: typeof AuthenticatedVerificarIdentidadRoute
   AuthenticatedYaRoute: typeof AuthenticatedYaRoute
   AuthenticatedYaPrestadorRoute: typeof AuthenticatedYaPrestadorRoute
+  AuthenticatedAdminConfigRoute: typeof AuthenticatedAdminConfigRoute
   AuthenticatedAdminCuponesRoute: typeof AuthenticatedAdminCuponesRoute
   AuthenticatedAdminLiquidacionesRoute: typeof AuthenticatedAdminLiquidacionesRoute
   AuthenticatedAdminMetricasRoute: typeof AuthenticatedAdminMetricasRoute
@@ -1088,6 +1109,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedVerificarIdentidadRoute: AuthenticatedVerificarIdentidadRoute,
   AuthenticatedYaRoute: AuthenticatedYaRoute,
   AuthenticatedYaPrestadorRoute: AuthenticatedYaPrestadorRoute,
+  AuthenticatedAdminConfigRoute: AuthenticatedAdminConfigRoute,
   AuthenticatedAdminCuponesRoute: AuthenticatedAdminCuponesRoute,
   AuthenticatedAdminLiquidacionesRoute: AuthenticatedAdminLiquidacionesRoute,
   AuthenticatedAdminMetricasRoute: AuthenticatedAdminMetricasRoute,

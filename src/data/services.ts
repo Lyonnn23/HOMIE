@@ -224,9 +224,39 @@ export interface ProviderDetail extends ProviderListItem {
 
 
 // ---------- Helpers ----------
-/** true si el profesional tiene Homie Pro vigente. */
+/** true si el profesional tiene Homie Premium vigente (columna `pro_hasta`). */
 export function esPro(proHasta: string | null | undefined): boolean {
   return !!proHasta && new Date(proHasta).getTime() > Date.now();
+}
+
+/** Umbrales para que Premium empuje en el ranking (espejo de config_publica). */
+export const RANKING_MIN_RATING_PREMIUM = 4.0;
+export const RANKING_MIN_RESENAS_PREMIUM = 3;
+
+/** Calificación ponderada (bayesiana): con pocas reseñas se acerca a 4.5. Espejo de `puntaje_ranking` en SQL. */
+export function ratingBayesiano(rating: number, reviewsCount: number): number {
+  return ((rating * reviewsCount) + (4.5 * 5)) / (reviewsCount + 5);
+}
+
+/** Premium solo destaca con buena reputación. */
+export function premiumDestaca(r: { premium: boolean; rating: number; reviewsCount: number }): boolean {
+  return r.premium && r.rating >= RANKING_MIN_RATING_PREMIUM && r.reviewsCount >= RANKING_MIN_RESENAS_PREMIUM;
+}
+
+/**
+ * Puntaje de reputación para ordenar resultados. Misma fórmula que `puntaje_ranking` en la BD
+ * (sin el ajuste por completadas/canceladas, que no se consulta en el listado).
+ */
+export function rankingScore(r: {
+  rating: number; reviewsCount: number; disponibleAhora: boolean; availability?: string | null; premium: boolean;
+}): number {
+  let v = ratingBayesiano(r.rating, r.reviewsCount) * 20; // 0..100
+  if (r.disponibleAhora) v += 8;
+  const disp = r.availability ?? "";
+  if (disp.includes("15 min")) v += 4;
+  else if (disp.includes("1 h")) v += 2;
+  if (premiumDestaca(r)) v += 12;
+  return Math.round(v * 100) / 100;
 }
 export const MODALIDAD_LABEL: Record<string, string> = { domicilio: "A domicilio", online: "Online", local: "En local" };
 

@@ -26,6 +26,8 @@ export interface Booking {
   clienteCalificacion?: number | null;
   cuponCodigo?: string | null;
   descuento?: number;
+  /** Comisión de Homie que se descuenta del pago al profesional (el cliente no la paga). */
+  comision?: number;
 }
 
 export type DbEstado = "pendiente" | "confirmada" | "en_camino" | "completada" | "cancelada";
@@ -39,7 +41,7 @@ const DB_TO_UI: Record<string, Booking["status"]> = {
 };
 
 const SELECT = `
-  id, fecha, hora, direccion, estado, nota, total, created_at,
+  id, fecha, hora, direccion, estado, nota, total, comision, created_at,
   completada_at, cancelada_por, motivo_cancelacion,
   cliente_calificacion, cupon_codigo, descuento,
   prestador_id, cliente_id, servicio_id,
@@ -50,7 +52,7 @@ const SELECT = `
 
 type Row = {
   id: string; fecha: string; hora: string; direccion: string;
-  estado: string; nota: string | null; total: number; created_at: string;
+  estado: string; nota: string | null; total: number; comision?: number | null; created_at: string;
   completada_at?: string | null; cancelada_por?: string | null; motivo_cancelacion?: string | null;
   cliente_calificacion?: number | null; cupon_codigo?: string | null; descuento?: number | null;
   prestador_id: string; cliente_id: string; servicio_id: string | null;
@@ -83,6 +85,7 @@ function mapRow(r: Row): Booking {
     clienteCalificacion: r.cliente_calificacion != null ? Number(r.cliente_calificacion) : null,
     cuponCodigo: r.cupon_codigo ?? null,
     descuento: r.descuento ?? 0,
+    comision: r.comision ?? 0,
   };
 }
 
@@ -182,7 +185,7 @@ export interface NewBookingInput {
   note?: string;
   price: number;
   modalidad?: "domicilio" | "online" | "local";
-  /** Código de cupón; la BD lo valida y descuenta del total (nunca bajo la comisión). */
+  /** Código de cupón; la BD lo valida y lo descuenta del total que paga el cliente. */
   cuponCodigo?: string | null;
 }
 

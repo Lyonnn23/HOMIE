@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
-  AlertTriangle, BadgeCheck, BarChart3, CalendarDays, ChevronRight, ClipboardList, Flag, LifeBuoy, Loader2, ShieldCheck, Ticket, Users, Wallet,
+  AlertTriangle, BadgeCheck, BarChart3, CalendarDays, ChevronRight, ClipboardList, Flag, LifeBuoy, Loader2, ShieldCheck, SlidersHorizontal, Ticket, Users, Wallet,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,6 +29,7 @@ const LINKS = [
   { label: "Soporte", desc: "Conversaciones con usuarios", to: "/admin/soporte" as const, icon: LifeBuoy },
   { label: "Métricas", desc: "Embudo de registros y reservas", to: "/admin/metricas" as const, icon: BarChart3 },
   { label: "Cupones", desc: "Descuentos y campañas", to: "/admin/cupones" as const, icon: Ticket },
+  { label: "Configuración de cobros", desc: "Comisiones, periodo gratis, Premium y ranking", to: "/admin/config" as const, icon: SlidersHorizontal },
 ];
 
 function AdminHome() {

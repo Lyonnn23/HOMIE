@@ -97,7 +97,7 @@ function AdminMetricas() {
         { label: "Ticket promedio", value: formatCLP(e.ticket_promedio) },
         { label: "Solicitudes / cotizaciones", value: `${e.solicitudes} / ${e.cotizaciones}` },
         { label: "Urgencias asignadas", value: `${e.urgencias_asignadas} / ${e.urgencias}` },
-        { label: "PRO activos", value: String(e.pro_activos), accent: "#EF9F27" },
+        { label: "Premium activos", value: String(e.pro_activos), accent: "#EF9F27" },
       ]
     : [];
 

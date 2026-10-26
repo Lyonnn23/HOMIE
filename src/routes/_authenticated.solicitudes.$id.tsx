@@ -329,7 +329,6 @@ function AceptarForm({ c, s }: { c: Cotizacion; s: Solicitud }) {
     onError: (e) => toast.error(e instanceof Error ? e.message : "No se pudo aceptar la cotización"),
   });
 
-  const comision = Math.round(c.precio * 0.15);
 
   return (
     <form
@@ -353,8 +352,8 @@ function AceptarForm({ c, s }: { c: Cotizacion; s: Solicitud }) {
         <input required value={direccion} onChange={(e) => setDireccion(e.target.value)} placeholder="Calle, número, depto" className={inputCls} />
       </label>
       <div className="text-xs text-muted-foreground flex justify-between">
-        <span>Servicio {formatCLP(c.precio)} + comisión Homie {formatCLP(comision)}</span>
-        <span className="font-bold text-[#111827]">Total {formatCLP(c.precio + comision)}</span>
+        <span>Servicio {formatCLP(c.precio)} · sin recargos</span>
+        <span className="font-bold text-[#111827]">Total {formatCLP(c.precio)}</span>
       </div>
       <button
         type="submit"

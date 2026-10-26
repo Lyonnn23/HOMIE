@@ -134,10 +134,10 @@ function EstadisticasPage() {
             <p className="text-sm text-white/70 mt-1">Así va tu negocio en Homie</p>
           </div>
           {pro ? (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#EF9F27] text-[#111827] text-xs font-bold"><Crown className="size-3.5" /> PRO</span>
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#EF9F27] text-[#111827] text-xs font-bold"><Crown className="size-3.5" /> Premium</span>
           ) : (
             <Link to="/pro" className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-[#EF9F27] text-[#111827] text-xs font-bold">
-              <Crown className="size-3.5" /> Hazte Pro
+              <Crown className="size-3.5" /> Hazte Premium
             </Link>
           )}
         </div>
@@ -152,10 +152,10 @@ function EstadisticasPage() {
               </span>
               <h2 className="mt-3 font-bold text-lg">Estadísticas de tu negocio</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Ingresos, reservas, tasa de aceptación, cotizaciones ganadas y vistas del perfil. Disponible con Homie Pro.
+                Ingresos, reservas, tasa de aceptación, cotizaciones ganadas y vistas del perfil. Disponible con Homie Premium (incluido gratis 3 meses al verificarte).
               </p>
               <Link to="/pro" className="btn-primary mt-4 w-full">
-                {p.pro_trial_usado ? "Ver planes Pro" : "Probar 30 días gratis"}
+                {p.pro_trial_usado ? "Ver planes Premium" : "Activar 3 meses gratis"}
               </Link>
             </div>
           </div>

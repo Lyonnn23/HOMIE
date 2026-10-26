@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import {
   CalendarCheck, MapPin, Check, X, Truck, CheckCircle2, Star, DollarSign, MessageCircle,
   LayoutDashboard, ListTodo, History, UserCog, Loader2, ChevronDown, ImagePlus, Clock, Palette, ExternalLink, MessageSquareQuote, ChevronRight, Zap,
-  Crown, FileText, Images, Trash2,
+  Crown, FileText, Images, Trash2, Gift,
 } from "lucide-react";
 import { HorarioEditor, parseHorario, validarHorario, type Horario } from "@/components/HorarioEditor";
 import { AppShell } from "@/components/AppShell";
@@ -416,8 +416,16 @@ function ProviderBookingCard({ b }: { b: Booking }) {
         <span className="inline-flex items-center gap-1"><MapPin className="size-3.5" />{b.address}</span>
       </div>
       {b.note && <p className="mt-2 text-xs text-muted-foreground italic">"{b.note}"</p>}
-      <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
-        <span className="font-semibold text-sm">{formatCLP(b.price)}</span>
+      <div className="mt-3 pt-3 border-t border-border flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <span className="font-semibold text-sm">{formatCLP(b.price)}</span>
+          {b.status === "completado" && b.comision != null && (
+            <div className="text-[11px] text-muted-foreground">
+              Tu pago: {formatCLP(Math.max(b.price + (b.descuento ?? 0) - b.comision, 0))}
+              {" "}(precio − comisión {Math.round((b.comision / Math.max(b.price + (b.descuento ?? 0), 1)) * 100)}%)
+            </div>
+          )}
+        </div>
         <div className="flex gap-2 flex-wrap">
           {b.status === "completado" && (
             <Link
@@ -493,7 +501,7 @@ function usePrestadorRow() {
     queryFn: async () => {
       const { data } = await supabase
         .from("prestadores")
-        .select("id, bio, direccion, precio_desde, disponible_ahora, categoria_id, calificacion_promedio, resenas_count, verificado, horario, banner_url, color_perfil, titulo_profesional, anos_experiencia, comuna, pro_hasta, pro_trial_usado, gallery_urls, especialidades, comunas_cobertura, radio_km, idiomas, tiene_vehiculo, herramientas_propias, emite_boleta")
+        .select("id, bio, direccion, precio_desde, disponible_ahora, categoria_id, calificacion_promedio, resenas_count, verificado, horario, banner_url, color_perfil, titulo_profesional, anos_experiencia, comuna, pro_hasta, pro_trial_usado, comision_gratis_hasta, gallery_urls, especialidades, comunas_cobertura, radio_km, idiomas, tiene_vehiculo, herramientas_propias, emite_boleta")
         .eq("usuario_id", usuario!.id)
         .maybeSingle();
       return data;
@@ -550,38 +558,70 @@ function AvailabilityToggle() {
   );
 }
 
+function fechaCL(iso: string) {
+  return new Date(iso).toLocaleDateString("es-CL", { day: "2-digit", month: "2-digit", year: "numeric" });
+}
+
+/** Banner de cobros: periodo gratis, tarifa vigente y Homie Premium. */
 function ProBanner() {
   const row = usePrestadorRow();
   if (!row) return null;
-  const pro = esPro(row.pro_hasta);
-  if (pro) {
-    const hasta = new Date(row.pro_hasta!).toLocaleDateString("es-CL", { day: "2-digit", month: "2-digit", year: "numeric" });
-    return (
-      <div className="p-4 rounded-2xl bg-[#111827] text-white flex items-center gap-3">
-        <span className="inline-flex size-10 rounded-xl bg-[#EF9F27] items-center justify-center shrink-0">
-          <Crown className="size-5 text-[#111827]" />
-        </span>
-        <div className="flex-1 min-w-0">
-          <div className="font-semibold text-sm">PRO hasta {hasta}</div>
-          <div className="text-xs text-white/70">Comisión 12% · destacado en tu rubro</div>
-        </div>
-        <Link to="/estadisticas" className="shrink-0 px-3 py-2 rounded-xl bg-white text-[#111827] text-xs font-bold">
-          Estadísticas
-        </Link>
-      </div>
-    );
-  }
+  const premium = esPro(row.pro_hasta);
+  const gratisHasta = row.comision_gratis_hasta ? new Date(row.comision_gratis_hasta) : null;
+  const enGratis = !!gratisHasta && gratisHasta.getTime() > Date.now();
+  const diasGratis = gratisHasta ? Math.max(0, Math.ceil((gratisHasta.getTime() - Date.now()) / 86_400_000)) : 0;
+  const tasaActual = enGratis ? 0 : premium ? 12 : 15;
+
   return (
-    <Link to="/pro" className="flex items-center gap-3 p-4 rounded-2xl bg-[#FAC775] text-[#111827] hover:bg-[#F7BB5E] transition">
-      <span className="inline-flex size-10 rounded-xl bg-[#111827] items-center justify-center shrink-0">
-        <Crown className="size-5 text-[#EF9F27]" />
-      </span>
-      <div className="flex-1 min-w-0">
-        <div className="font-semibold text-sm">{row.pro_trial_usado ? "Vuelve a ser Homie Pro" : "Prueba Homie Pro 30 días gratis"}</div>
-        <div className="text-xs text-[#854F0B]">Comisión 12%, primero en tu rubro, sello PRO y estadísticas</div>
-      </div>
-      <ChevronRight className="size-4 shrink-0" />
-    </Link>
+    <div className="space-y-2">
+      {enGratis ? (
+        <div className="p-4 rounded-2xl bg-[#00C288]/10 border border-[#00C288] text-[#111827]">
+          <div className="flex items-center gap-3">
+            <span className="inline-flex size-10 rounded-xl bg-[#00C288] items-center justify-center shrink-0">
+              <Gift className="size-5 text-white" />
+            </span>
+            <div className="flex-1 min-w-0">
+              <div className="font-semibold text-sm">Periodo gratis: sin comisión hasta {fechaCL(gratisHasta!.toISOString())}</div>
+              <div className="text-xs text-[#00754F]">Te quedan {diasGratis} {diasGratis === 1 ? "día" : "días"} · recibes el 100% de tu precio</div>
+            </div>
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">Después: 15% por servicio completado (12% con Premium).</p>
+        </div>
+      ) : (
+        <div className="p-4 rounded-2xl bg-white border border-border">
+          <div className="font-semibold text-sm">Comisión vigente: {tasaActual}% por servicio completado</div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {premium ? "Tarifa Premium. Tu periodo gratis ya terminó." : "Tu periodo gratis ya terminó. Con Homie Premium pagas 12% en vez de 15%."}
+          </p>
+        </div>
+      )}
+
+      {premium ? (
+        <div className="p-4 rounded-2xl bg-[#111827] text-white flex items-center gap-3">
+          <span className="inline-flex size-10 rounded-xl bg-gradient-to-br from-[#EF9F27] to-[#F5C56B] items-center justify-center shrink-0">
+            <Crown className="size-5 text-[#111827]" />
+          </span>
+          <div className="flex-1 min-w-0">
+            <div className="font-semibold text-sm">Premium hasta {fechaCL(row.pro_hasta!)}</div>
+            <div className="text-xs text-white/70">Comisión 12% después del periodo gratis · destacado dorado con buena reputación</div>
+          </div>
+          <Link to="/estadisticas" className="shrink-0 px-3 py-2 rounded-xl bg-white text-[#111827] text-xs font-bold">
+            Estadísticas
+          </Link>
+        </div>
+      ) : (
+        <Link to="/pro" className="flex items-center gap-3 p-4 rounded-2xl bg-[#FAC775] text-[#111827] hover:bg-[#F7BB5E] transition">
+          <span className="inline-flex size-10 rounded-xl bg-[#111827] items-center justify-center shrink-0">
+            <Crown className="size-5 text-[#EF9F27]" />
+          </span>
+          <div className="flex-1 min-w-0">
+            <div className="font-semibold text-sm">{row.pro_trial_usado ? "Vuelve a ser Homie Premium" : "Prueba Homie Premium 3 meses gratis"}</div>
+            <div className="text-xs text-[#854F0B]">Comisión 12% en vez de 15%, destacado dorado, estadísticas y comprobantes</div>
+          </div>
+          <ChevronRight className="size-4 shrink-0" />
+        </Link>
+      )}
+    </div>
   );
 }
 

@@ -655,6 +655,12 @@ export type Database = {
           },
         ]
       }
+      config_publica: {
+        Row: { clave: string; valor: number; descripcion: string | null }
+        Insert: { clave: string; valor: number; descripcion?: string | null }
+        Update: { clave?: string; valor?: number; descripcion?: string | null }
+        Relationships: []
+      }
       prestador_servicios: {
         Row: {
           descripcion: string | null
@@ -737,6 +743,8 @@ export type Database = {
       }
       prestadores: {
         Row: {
+          verificado_at: string | null
+          comision_gratis_hasta: string | null
           anos_experiencia: number | null
           antecedentes_ok: boolean
           banner_url: string | null
@@ -781,6 +789,8 @@ export type Database = {
           vistas: number
         }
         Insert: {
+          verificado_at?: string | null
+          comision_gratis_hasta?: string | null
           anos_experiencia?: number | null
           antecedentes_ok?: boolean
           banner_url?: string | null
@@ -825,6 +835,8 @@ export type Database = {
           vistas?: number
         }
         Update: {
+          verificado_at?: string | null
+          comision_gratis_hasta?: string | null
           anos_experiencia?: number | null
           antecedentes_ok?: boolean
           banner_url?: string | null
@@ -1698,6 +1710,8 @@ export type Database = {
       }
     }
     Functions: {
+      cfg: { Args: { _clave: string; _default: number }; Returns: number }
+      puntaje_ranking: { Args: { _prestador_id: string }; Returns: number }
       aceptar_cotizacion: {
         Args: {
           _cotizacion_id: string

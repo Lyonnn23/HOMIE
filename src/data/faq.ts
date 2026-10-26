@@ -23,7 +23,7 @@ export const FAQ_CLIENTES: FaqItem[] = [
   },
   {
     q: "¿Cuánto cobra Homie?",
-    a: "Para ti, nada. El precio que ves es el precio que pagas. Homie cobra al profesional una comisión del 15% solo sobre servicios completados.",
+    a: "Para ti, nada: pagas exactamente el precio del profesional, sin recargos. Homie cobra al profesional una comisión solo sobre servicios completados (gratis sus primeros 3 meses).",
   },
   {
     q: "¿Qué pasa si algo sale mal?",
@@ -46,7 +46,7 @@ export const FAQ_PROFESIONALES: FaqItem[] = [
   },
   {
     q: "¿Cuánto cobra Homie?",
-    a: "Una comisión del 15% sobre cada servicio completado. Sin mensualidad, sin costo por publicar y sin cobro por servicios cancelados.",
+    a: "Gratis los primeros 3 meses desde tu verificación. Después, 15% por servicio completado, 12% con Homie Premium. Sin costo por publicar y sin cobro por servicios cancelados. El cliente siempre paga exactamente tu precio.",
   },
   {
     q: "¿Cómo consigo más reservas?",

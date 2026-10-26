@@ -75,7 +75,6 @@ function ProviderPage() {
   const color = p.colorPerfil || cat.bg;
   const isOwner = !!usuario && !!p.usuarioId && usuario.id === p.usuarioId;
   const pro = esPro(p.proHasta);
-  const tasaPct = pro ? 12 : 15;
   const selectedService = service && p.services.some((s) => s.name === service)
     ? service
     : p.services[0]?.name;
@@ -89,7 +88,9 @@ function ProviderPage() {
           className="h-56 bg-cover bg-center"
           style={{
             backgroundImage: p.bannerUrl ? `url(${p.bannerUrl})` : undefined,
-            background: p.bannerUrl ? undefined : `linear-gradient(135deg, ${color} 0%, ${color}99 60%, #111827 140%)`,
+            background: p.bannerUrl ? undefined
+              : pro ? "linear-gradient(135deg, #EF9F27 0%, #F5C56B 55%, #111827 150%)"
+              : `linear-gradient(135deg, ${color} 0%, ${color}99 60%, #111827 140%)`,
           }}
         />
         {p.bannerUrl && <div className="absolute inset-0 h-56 bg-gradient-to-t from-black/50 to-transparent" />}
@@ -109,7 +110,7 @@ function ProviderPage() {
           <FavoriteButton prestadorId={p.id} size="lg" />
         </div>
         <div className="absolute -bottom-12 left-5">
-          <div className="relative rounded-full ring-[3px] ring-white shadow-md">
+          <div className={`relative rounded-full ring-[3px] shadow-md ${pro ? "ring-[#EF9F27]" : "ring-white"}`}>
             <ProviderAvatar url={p.avatarUrl} name={p.name} size={96} />
             <span
               className={`absolute bottom-1 right-1 size-5 rounded-full ring-2 ring-white ${p.disponibleAhora ? "bg-[#00C288]" : "bg-[#FF3B6B]"}`}
@@ -125,8 +126,8 @@ function ProviderPage() {
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-2xl font-bold text-[#111827] leading-tight">{p.name}</h1>
               {pro && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#111827] text-[#EF9F27] text-[11px] font-bold" title="Profesional Homie Pro">
-                  <Crown className="size-3" /> PRO
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-[#EF9F27] to-[#F5C56B] text-[#111827] text-[11px] font-bold" title="Profesional Homie Premium">
+                  <Crown className="size-3" /> Premium
                 </span>
               )}
             </div>
@@ -218,7 +219,7 @@ function ProviderPage() {
           </p>
           <div className="mt-3 space-y-2">
             {p.services.map((s) => (
-              <ServiceCard key={s.id} s={s} providerId={p.id} color={color} icon={cat.icon} tasaPct={tasaPct} />
+              <ServiceCard key={s.id} s={s} providerId={p.id} color={color} icon={cat.icon} />
             ))}
           </div>
         </section>
@@ -321,8 +322,8 @@ function DatoPractico({ icon: Icon, ok, label }: { icon: typeof Car; ok: boolean
 }
 
 function ServiceCard({
-  s, providerId, color, icon: Icon, tasaPct,
-}: { s: ProviderService; providerId: string; color: string; icon: typeof Car; tasaPct: number }) {
+  s, providerId, color, icon: Icon,
+}: { s: ProviderService; providerId: string; color: string; icon: typeof Car }) {
   const [open, setOpen] = useState(false);
   const tieneDetalle = !!(s.incluye || s.noIncluye);
   return (
@@ -374,9 +375,6 @@ function ServiceCard({
               <span className="text-xs text-[#6B7280]">– {formatCLP(s.priceTo)}</span>
             )}
             <span className="text-[11px] text-[#6B7280]">{UNIDAD_LABEL[s.unidad]}</span>
-            <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${color}1A`, color }}>
-              + {tasaPct}% servicio Homie
-            </span>
           </div>
         </div>
       </Link>

@@ -16,19 +16,20 @@ import { createProPreference } from "@/lib/mercadopago.functions";
 export const Route = createFileRoute("/_authenticated/pro")({
   validateSearch: z.object({ pago: z.enum(["exito", "pendiente", "error"]).optional() }),
   head: () => ({ meta: [
-    { name: "description", content: "Planes Homie Pro, prueba gratuita y estado de tu suscripción profesional." },
-    { property: "og:title", content: "Homie Pro — Homie" },
-    { property: "og:description", content: "Planes Homie Pro, prueba gratuita y estado de tu suscripción profesional." },
+    { name: "description", content: "Planes Homie Premium, 3 meses gratis incluidos y estado de tu membresía profesional." },
+    { property: "og:title", content: "Homie Premium — Homie" },
+    { property: "og:description", content: "Planes Homie Premium, 3 meses gratis incluidos y estado de tu membresía profesional." },
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary" },
-    { title: "Homie Pro — Homie" }] }),
+    { title: "Homie Premium — Homie" }] }),
   component: ProPage,
 });
 
 type PlanId = "mensual" | "anual";
 
 const TASA_NORMAL = 0.15;
-const TASA_PRO = 0.12;
+const TASA_PREMIUM = 0.12;
+const DIAS_TRIAL = 90;
 
 function fechaCL(iso: string) {
   return new Date(iso).toLocaleDateString("es-CL", { day: "2-digit", month: "2-digit", year: "numeric" });
@@ -42,7 +43,7 @@ function usePrestadorPro() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("prestadores")
-        .select("id, verificado, pro_hasta, pro_trial_usado, nombre")
+        .select("id, verificado, pro_hasta, pro_trial_usado, nombre, comision_gratis_hasta")
         .eq("usuario_id", usuario!.id)
         .maybeSingle();
       if (error) throw error;
@@ -80,12 +81,12 @@ function useSuscripciones(prestadorId: string | undefined) {
 }
 
 const BENEFICIOS: { icon: typeof Percent; title: string; sub: string }[] = [
-  { icon: Percent, title: "Comisión 12% en vez de 15%", sub: "El cliente paga menos tarifa por contratarte → más reservas para ti." },
-  { icon: Sparkles, title: "Destacado y primero en tu rubro", sub: "Apareces antes que el resto en búsquedas y listados de tu categoría." },
-  { icon: BadgeCheck, title: "Sello PRO en tu perfil", sub: "Una insignia visible que transmite seriedad y confianza." },
+  { icon: Percent, title: "Comisión 12% en vez de 15%", sub: "Después de tus 3 meses gratis, Homie descuenta menos de cada servicio completado: recibes más por el mismo precio." },
+  { icon: Sparkles, title: "Destacado dorado", sub: "Perfil y resultados con sello dorado. Empuja tu posición en el ranking si tienes buena reputación (4.0+ y 3 reseñas)." },
+  { icon: BadgeCheck, title: "Sello Premium en tu perfil", sub: "Una insignia visible que transmite seriedad y confianza." },
   { icon: BarChart3, title: "Estadísticas de tu negocio", sub: "Ingresos, reservas, aceptación, cotizaciones ganadas y vistas del perfil." },
   { icon: FileText, title: "Comprobante PDF por servicio", sub: "Un documento imprimible por cada trabajo completado." },
-  { icon: Gift, title: "30 días gratis, sin tarjeta", sub: "Prueba todo Homie Pro sin compromiso. Se activa al instante." },
+  { icon: Gift, title: "3 meses gratis, sin tarjeta", sub: "Incluido al verificar tu perfil. Sin compromiso ni renovación automática." },
 ];
 
 function ProPage() {
@@ -104,7 +105,7 @@ function ProPage() {
 
   useEffect(() => {
     if (!pago) return;
-    if (pago === "exito") toast.success("¡Pago recibido! Tu plan Pro se activa en unos segundos.");
+    if (pago === "exito") toast.success("¡Pago recibido! Tu plan Premium se activa en unos segundos.");
     else if (pago === "pendiente") toast.info("Tu pago está pendiente. Te avisaremos cuando se confirme.");
     else toast.error("El pago no se completó. Puedes intentarlo de nuevo.");
     qc.invalidateQueries({ queryKey: ["prestador-pro"] });
@@ -115,13 +116,16 @@ function ProPage() {
 
   const proActivo = esPro(p?.pro_hasta);
   const expirado = !!p?.pro_hasta && !proActivo;
+  // Trial incluido: Premium vigente, la prueba está usada y no hay suscripción pagada activa.
+  const enTrial = proActivo && !!p?.pro_trial_usado
+    && !(susQ.data ?? []).some((s) => s.estado === "pagada" && s.periodo_hasta && new Date(s.periodo_hasta).getTime() > Date.now());
 
   async function activarPrueba() {
     setActivando(true);
     try {
       const { data, error } = await supabase.rpc("activar_prueba_pro");
       if (error) throw error;
-      toast.success(`¡Homie Pro activado hasta el ${fechaCL(String(data))}!`);
+      toast.success(`¡Homie Premium activado hasta el ${fechaCL(String(data))}!`);
       qc.invalidateQueries({ queryKey: ["prestador-pro"] });
       qc.invalidateQueries({ queryKey: ["prestador-row"] });
       qc.invalidateQueries({ queryKey: ["suscripciones-pro"] });
@@ -148,7 +152,7 @@ function ProPage() {
     return (
       <AppShell>
         <div className="px-5 pt-16 text-center">
-          <h1 className="text-xl font-bold">Homie Pro es para profesionales</h1>
+          <h1 className="text-xl font-bold">Homie Premium es para profesionales</h1>
           <p className="mt-2 text-sm text-muted-foreground">Esta sección es para cuentas de tipo prestador.</p>
           <Link to="/" className="inline-block mt-6 btn-primary">Ir al inicio</Link>
         </div>
@@ -164,13 +168,13 @@ function ProPage() {
     <AppShell>
       {/* HERO */}
       <header className="bg-[#111827] text-white px-5 pt-8 pb-8 -mt-px">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EF9F27] text-[#111827] text-xs font-bold uppercase tracking-wide">
-          <Crown className="size-3.5" /> Homie Pro
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-[#EF9F27] to-[#F5C56B] text-[#111827] text-xs font-bold uppercase tracking-wide">
+          <Crown className="size-3.5" /> Homie Premium
         </div>
-        <h1 className="mt-4 title-1">Cobra menos comisión. Consigue más clientes.</h1>
+        <h1 className="mt-4 title-1">Paga menos comisión. Destaca con tu reputación.</h1>
         <p className="mt-2 text-sm text-white/75 max-w-lg">
-          Con Homie Pro tus clientes pagan 12% de tarifa en vez de 15%, apareces primero en tu rubro y tienes las
-          herramientas de un negocio profesional.
+          Tus clientes siempre pagan exactamente tu precio. Con Homie Premium, después de tus 3 meses gratis, Homie
+          descuenta 12% en vez de 15% por servicio completado, tu perfil luce dorado y tienes las herramientas de un negocio profesional.
         </p>
 
         {prestadorQ.isLoading ? (
@@ -186,8 +190,10 @@ function ProPage() {
               <Check className="size-5 text-[#111827]" />
             </span>
             <div>
-              <div className="font-bold">Pro hasta {fechaCL(p.pro_hasta!)}</div>
-              <div className="text-xs text-white/70">Puedes renovar antes y los días se suman a tu plan actual.</div>
+              <div className="font-bold">{enTrial ? `Incluido gratis hasta ${fechaCL(p.pro_hasta!)}` : `Premium hasta ${fechaCL(p.pro_hasta!)}`}</div>
+              <div className="text-xs text-white/70">
+                {enTrial ? "Tu Premium de regalo por verificarte. Puedes contratar un plan antes y los días se suman." : "Puedes renovar antes y los días se suman a tu plan actual."}
+              </div>
             </div>
             <Link to="/estadisticas" className="ml-auto shrink-0 px-3 py-2 rounded-xl bg-white text-[#111827] text-xs font-bold">
               Ver estadísticas
@@ -197,9 +203,9 @@ function ProPage() {
           <div className="mt-6 p-4 rounded-2xl bg-white/10 flex items-start gap-3">
             <ShieldAlert className="size-5 text-[#EF9F27] shrink-0 mt-0.5" />
             <div className="text-sm">
-              <div className="font-semibold">Homie Pro se activa cuando tu perfil está verificado</div>
+              <div className="font-semibold">Homie Premium se activa cuando tu perfil está verificado</div>
               <p className="text-white/70 text-xs mt-1">
-                Verifica tu identidad y antecedentes para desbloquear la prueba gratis y los planes Pro.
+                Verifica tu identidad y antecedentes: al verificarte recibes 3 meses de Premium gratis y 3 meses sin comisión.
               </p>
               <Link to="/verificar-identidad" className="inline-block mt-3 px-4 py-2 rounded-xl bg-[#EF9F27] text-[#111827] text-xs font-bold">
                 Verificarme ahora
@@ -212,12 +218,12 @@ function ProPage() {
             className="mt-6 w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-4 rounded-2xl bg-[#EF9F27] text-[#111827] text-base font-bold hover:bg-[#E08F17] disabled:opacity-60"
           >
             {activando ? <Loader2 className="size-5 animate-spin" /> : <Gift className="size-5" />}
-            Activar 30 días gratis
+            Activar 3 meses gratis
           </button>
         ) : (
           <div className="mt-6 p-4 rounded-2xl bg-white/10 text-sm">
-            <div className="font-semibold">{expirado ? `Tu plan Pro venció el ${fechaCL(p.pro_hasta!)}` : "Ya usaste tu prueba gratis"}</div>
-            <div className="text-xs text-white/70 mt-0.5">Elige un plan abajo para {expirado ? "volver a ser" : "ser"} Pro.</div>
+            <div className="font-semibold">{expirado ? `Tu Premium venció el ${fechaCL(p.pro_hasta!)}` : "Ya usaste tu periodo gratis"}</div>
+            <div className="text-xs text-white/70 mt-0.5">Elige un plan abajo para {expirado ? "volver a ser" : "ser"} Premium.</div>
           </div>
         )}
       </header>
@@ -287,14 +293,14 @@ function ProPage() {
               {susQ.isLoading ? (
                 <div className="p-6 text-center"><Loader2 className="size-4 mx-auto animate-spin" /></div>
               ) : (susQ.data?.length ?? 0) === 0 ? (
-                <div className="p-6 text-center text-sm text-muted-foreground">Aún no tienes suscripciones Pro.</div>
+                <div className="p-6 text-center text-sm text-muted-foreground">Aún no tienes suscripciones Premium.</div>
               ) : (
                 <ul className="divide-y divide-border">
                   {susQ.data!.map((s) => (
                     <li key={s.id} className="flex items-center gap-3 px-4 py-3 text-sm">
                       <div className="flex-1 min-w-0">
                         <div className="font-medium">
-                          {s.estado === "prueba" ? "Prueba gratis 30 días" : s.plan_id === "anual" ? "Homie Pro anual" : "Homie Pro mensual"}
+                          {s.estado === "prueba" ? `Premium gratis ${DIAS_TRIAL} días` : s.plan_id === "anual" ? "Homie Premium anual" : "Homie Premium mensual"}
                         </div>
                         <div className="text-xs text-muted-foreground">
                           {s.periodo_desde && s.periodo_hasta
@@ -360,7 +366,7 @@ function PlanCard({
 function Calculadora({ precioMensual, precioAnual }: { precioMensual: number; precioAnual: number }) {
   const [facturacion, setFacturacion] = useState(600000);
   const r = useMemo(() => {
-    const ahorroMes = Math.round(facturacion * (TASA_NORMAL - TASA_PRO));
+    const ahorroMes = Math.round(facturacion * (TASA_NORMAL - TASA_PREMIUM));
     return {
       ahorroMes,
       netoMensual: ahorroMes - precioMensual,
@@ -372,7 +378,7 @@ function Calculadora({ precioMensual, precioAnual }: { precioMensual: number; pr
     <section>
       <h2 className="title-3 flex items-center gap-2"><Calculator className="size-4" /> Ahorro estimado</h2>
       <p className="text-xs text-muted-foreground mt-1">
-        Con Pro, tus clientes pagan 3% menos de tarifa (12% en vez de 15%). Ese ahorro vuelve a ti en precio competitivo y más reservas.
+        Después del periodo gratis, con Premium Homie descuenta 12% en vez de 15% de cada servicio: el ahorro es 3% de tu facturación mensual.
       </p>
       <div className="card mt-3 p-4 space-y-4">
         <label className="block">
@@ -391,7 +397,7 @@ function Calculadora({ precioMensual, precioAnual }: { precioMensual: number; pr
         </label>
         <div className="grid grid-cols-3 gap-2 text-center">
           <div className="p-3 rounded-xl bg-[#F5F5F0]">
-            <div className="text-[11px] text-muted-foreground">Ahorro en tarifa / mes</div>
+            <div className="text-[11px] text-muted-foreground">Ahorro en comisión / mes</div>
             <div className="mt-1 font-bold text-[#111827]">{formatCLP(r.ahorroMes)}</div>
           </div>
           <div className="p-3 rounded-xl bg-[#F5F5F0]">
@@ -408,7 +414,7 @@ function Calculadora({ precioMensual, precioAnual }: { precioMensual: number; pr
           </div>
         </div>
         <p className="text-[11px] text-muted-foreground">
-          Cálculo referencial: 3% de tu facturación mensual menos el valor del plan. No incluye el efecto de aparecer primero en tu rubro.
+          Cálculo referencial: ahorro = 3% de tu facturación mensual, menos el valor del plan. No incluye el efecto del destacado dorado. Durante tus 3 meses gratis la comisión es 0% con o sin Premium.
         </p>
       </div>
     </section>

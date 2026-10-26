@@ -44,7 +44,7 @@ function useComprobante(reservaId: string) {
       const { data, error } = await supabase
         .from("reservas")
         .select(`
-          id, fecha, hora, direccion, estado, nota, total, comision, created_at, completada_at, modalidad,
+          id, fecha, hora, direccion, estado, nota, total, comision, descuento, cupon_codigo, created_at, completada_at, modalidad,
           prestador_nombre, cliente_nombre, prestador_id,
           servicios ( nombre ),
           pagos ( estado, monto_total, monto_prestador, comision, mp_payment_id, updated_at )
@@ -54,7 +54,7 @@ function useComprobante(reservaId: string) {
       if (error) throw error;
       type Row = {
         id: string; fecha: string; hora: string; direccion: string; estado: string; nota: string | null;
-        total: number; comision: number; created_at: string; completada_at: string | null; modalidad: string | null;
+        total: number; comision: number; descuento: number | null; cupon_codigo: string | null; created_at: string; completada_at: string | null; modalidad: string | null;
         prestador_nombre: string | null; cliente_nombre: string | null; prestador_id: string;
         servicios: { nombre: string } | null;
         pagos: { estado: string; monto_total: number; monto_prestador: number; comision: number; mp_payment_id: string | null; updated_at: string }[] | null;
@@ -86,8 +86,13 @@ function ComprobantePage() {
   }
 
   const pago = r.pagos?.find((p) => p.estado === "pagado") ?? r.pagos?.[0] ?? null;
-  const tarifa = r.comision ?? (pago?.comision ?? 0);
-  const precio = Math.max(0, (r.total ?? 0) - tarifa);
+  // Modelo: el cliente paga exactamente el precio del profesional (menos cupón). La comisión
+  // de Homie se descuenta del pago al profesional, nunca se suma al cliente.
+  const comision = Math.max(0, Number(r.comision ?? pago?.comision ?? 0));
+  const totalCliente = Number(r.total ?? pago?.monto_total ?? 0);
+  const descuento = Math.max(0, Number(r.descuento ?? 0));
+  const precio = totalCliente + descuento;
+  const pagoProfesional = Math.max(0, precio - comision);
   const numero = r.id.slice(0, 8).toUpperCase();
   const emitido = r.completada_at ?? r.created_at;
 
@@ -147,9 +152,12 @@ function ComprobantePage() {
 
           <div className="mt-6 rounded-2xl bg-[#F5F5F0] border border-border p-4 text-sm space-y-2">
             <Fila label="Precio del servicio" value={formatCLP(precio)} />
-            <Fila label="Tarifa de servicio Homie" value={formatCLP(tarifa)} />
+            {descuento > 0 && <Fila label={`Cupón${r.cupon_codigo ? ` ${r.cupon_codigo}` : ""}`} value={`− ${formatCLP(descuento)}`} />}
             <div className="h-px bg-border my-1" />
-            <Fila label="Total pagado por el cliente" value={formatCLP(r.total)} bold />
+            <Fila label="Total pagado por el cliente" value={formatCLP(totalCliente)} bold />
+            <Fila label="Comisión Homie (descontada al profesional)" value={comision > 0 ? `− ${formatCLP(comision)}` : "Sin comisión (periodo gratis)"} />
+            <Fila label="Recibe el profesional" value={formatCLP(pagoProfesional)} />
+            <p className="text-[11px] text-muted-foreground">Sin recargos para el cliente: paga exactamente el precio del profesional.</p>
             <Fila label="Estado de pago" value={pago ? (PAGO_LABEL[pago.estado] ?? pago.estado) : "Sin registro de pago"} />
             {pago?.mp_payment_id && <Fila label="Ref. Mercado Pago" value={pago.mp_payment_id} mono />}
           </div>

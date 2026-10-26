@@ -32,7 +32,7 @@ const PASOS_CLIENTE = [
 const PASOS_PRO = [
   { icon: IdCard, t: "Verifica tu identidad y tu rubro", d: "Sube tu cédula, una selfie, el certificado de antecedentes y un certificado o título del rubro. Revisamos a mano en 24 a 48 horas hábiles." },
   { icon: ListChecks, t: "Publica tus servicios con rango", d: "Para cada servicio fijas un precio desde y un precio hasta (máximo 1,5 veces el desde). Defines tu zona, tu horario y si aceptas urgencias." },
-  { icon: Banknote, t: "Trabaja y cobra seguro", d: "Recibes reservas pagadas por adelantado y retenidas en Mercado Pago. Al confirmar el cliente, el dinero llega a tu cuenta descontando el 15% de Homie." },
+  { icon: Banknote, t: "Trabaja y cobra seguro", d: "Recibes reservas pagadas por adelantado y retenidas en Mercado Pago. Al confirmar el cliente, el dinero llega a tu cuenta: el 100% tus primeros 3 meses y luego descontando la comisión de Homie (15%, o 12% con Premium)." },
 ];
 
 function ComoFuncionaPage() {
@@ -134,16 +134,18 @@ function ComoFuncionaPage() {
           <section className="bg-[#F3F4F6]">
             <div className="container-landing py-14 md:py-20 grid gap-10 md:grid-cols-2 md:gap-14 md:items-start">
               <div>
-                <h2 className="title-2 text-[#111827]">Comisión del 15%, nada más</h2>
+                <h2 className="title-2 text-[#111827]">Gratis 3 meses, después 15%</h2>
                 <p className="mt-3 text-[#4B5563] leading-relaxed max-w-[52ch]">
-                  Sin mensualidad, sin costo por publicar y sin cobro por reservas canceladas. Homie descuenta el 15% solo cuando un servicio se completa y el cliente confirma.
+                  El cliente paga exactamente tu precio, sin recargos. Tus primeros 3 meses desde la verificación no pagas comisión. Después, Homie descuenta 15% (12% con Homie Premium) solo cuando un servicio se completa y el cliente confirma. Sin costo por publicar ni por reservas canceladas.
                 </p>
                 <div className="mt-6 card p-5">
                   <div className="text-sm font-semibold text-[#6B7280]">Ejemplo</div>
                   <dl className="mt-3 space-y-2 text-sm">
-                    <div className="flex justify-between gap-4"><dt className="text-[#4B5563]">Servicio completado</dt><dd className="font-semibold tabular-nums">$30.000</dd></div>
-                    <div className="flex justify-between gap-4"><dt className="text-[#4B5563]">Comisión Homie (15%)</dt><dd className="font-semibold tabular-nums">− $4.500</dd></div>
-                    <div className="flex justify-between gap-4 border-t border-[#E5E7EB] pt-2"><dt className="font-semibold text-[#111827]">Recibes</dt><dd className="font-bold tabular-nums" style={{ color: "var(--bosque)" }}>$25.500</dd></div>
+                    <div className="flex justify-between gap-4"><dt className="text-[#4B5563]">Tu precio</dt><dd className="font-semibold tabular-nums">$30.000</dd></div>
+                    <div className="flex justify-between gap-4"><dt className="text-[#4B5563]">El cliente paga</dt><dd className="font-semibold tabular-nums">$30.000</dd></div>
+                    <div className="flex justify-between gap-4 border-t border-[#E5E7EB] pt-2"><dt className="font-semibold text-[#111827]">Recibes los primeros 3 meses</dt><dd className="font-bold tabular-nums" style={{ color: "var(--bosque)" }}>$30.000</dd></div>
+                    <div className="flex justify-between gap-4"><dt className="text-[#4B5563]">Después (15%)</dt><dd className="font-semibold tabular-nums">$25.500</dd></div>
+                    <div className="flex justify-between gap-4"><dt className="text-[#4B5563]">Después con Premium (12%)</dt><dd className="font-semibold tabular-nums">$26.400</dd></div>
                   </dl>
                 </div>
               </div>

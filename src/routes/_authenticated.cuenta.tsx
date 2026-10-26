@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronRight, Bell, CreditCard, HelpCircle, MapPin, Shield, LogOut, Heart, Scale, Accessibility, ShieldCheck, MessageSquareQuote, Gift, Star, LifeBuoy, SunMoon } from "lucide-react";
+import { ChevronRight, Bell, CreditCard, HelpCircle, MapPin, Shield, LogOut, Heart, Scale, Accessibility, ShieldCheck, MessageSquareQuote, Gift, Star, LifeBuoy, SunMoon, Crown } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { SelectorTema } from "@/components/SelectorTema";
 import { useBookings } from "@/store/bookings";
@@ -66,6 +66,7 @@ function Cuenta() {
     usuario?.tipo === "prestador"
       ? { icon: MessageSquareQuote, label: "Cotizar solicitudes", to: "/cotizar" }
       : { icon: MessageSquareQuote, label: "Mis solicitudes de cotización", to: "/solicitudes" },
+    ...(usuario?.tipo === "prestador" ? [{ icon: Crown, label: "Homie Premium", to: "/pro" }] : []),
     { icon: Gift, label: "Invita y gana $3.000", to: "/referidos" },
     { icon: MapPin, label: "Direcciones guardadas", to: "/direcciones" },
     { icon: CreditCard, label: "Métodos de pago", badge: "Próximamente" },

@@ -486,8 +486,8 @@ function Home() {
             <Link to="/pro" className="card card-link flex items-center gap-4 p-4 md:p-5 bg-[#111827] text-white border-transparent">
               <span className="size-11 rounded-full bg-[#EF9F27] flex items-center justify-center shrink-0"><Star className="size-5 text-[#111827]" /></span>
               <span className="min-w-0 flex-1">
-                <span className="block font-bold text-sm">Homie Pro: 30 días gratis</span>
-                <span className="block text-xs text-white/70">Comisión 12%, perfil destacado y estadísticas de tu negocio.</span>
+                <span className="block font-bold text-sm">Homie Premium: 3 meses gratis</span>
+                <span className="block text-xs text-white/70">Comisión 12% en vez de 15%, destacado dorado y estadísticas de tu negocio.</span>
               </span>
               <ChevronRight className="size-5 text-[#EF9F27]" />
             </Link>
@@ -778,8 +778,8 @@ function Home() {
                     <li className="flex items-start gap-3">
                       <Wallet className="size-5 mt-0.5 text-[#EF9F27] shrink-0" aria-hidden />
                       <span>
-                        Tú defines tu rango de precios. Homie cobra 15% solo por servicio
-                        completado.
+                        Tú defines tu precio y el cliente paga exactamente eso. Gratis 3 meses,
+                        después 15% solo por servicio completado.
                       </span>
                     </li>
                     <li className="flex items-start gap-3">

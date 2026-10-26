@@ -8,7 +8,7 @@ import { z } from "zod";
 import { AppShell } from "@/components/AppShell";
 import { ProviderAvatar } from "@/components/Avatar";
 import { useQuery } from "@tanstack/react-query";
-import { useProvider, formatCLP, DIAS, esPro, MODALIDAD_LABEL, type Horario, type DiaKey } from "@/data/services";
+import { useProvider, formatCLP, DIAS, MODALIDAD_LABEL, type Horario, type DiaKey } from "@/data/services";
 import { useAddBooking } from "@/store/bookings";
 import { useEnvioUnico } from "@/lib/doble-envio";
 import { createPaymentPreference } from "@/lib/mercadopago.functions";
@@ -150,13 +150,11 @@ function BookingPage() {
   if (!p) return <AppShell><div className="p-8">Prestador no encontrado</div></AppShell>;
 
   const selected = p.services.find((s) => s.name === serviceName) ?? p.services[0];
-  const pro = esPro(p.proHasta);
-  const tasa = pro ? 0.12 : 0.15;
+  // El cliente paga exactamente el precio del profesional (sin recargo). La comisión de Homie
+  // se descuenta del pago al profesional, igual que el trigger de la BD.
   const base = selected?.price ?? 0;
-  const fee = Math.round(base * tasa);
-  // El descuento se aplica sobre la tarifa del profesional; el total nunca baja de la comisión (igual que el trigger de la BD).
   const descuento = cupon ? Math.min(cupon.descuento, base) : 0;
-  const total = Math.max(base + fee - descuento, fee);
+  const total = Math.max(base - descuento, 0);
 
   async function aplicarCupon(codigoRaw: string) {
     const codigo = codigoRaw.trim().toUpperCase();
@@ -205,7 +203,7 @@ function BookingPage() {
         serviceId: selected.id,
         service: selected.name,
         // Se envía el total sin descuento: el trigger de la BD valida el cupón y descuenta.
-        date, time, address: esOnline ? "Online" : address.trim(), note, price: base + fee,
+        date, time, address: esOnline ? "Online" : address.trim(), note, price: base,
         modalidad: modalidadEfectiva,
         cuponCodigo: cupon?.codigo ?? null,
       });
@@ -394,8 +392,7 @@ function BookingPage() {
 
       <section className="px-5 mt-6">
         <div className="p-4 rounded-2xl bg-[#F5F5F0] border border-border space-y-2 text-sm">
-          <Row label={selected?.name ?? ""} value={formatCLP(base)} />
-          <Row label={`Comisión de servicio (${Math.round(tasa * 100)}%)${pro ? " · Pro" : ""}`} value={formatCLP(fee)} />
+          <Row label={selected?.name ?? "Precio del servicio"} value={formatCLP(base)} />
           {cupon && descuento > 0 && (
             <div className="flex items-center justify-between gap-3 text-[#00754F]">
               <span className="inline-flex items-center gap-1"><Ticket className="size-3.5" /> Cupón {cupon.codigo}</span>
@@ -406,7 +403,7 @@ function BookingPage() {
             <div className="mt-1 p-3 rounded-xl bg-white border border-border text-xs text-[#374151]">
               <div className="font-semibold text-[#111827]">Estimado del trabajo: {formatCLP(selected.price)} – {formatCLP(selected.priceTo)}</div>
               Hoy pagas el precio desde. Si el trabajo requiere materiales o tiempo extra, el profesional te lo informa
-              antes de empezar y el valor final <b>nunca puede superar {formatCLP(selected.priceTo)}</b> (más la comisión).
+              antes de empezar y el valor final <b>nunca puede superar {formatCLP(selected.priceTo)}</b>.
               Si te cobran más, repórtalo y Homie media.
             </div>
           )}
@@ -415,6 +412,7 @@ function BookingPage() {
             <span className="font-bold">Total</span>
             <span className="font-bold text-lg text-[#EF9F27]">{formatCLP(total)}</span>
           </div>
+          <p className="text-[11px] text-muted-foreground">Sin recargos: pagas exactamente el precio del profesional.</p>
         </div>
       </section>
 

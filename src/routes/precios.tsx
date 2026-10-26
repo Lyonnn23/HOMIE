@@ -92,7 +92,7 @@ function PreciosPage() {
           <div className="card p-4 md:p-5 flex items-start gap-3 text-sm text-[#4B5563] leading-relaxed">
             <Info className="size-5 shrink-0 mt-0.5" style={{ color: "var(--pacifico)" }} aria-hidden />
             <p className="max-w-[80ch]">
-              <strong className="text-[#111827]">Cómo leer la guía.</strong> El precio desde es lo que pagas al reservar. El precio hasta es el máximo posible si el trabajo requiere más: se acuerda antes de empezar y nunca se supera. Para ti no hay costo extra; Homie cobra al profesional una comisión del 15% solo por servicios completados.
+              <strong className="text-[#111827]">Cómo leer la guía.</strong> El precio desde es lo que pagas al reservar. El precio hasta es el máximo posible si el trabajo requiere más: se acuerda antes de empezar y nunca se supera. Para ti no hay costo extra: pagas exactamente el precio del profesional. Homie cobra al profesional una comisión solo por servicios completados (gratis sus primeros 3 meses; después 15%, o 12% con Premium).
             </p>
           </div>
         </div>

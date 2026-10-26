@@ -67,7 +67,7 @@ function TerminosPage() {
 
       <h2>6. Comisión de Homie</h2>
       <p>
-        Homie cobra al Profesional una <strong>comisión del 15%</strong> sobre el valor final de cada servicio completado, que se descuenta antes de transferir el pago. No se cobra comisión sobre reservas canceladas ni reembolsadas en su totalidad. Para el Cliente, el uso de Homie no tiene costo adicional al precio del servicio. Homie podrá modificar la comisión informándolo con al menos 30 días de anticipación.
+        Homie cobra al Profesional una <strong>comisión del 15%</strong> sobre el valor final de cada servicio completado (<strong>12%</strong> para Profesionales con Homie Premium vigente), que se descuenta antes de transferir el pago. Durante un <strong>periodo gratis de 90 días</strong> contados desde la verificación del perfil, la comisión es de 0%. No se cobra comisión sobre reservas canceladas ni reembolsadas en su totalidad. Para el Cliente, el uso de Homie <strong>no tiene recargo</strong>: paga exactamente el precio publicado por el Profesional, menos los cupones que aplique. Homie podrá modificar la comisión informándolo con al menos 30 días de anticipación.
       </p>
 
       <h2>7. Cancelaciones y reembolsos</h2>

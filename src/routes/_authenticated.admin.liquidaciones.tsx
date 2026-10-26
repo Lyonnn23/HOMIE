@@ -113,7 +113,7 @@ function AdminLiquidaciones() {
           <Link to="/admin" className="text-xs text-muted-foreground hover:underline">← Panel de administración</Link>
           <h1 className="title-2 flex items-center gap-2 mt-1"><Wallet className="size-6 text-[#EF9F27]" /> Liquidaciones</h1>
           <p className="lead mt-2 measure">
-            Homie recibe el pago completo en Mercado Pago. Cada semana transfiere a cada profesional el 85% de sus servicios completados.
+            Homie recibe el pago del cliente en Mercado Pago (exactamente el precio del profesional, sin recargo). Cada semana Homie transfiere a cada profesional su precio menos la comisión vigente: 0% durante sus 3 meses gratis, luego 15% (12% con Premium).
           </p>
         </header>
 

@@ -20,7 +20,7 @@ const FAQS = [
   },
   {
     q: "¿Cómo funcionan los pagos?",
-    a: "Pagas el total del servicio de forma segura dentro de la app. El precio incluye una comisión de servicio del 15% que nos permite operar la plataforma.",
+    a: "Pagas el precio del servicio de forma segura dentro de la app, sin recargos: pagas exactamente el precio del profesional. La comisión de Homie se descuenta del pago al profesional (gratis sus primeros 3 meses; después 15%, o 12% con Premium).",
   },
   {
     q: "¿Puedo cancelar una reserva?",

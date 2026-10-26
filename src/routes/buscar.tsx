@@ -12,7 +12,7 @@ import { MapaPrestadores } from "@/components/MapaPrestadores";
 import { HomieYaBanner } from "@/components/HomieYaBanner";
 import { ProviderAvatar } from "@/components/Avatar";
 import { Slider } from "@/components/ui/slider";
-import { categories, groups, categoriesOfGroup, formatCLP, esPro, type CategoryId } from "@/data/services";
+import { categories, groups, categoriesOfGroup, formatCLP, esPro, rankingScore, ratingBayesiano, premiumDestaca, type CategoryId } from "@/data/services";
 import { supabase } from "@/integrations/supabase/client";
 import { distanciaKm, type GeoPoint } from "@/lib/geocode";
 
@@ -67,6 +67,9 @@ interface ResultRow {
   bio: string;
   distanceKm: number;
   pro: boolean;
+  /** Premium con buena reputación (badge y empuje en el ranking). */
+  premiumDestacado: boolean;
+  availability: string | null;
 }
 
 const PRICE_MIN = 0;
@@ -83,7 +86,7 @@ function useSearchProviders(params: { q: string; cat: string; min: number; max: 
         .from("prestadores")
         .select(`
           id, categoria_id, nombre, foto_url, bio, calificacion_promedio, resenas_count,
-          precio_desde, disponible_ahora, distancia_km, lat, lng, pro_hasta,
+          precio_desde, disponible_ahora, disponibilidad_texto, distancia_km, lat, lng, pro_hasta,
           prestador_servicios ( servicios ( nombre ) )
         `);
 
@@ -100,7 +103,7 @@ function useSearchProviders(params: { q: string; cat: string; min: number; max: 
         id: string; categoria_id: string; bio: string | null;
         nombre: string | null; foto_url: string | null;
         calificacion_promedio: number; resenas_count: number;
-        precio_desde: number; disponible_ahora: boolean; distancia_km: number | null;
+        precio_desde: number; disponible_ahora: boolean; disponibilidad_texto: string | null; distancia_km: number | null;
         lat: number | null; lng: number | null; pro_hasta: string | null;
         prestador_servicios: { servicios: { nombre: string } | null }[] | null;
       };
@@ -108,7 +111,7 @@ function useSearchProviders(params: { q: string; cat: string; min: number; max: 
       const rows = (data ?? []) as unknown as Row[];
       const qLower = params.q.trim().toLowerCase();
 
-      const mapped: (ResultRow & { score: number })[] = rows.map((r) => {
+      const mapped: (ResultRow & { score: number; ranking: number })[] = rows.map((r) => {
         const services = (r.prestador_servicios ?? [])
           .map((ps) => ps.servicios?.nombre)
           .filter((x): x is string => !!x);
@@ -131,7 +134,7 @@ function useSearchProviders(params: { q: string; cat: string; min: number; max: 
           }
           if (nameLower.includes(qLower)) score += nameLower.startsWith(qLower) ? 50 : 25;
           if (bioLower.includes(qLower)) score += 10;
-          if (score === 0) return null as unknown as ResultRow & { score: number };
+          if (score === 0) return null as unknown as ResultRow & { score: number; ranking: number };
         }
 
         const lat = r.lat == null ? null : Number(r.lat);
@@ -141,12 +144,15 @@ function useSearchProviders(params: { q: string; cat: string; min: number; max: 
           ? Math.round(distanciaKm(origen, { lat, lng }) * 10) / 10
           : Number(r.distancia_km ?? 0);
 
+        const rating = Number(r.calificacion_promedio);
+        const premium = esPro(r.pro_hasta);
+        const rep = { rating, reviewsCount: r.resenas_count, disponibleAhora: r.disponible_ahora, availability: r.disponibilidad_texto, premium };
         return {
           id: r.id,
           name: r.nombre ?? "Prestador",
           avatarUrl: r.foto_url,
           categoryId: r.categoria_id as CategoryId,
-          rating: Number(r.calificacion_promedio),
+          rating,
           reviewsCount: r.resenas_count,
           pricePerHour: r.precio_desde,
           disponibleAhora: r.disponible_ahora,
@@ -155,27 +161,32 @@ function useSearchProviders(params: { q: string; cat: string; min: number; max: 
           distanceKm,
           lat,
           lng,
-          pro: esPro(r.pro_hasta),
+          pro: premium,
+          premiumDestacado: premiumDestaca(rep),
+          availability: r.disponibilidad_texto,
           score,
+          ranking: rankingScore(rep),
         };
-      }).filter(Boolean) as (ResultRow & { score: number })[];
+      }).filter(Boolean) as (ResultRow & { score: number; ranking: number })[];
 
       mapped.sort((a, b) => {
         switch (params.sort) {
-          case "rating":
+          case "rating": {
+            // Calificación ponderada: pocas reseñas no superan a muchas buenas
+            const rb = ratingBayesiano(b.rating, b.reviewsCount) - ratingBayesiano(a.rating, a.reviewsCount);
+            if (rb !== 0) return rb;
             if (b.rating !== a.rating) return b.rating - a.rating;
             return b.reviewsCount - a.reviewsCount;
+          }
           case "price":
             return a.pricePerHour - b.pricePerHour;
           case "distance":
             return (a.distanceKm || 999) - (b.distanceKm || 999);
           case "relevance":
           default:
-            // Prioridad: disponibles ahora, luego relevancia, luego los mejor calificados
-            if (a.disponibleAhora !== b.disponibleAhora) return a.disponibleAhora ? -1 : 1;
-            if (a.pro !== b.pro) return a.pro ? -1 : 1;
+            // Coincidencia con la búsqueda, luego reputación (calificaciones, disponibilidad; Premium solo si es bueno)
             if (b.score !== a.score) return b.score - a.score;
-            if (b.rating !== a.rating) return b.rating - a.rating;
+            if (b.ranking !== a.ranking) return b.ranking - a.ranking;
             return b.reviewsCount - a.reviewsCount;
         }
       });
@@ -387,6 +398,9 @@ function Buscar() {
           </select>
           </div>
         </div>
+        <p className="mt-1.5 text-[11px] text-muted-foreground">
+          Orden por reputación: calificaciones, servicios completados y respuesta. Premium destaca solo con buena reputación.
+        </p>
 
         {vista === "mapa" && !isLoading && (
           <MapaPrestadores items={results} className="mt-3" />
@@ -412,7 +426,7 @@ function Buscar() {
                     to="/prestador/$id"
                     params={{ id: r.id }}
                     search={{ service: r.matchedService }}
-                    className="flex items-center gap-3 p-3 rounded-2xl bg-white border border-border hover:bg-muted/40 transition"
+                    className={`flex items-center gap-3 p-3 rounded-2xl bg-white border border-border hover:bg-muted/40 transition ${r.pro ? "border-l-4 border-l-[#EF9F27]" : ""}`}
                   >
                     <ProviderAvatar url={r.avatarUrl} name={r.name} size={52} />
                     <div className="flex-1 min-w-0">
@@ -426,7 +440,7 @@ function Buscar() {
                           {r.disponibleAhora ? "Disponible" : "Ocupado"}
                         </span>
                         {r.pro && (
-                          <span className="shrink-0 px-1.5 py-0.5 rounded-full bg-[#111827] text-[#EF9F27] text-[10px] font-bold" title="Profesional Homie Pro">PRO</span>
+                          <span className="shrink-0 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-[#EF9F27] to-[#F5C56B] text-[#111827] text-[10px] font-bold" title="Profesional Homie Premium">Premium</span>
                         )}
                         {r.rating >= 4.8 && r.reviewsCount >= 5 && (
                           <span className="shrink-0 px-1.5 py-0.5 rounded-full bg-[#EF9F27] text-[#111827] text-[10px] font-bold">TOP</span>
