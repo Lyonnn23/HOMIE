@@ -1,10 +1,16 @@
 import { useRef, useState } from "react";
 import { Camera, Star, X } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 import { useAddReview, type Booking } from "@/store/bookings";
+import { moderarTexto } from "@/lib/moderacion.functions";
+import { evento } from "@/lib/analitica";
+import { useT } from "@/i18n";
 
-const LABELS = ["", "Muy malo", "Malo", "Regular", "Bueno", "Excelente"];
+const LABELS = ["", "review.l1", "review.l2", "review.l3", "review.l4", "review.l5"];
 
 export function ReviewModal({ b, onClose }: { b: Booking; onClose: () => void }) {
+  const { t } = useT();
   const [rating, setRating] = useState(5);
   const [hover, setHover] = useState(0);
   const [comment, setComment] = useState("");
@@ -13,6 +19,8 @@ export function ReviewModal({ b, onClose }: { b: Booking; onClose: () => void })
   const [err, setErr] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const addReview = useAddReview();
+  const moderar = useServerFn(moderarTexto);
+  const [moderando, setModerando] = useState(false);
   const display = hover || rating;
 
   function pickFile(f: File | null) {
@@ -23,6 +31,21 @@ export function ReviewModal({ b, onClose }: { b: Booking; onClose: () => void })
 
   async function submit() {
     setErr(null);
+    if (comment.trim()) {
+      setModerando(true);
+      try {
+        const mod = await moderar({ data: { texto: comment.trim(), origen: "resena" } });
+        if (!mod.ok) {
+          toast.error(mod.mensaje ?? t("review.normas"));
+          setErr(mod.mensaje ?? null);
+          return;
+        }
+      } catch {
+        /* la moderación nunca bloquea si falla: la base de datos aplica sus propias reglas */
+      } finally {
+        setModerando(false);
+      }
+    }
     try {
       await addReview.mutateAsync({
         reservaId: b.id,
@@ -31,10 +54,11 @@ export function ReviewModal({ b, onClose }: { b: Booking; onClose: () => void })
         comentario: comment,
         foto,
       });
+      evento("resena_enviada", { reserva_id: b.id, calificacion: rating, con_comentario: !!comment.trim(), con_foto: !!foto });
       import("@/lib/nativo").then((m) => m.vibrar("exito")).catch(() => {});
       onClose();
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "No se pudo publicar la reseña");
+      setErr(e instanceof Error ? e.message : t("review.errPublicar"));
     }
   }
 
@@ -43,7 +67,7 @@ export function ReviewModal({ b, onClose }: { b: Booking; onClose: () => void })
       <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-white rounded-3xl p-6 space-y-4">
         <div className="flex items-start justify-between">
           <div>
-            <h3 className="text-lg font-bold text-[#111827]">Califica a {b.providerName}</h3>
+            <h3 className="text-lg font-bold text-[#111827]">{t("review.califica", { nombre: b.providerName })}</h3>
             <p className="text-sm text-[#6B7280]">{b.service}</p>
           </div>
           <button onClick={onClose} className="p-1 -m-1 text-[#9CA3AF]"><X className="size-5" /></button>
@@ -58,20 +82,20 @@ export function ReviewModal({ b, onClose }: { b: Booking; onClose: () => void })
                 onMouseLeave={() => setHover(0)}
                 onClick={() => setRating(n)}
                 className="p-1 transition-transform hover:scale-110"
-                aria-label={`${n} estrellas`}
+                aria-label={t("review.estrellas", { n })}
               >
                 <Star className={`size-12 ${n <= display ? "fill-[#EF9F27] text-[#EF9F27]" : "text-[#E5E7EB]"}`} />
               </button>
             ))}
           </div>
-          <div className="text-sm font-semibold text-[#111827] h-5">{LABELS[display]}</div>
+          <div className="text-sm font-semibold text-[#111827] h-5">{LABELS[display] ? t(LABELS[display]) : ""}</div>
         </div>
 
         <textarea
           value={comment}
           onChange={(e) => setComment(e.target.value)}
           rows={3}
-          placeholder="Cuéntanos más sobre tu experiencia (opcional)"
+          placeholder={t("review.placeholder")}
           className="w-full px-4 py-3 rounded-2xl bg-[#F5F5F0] border border-[#E5E7EB] outline-none focus:border-[#EF9F27] resize-none text-sm"
         />
 
@@ -84,7 +108,7 @@ export function ReviewModal({ b, onClose }: { b: Booking; onClose: () => void })
         />
         {preview ? (
           <div className="relative">
-            <img src={preview} alt="Vista previa" className="w-full h-40 object-cover rounded-2xl" />
+            <img src={preview} alt={t("review.vistaPrevia")} className="w-full h-40 object-cover rounded-2xl" />
             <button
               onClick={() => pickFile(null)}
               className="absolute top-2 right-2 size-7 rounded-full bg-black/60 text-white flex items-center justify-center"
@@ -97,7 +121,7 @@ export function ReviewModal({ b, onClose }: { b: Booking; onClose: () => void })
             onClick={() => fileRef.current?.click()}
             className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-2xl border border-dashed border-[#E5E7EB] text-sm font-semibold text-[#6B7280] hover:bg-[#F5F5F0]"
           >
-            <Camera className="size-4 text-[#EF9F27]" /> Agregar foto del trabajo
+            <Camera className="size-4 text-[#EF9F27]" /> {t("review.agregarFoto")}
           </button>
         )}
 
@@ -105,14 +129,14 @@ export function ReviewModal({ b, onClose }: { b: Booking; onClose: () => void })
 
         <div className="space-y-2">
           <button
-            disabled={addReview.isPending}
+            disabled={addReview.isPending || moderando}
             onClick={submit}
             className="w-full py-3 rounded-2xl bg-[#EF9F27] text-[#111827] font-bold text-sm disabled:opacity-50"
           >
-            {addReview.isPending ? "Publicando..." : "Publicar reseña"}
+            {addReview.isPending || moderando ? t("review.publicando") : t("review.publicar")}
           </button>
           <button onClick={onClose} className="w-full py-3 text-sm font-semibold text-[#6B7280]">
-            Ahora no
+            {t("review.ahoraNo")}
           </button>
         </div>
       </div>

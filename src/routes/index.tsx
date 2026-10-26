@@ -23,12 +23,16 @@ import { StatsSkeleton, TextoSkeleton } from "@/components/Skeletons";
 import { TicketPrecio } from "@/components/TicketPrecio";
 import { Faq } from "@/components/Faq";
 import { supabase } from "@/integrations/supabase/client";
-import { FAQ_CLIENTES } from "@/data/faq";
+import { FAQ_CLIENTES_BY_LANG } from "@/data/faq";
+import { useT } from "@/i18n";
 import {
   categories,
   groups,
   categoriesOfGroup,
   formatCLP,
+  nombreGrupo,
+  taglineGrupo,
+  nombreCategoria,
   type CategoryId,
   type GroupId,
 } from "@/data/services";
@@ -72,48 +76,16 @@ const TOP_REQUESTED: { service: string; catId: CategoryId }[] = [
 ];
 
 const PASOS = [
-  {
-    n: 1,
-    t: "Busca y compara",
-    d: "Escribe lo que necesitas y revisa profesionales cerca de ti, con reseñas reales y su rango de precio publicado.",
-  },
-  {
-    n: 2,
-    t: "Reserva y paga protegido",
-    d: "Eliges fecha y hora y pagas el precio desde con Mercado Pago. El dinero queda retenido, no en manos del profesional.",
-  },
-  {
-    n: 3,
-    t: "Confirma y califica",
-    d: "Cuando el trabajo está listo, confirmas en la app y se libera el pago. Tu reseña ayuda a los que vienen después.",
-  },
+  { n: 1, t: "home.paso1t", d: "home.paso1d" },
+  { n: 2, t: "home.paso2t", d: "home.paso2d" },
+  { n: 3, t: "home.paso3t", d: "home.paso3d" },
 ];
 
 const DIFERENCIADORES = [
-  {
-    icon: FileCheck2,
-    color: "var(--bosque)",
-    t: "Verificados con certificado",
-    d: "Revisamos cédula, antecedentes y un certificado o título del rubro antes de publicar cada perfil.",
-  },
-  {
-    icon: Wallet,
-    color: "var(--ambar)",
-    t: "Rango de precio garantizado",
-    d: "Pagas el precio desde. Si el trabajo requiere más, lo sabes antes de empezar y nunca supera el hasta.",
-  },
-  {
-    icon: Lock,
-    color: "var(--pacifico)",
-    t: "Pago protegido",
-    d: "Mercado Pago retiene tu dinero y lo libera al profesional solo cuando confirmas que terminó.",
-  },
-  {
-    icon: Scale,
-    color: "var(--pizarra)",
-    t: "Mediación de Homie",
-    d: "Si algo sale mal, abres un reclamo y nuestro equipo resuelve en máximo 5 días hábiles.",
-  },
+  { icon: FileCheck2, color: "var(--bosque)", t: "home.dif1t", d: "home.dif1d" },
+  { icon: Wallet, color: "var(--ambar)", t: "home.dif2t", d: "home.dif2d" },
+  { icon: Lock, color: "var(--pacifico)", t: "home.dif3t", d: "home.dif3d" },
+  { icon: Scale, color: "var(--pizarra)", t: "home.dif4t", d: "home.dif4d" },
 ];
 
 interface Stats {
@@ -193,6 +165,7 @@ function useLandingData(enabled: boolean) {
 function Home() {
   const navigate = useNavigate();
   const { usuario } = useAuth();
+  const { t, idioma } = useT();
   const [query, setQuery] = useState("");
   const [openGroup, setOpenGroup] = useState<GroupId | null>(null);
   const [openCat, setOpenCat] = useState<CategoryId | null>(null);
@@ -251,20 +224,19 @@ function Home() {
               {visitante ? (
                 <>
                   <h1 id="hero-title" className="h-display reveal reveal-1 text-white max-w-[20ch]">
-                    Un profesional verificado en tu puerta, con precio acordado antes.
+                    {t("home.titulo")}
                   </h1>
                   <p className="lead reveal reveal-2 mt-4 text-white/75 max-w-[48ch]">
-                    Compara precios reales, reserva en minutos y paga protegido. El dinero se libera
-                    solo cuando confirmas.
+                    {t("home.sub")}
                   </p>
                 </>
               ) : (
                 <>
                   <h1 id="hero-title" className="title-1 reveal reveal-1 text-white">
-                    Hola, {firstName ?? "tú"}
+                    {firstName ? t("home.saludo", { nombre: firstName }) : t("home.hola")}
                   </h1>
                   <p className="reveal reveal-2 mt-1 text-base font-medium text-white/75">
-                    ¿Qué necesitas hoy?
+                    {t("home.queNecesitas")}
                   </p>
                 </>
               )}
@@ -279,7 +251,7 @@ function Home() {
                 }}
               >
                 <label htmlFor="buscar-servicio" className="sr-only">
-                  Busca lo que necesitas
+                  {t("home.buscaLabel")}
                 </label>
                 <Search
                   className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-[#6B7280]"
@@ -289,7 +261,7 @@ function Home() {
                   id="buscar-servicio"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Busca lo que necesitas: gasfíter, aseo, manicure…"
+                  placeholder={t("home.buscarPlaceholder")}
                   autoComplete="off"
                   className="w-full h-14 md:h-16 pl-12 pr-4 md:pr-36 rounded-[10px] bg-white text-[#111827] placeholder:text-[#9CA3AF] text-base outline-none border-2 border-transparent focus:border-[#EF9F27] transition-colors shadow-float"
                 />
@@ -297,13 +269,13 @@ function Home() {
                   type="submit"
                   className="btn-primary btn-sm absolute right-2 top-1/2 -translate-y-1/2 hidden md:inline-flex"
                 >
-                  Buscar
+                  {t("comun.buscar")}
                 </button>
 
                 {matches.length > 0 && (
                   <ul
                     className="absolute left-0 right-0 top-full mt-2 z-20 rounded-[14px] bg-white border border-[#E5E7EB] overflow-hidden text-[#111827] shadow-float"
-                    aria-label="Sugerencias"
+                    aria-label={t("home.sugerencias")}
                   >
                     {matches.map((m) => (
                       <li key={m.service}>
@@ -319,7 +291,7 @@ function Home() {
                         >
                           <span>
                             <span className="block text-sm font-semibold">{m.service}</span>
-                            <span className="block text-xs text-[#6B7280]">{m.cat.name}</span>
+                            <span className="block text-xs text-[#6B7280]">{nombreCategoria(m.cat.id, idioma)}</span>
                           </span>
                           <ChevronRight className="size-4 text-[#9CA3AF]" aria-hidden />
                         </button>
@@ -331,7 +303,7 @@ function Home() {
 
               {/* Más solicitados */}
               <div className="mt-5 reveal reveal-3">
-                <div className="text-sm font-medium text-white/60 mb-2">Más solicitados</div>
+                <div className="text-sm font-medium text-white/60 mb-2">{t("home.masSolicitados")}</div>
                 <div
                   className={`${visitante ? "-mx-5 px-5 md:mx-0 md:px-0 overflow-x-auto md:overflow-visible" : "-mx-5 px-5 overflow-x-auto"} no-scrollbar`}
                 >
@@ -370,19 +342,18 @@ function Home() {
               {visitante && (
                 <ul
                   className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-white/70 reveal reveal-4"
-                  aria-label="Garantías"
+                  aria-label={t("home.garantias")}
                 >
                   <li className="inline-flex items-center gap-2">
                     <BadgeCheck className="size-4" style={{ color: "#34D399" }} aria-hidden />{" "}
-                    Verificados con certificado
+                    {t("home.verificados")}
                   </li>
                   <li className="inline-flex items-center gap-2">
-                    <ShieldCheck className="size-4" style={{ color: "#67E8F9" }} aria-hidden /> Pago
-                    protegido con Mercado Pago
+                    <ShieldCheck className="size-4" style={{ color: "#67E8F9" }} aria-hidden />{" "}
+                    {t("home.pagoProtegidoMP")}
                   </li>
                   <li className="inline-flex items-center gap-2">
-                    <Scale className="size-4 text-[#EF9F27]" aria-hidden /> Mediación si algo sale
-                    mal
+                    <Scale className="size-4 text-[#EF9F27]" aria-hidden /> {t("home.mediacion")}
                   </li>
                 </ul>
               )}
@@ -405,16 +376,16 @@ function Home() {
         <div className="flex items-end justify-between gap-4 mb-5 md:mb-8">
           <div>
             <h2 id="grupos-title" className={visitante ? "title-2 text-[#111827]" : "section-title"}>
-              ¿Qué tipo de servicio buscas?
+              {t("home.queBuscas")}
             </h2>
             {visitante && (
               <p className="mt-2 text-[#6B7280]">
-                {categories.length} categorías y más de 150 servicios a domicilio.
+                {t("home.catsYServicios", { n: categories.length })}
               </p>
             )}
           </div>
           {!visitante && (
-            <span className="text-xs text-[#6B7280] shrink-0">{categories.length} categorías</span>
+            <span className="text-xs text-[#6B7280] shrink-0">{t("home.categorias", { n: categories.length })}</span>
           )}
         </div>
 
@@ -443,13 +414,13 @@ function Home() {
                 </div>
                 <div className="mt-auto pt-5">
                   <div className="text-[15px] md:text-base font-bold leading-tight text-[#111827]">
-                    {g.name}
+                    {nombreGrupo(g.id, idioma)}
                   </div>
                   <div className="text-xs md:text-[13px] text-[#6B7280] mt-1 line-clamp-2">
-                    {g.tagline}
+                    {taglineGrupo(g.id, idioma)}
                   </div>
                   <div className="text-[11px] text-[#9CA3AF] mt-1.5">
-                    {cats.length} categorías · {n} servicios
+                    {t("home.catsServiciosCount", { c: cats.length, s: n })}
                   </div>
                 </div>
               </button>
@@ -468,10 +439,10 @@ function Home() {
               </span>
               <span className="mt-auto pt-5 block">
                 <span className="block text-[15px] md:text-base font-bold leading-tight text-[#111827]">
-                  ¿No sabes qué pedir?
+                  {t("home.noSabes")}
                 </span>
                 <span className="block text-xs md:text-[13px] text-[#6B7280] mt-1">
-                  Describe el problema y recibe cotizaciones de varios profesionales.
+                  {t("home.noSabesSub")}
                 </span>
               </span>
             </Link>
@@ -486,8 +457,8 @@ function Home() {
             <Link to="/pro" className="card card-link flex items-center gap-4 p-4 md:p-5 bg-[#111827] text-white border-transparent">
               <span className="size-11 rounded-full bg-[#EF9F27] flex items-center justify-center shrink-0"><Star className="size-5 text-[#111827]" /></span>
               <span className="min-w-0 flex-1">
-                <span className="block font-bold text-sm">Homie Premium: 3 meses gratis</span>
-                <span className="block text-xs text-white/70">Comisión 12% en vez de 15%, destacado dorado y estadísticas de tu negocio.</span>
+                <span className="block font-bold text-sm">{t("home.premium")}</span>
+                <span className="block text-xs text-white/70">{t("home.premiumSub")}</span>
               </span>
               <ChevronRight className="size-5 text-[#EF9F27]" />
             </Link>
@@ -495,8 +466,8 @@ function Home() {
             <Link to="/ya" className="card card-link flex items-center gap-4 p-4 md:p-5 bg-[#FF3B6B] text-white border-transparent">
               <span className="size-11 rounded-full bg-white/20 flex items-center justify-center shrink-0"><Zap className="size-5 text-white" /></span>
               <span className="min-w-0 flex-1">
-                <span className="block font-bold text-sm">¿Es urgente? Homie Ya</span>
-                <span className="block text-xs text-white/85">Cerrajero, fuga de agua, corte de luz: un profesional disponible acepta en minutos.</span>
+                <span className="block font-bold text-sm">{t("home.urgente")}</span>
+                <span className="block text-xs text-white/85">{t("home.urgenteSub")}</span>
               </span>
               <ChevronRight className="size-5 text-white" />
             </Link>
@@ -513,14 +484,14 @@ function Home() {
               <div className="md:flex md:items-end md:justify-between gap-6">
                 <div>
                   <h2 id="como-title" className="title-2 text-[#111827]">
-                    Cómo funciona
+                    {t("home.como")}
                   </h2>
                   <p className="mt-2 text-[#6B7280] max-w-[52ch]">
-                    Tres pasos. Sin llamadas, sin regateos y sin sorpresas al final.
+                    {t("home.comoSub")}
                   </p>
                 </div>
                 <Link to="/como-funciona" className="btn-secondary btn-sm mt-4 md:mt-0 shrink-0">
-                  Ver el detalle
+                  {t("home.verDetalle")}
                 </Link>
               </div>
               <ol className="mt-8 md:mt-10 grid gap-4 md:grid-cols-3 md:gap-6">
@@ -532,8 +503,8 @@ function Home() {
                     >
                       {p.n}
                     </span>
-                    <h3 className="title-3 mt-4 text-[#111827]">{p.t}</h3>
-                    <p className="mt-2 text-sm text-[#4B5563] leading-relaxed">{p.d}</p>
+                    <h3 className="title-3 mt-4 text-[#111827]">{t(p.t)}</h3>
+                    <p className="mt-2 text-sm text-[#4B5563] leading-relaxed">{t(p.d)}</p>
                   </li>
                 ))}
               </ol>
@@ -544,22 +515,22 @@ function Home() {
           <section className="bg-white" aria-labelledby="porque-title">
             <div className="container-landing py-14 md:py-20">
               <h2 id="porque-title" className="title-2 text-[#111827]">
-                Por qué Homie
+                {t("home.porque")}
               </h2>
               <p className="mt-2 text-[#6B7280] max-w-[52ch]">
-                Lo que no encuentras en un directorio ni en un grupo de WhatsApp.
+                {t("home.porqueSub")}
               </p>
               <div className="mt-8 md:mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4 md:gap-6">
-                {DIFERENCIADORES.map(({ icon: Icon, color, t, d }) => (
-                  <article key={t} className="card p-5 md:p-6">
+                {DIFERENCIADORES.map(({ icon: Icon, color, t: tk, d }) => (
+                  <article key={tk} className="card p-5 md:p-6">
                     <span
                       className="inline-flex size-11 items-center justify-center rounded-[10px] bg-[#F3F4F6]"
                       aria-hidden
                     >
                       <Icon className="size-5" style={{ color }} />
                     </span>
-                    <h3 className="title-3 mt-4 text-[#111827]">{t}</h3>
-                    <p className="mt-2 text-sm text-[#4B5563] leading-relaxed">{d}</p>
+                    <h3 className="title-3 mt-4 text-[#111827]">{t(tk)}</h3>
+                    <p className="mt-2 text-sm text-[#4B5563] leading-relaxed">{t(d)}</p>
                   </article>
                 ))}
               </div>
@@ -590,38 +561,38 @@ function Home() {
             <section className="bg-[#F3F4F6]" aria-labelledby="testimonios-title">
               <div className="container-landing py-14 md:py-20">
                 <h2 id="testimonios-title" className="title-2 text-[#111827]">
-                  Lo que dicen los clientes
+                  {t("home.testimonios")}
                 </h2>
                 <p className="mt-2 text-[#6B7280]">
-                  Reseñas reales, escritas después de un servicio completado.
+                  {t("home.testimoniosSub")}
                 </p>
                 <ul className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3 md:gap-6">
-                  {testimonios.map((t) => {
-                    const cat = categories.find((c) => c.id === t.prestadores?.categoria_id);
+                  {testimonios.map((ts) => {
+                    const cat = categories.find((c) => c.id === ts.prestadores?.categoria_id);
                     return (
-                      <li key={t.id} className="card p-5 md:p-6 flex flex-col">
+                      <li key={ts.id} className="card p-5 md:p-6 flex flex-col">
                         <Quote className="size-5 text-[#EF9F27]" aria-hidden />
                         <p className="mt-3 text-[15px] text-[#111827] leading-relaxed flex-1">
-                          “{t.comentario}”
+                          “{ts.comentario}”
                         </p>
                         <div className="mt-4 flex items-center justify-between gap-3">
                           <div className="min-w-0">
                             <div className="text-sm font-semibold text-[#111827] truncate">
-                              {t.cliente_nombre ?? "Cliente de Homie"}
+                              {ts.cliente_nombre ?? t("home.clienteHomie")}
                             </div>
                             <div className="text-xs text-[#6B7280] truncate">
-                              {t.prestadores?.nombre
-                                ? `Sobre ${t.prestadores.nombre}`
-                                : "Servicio completado"}
-                              {cat ? ` · ${cat.name}` : ""}
+                              {ts.prestadores?.nombre
+                                ? t("home.sobre", { nombre: ts.prestadores.nombre })
+                                : t("home.servicioCompletado")}
+                              {cat ? ` · ${nombreCategoria(cat.id, idioma)}` : ""}
                             </div>
                           </div>
                           <span
                             className="inline-flex items-center gap-1 text-sm font-semibold text-[#111827] shrink-0"
-                            aria-label={`${t.calificacion} de 5`}
+                            aria-label={t("home.deCinco", { n: ts.calificacion })}
                           >
                             <Star className="size-4 fill-[#EF9F27] text-[#EF9F27]" aria-hidden />{" "}
-                            {t.calificacion}
+                            {ts.calificacion}
                           </span>
                         </div>
                       </li>
@@ -637,19 +608,17 @@ function Home() {
             <div className="container-landing py-14 md:py-20 grid gap-10 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] md:gap-14 md:items-start">
               <div>
                 <h2 id="precios-title" className="title-2 text-[#111827]">
-                  Precios claros antes de reservar
+                  {t("home.preciosClaros")}
                 </h2>
                 <p className="mt-3 text-[#4B5563] leading-relaxed max-w-[48ch]">
-                  Cada profesional publica un precio desde y un precio hasta. Pagas el desde al
-                  reservar. Si el trabajo requiere más, lo sabes antes de empezar y el total nunca
-                  supera el hasta.
+                  {t("home.preciosClarosSub")}
                 </p>
                 <div className="mt-6 max-w-[380px]">
                   <TicketPrecio
                     compact
                     flat
                     servicio="Electricista"
-                    detalle="Cambio de enchufe"
+                    detalle={t("home.detalleEnchufe")}
                     desde="$18.000"
                     hasta="$24.000"
                   />
@@ -657,12 +626,12 @@ function Home() {
               </div>
               <div>
                 <div className="flex items-center justify-between gap-4">
-                  <h3 className="title-3 text-[#111827]">Guía de precios</h3>
+                  <h3 className="title-3 text-[#111827]">{t("home.guiaPrecios")}</h3>
                   <Link
                     to="/precios"
                     className="text-sm font-semibold text-[#0E7490] hover:underline underline-offset-4"
                   >
-                    Ver la guía completa
+                    {t("home.verGuia")}
                   </Link>
                 </div>
                 {guia.length > 0 ? (
@@ -681,8 +650,8 @@ function Home() {
                                 {r.servicio}
                               </span>
                               <span className="block text-xs text-[#6B7280]">
-                                {cat?.name ?? "Servicio"} · {r.profesionales}{" "}
-                                {r.profesionales === 1 ? "profesional" : "profesionales"}
+                                {cat ? nombreCategoria(cat.id, idioma) : t("home.servicio")} · {r.profesionales}{" "}
+                                {r.profesionales === 1 ? t("comun.profesional") : t("comun.profesionales")}
                               </span>
                             </span>
                             <span className="text-sm font-semibold text-[#111827] shrink-0 tabular-nums">
@@ -697,8 +666,7 @@ function Home() {
                   </ul>
                 ) : (
                   <div className="mt-4 card p-5 text-sm text-[#4B5563] leading-relaxed">
-                    La guía se construye con los precios reales que publican los profesionales
-                    verificados. Revisa cualquier servicio para ver su rango.
+                    {t("home.guiaVacia")}
                   </div>
                 )}
               </div>
@@ -711,19 +679,17 @@ function Home() {
               <div className="rounded-[24px] bg-white border border-[#E5E7EB] p-6 md:p-10 md:flex md:items-center md:justify-between gap-10">
                 <div className="max-w-[56ch]">
                   <h2 id="cotiza-title" className="title-2 text-[#111827]">
-                    ¿Un trabajo más grande? Pide cotizaciones
+                    {t("home.cotizaTitulo")}
                   </h2>
                   <p className="mt-3 text-[#4B5563] leading-relaxed">
-                    Describe lo que necesitas, sube fotos y recibe propuestas de varios
-                    profesionales verificados. Comparas, eliges y reservas con el mismo pago
-                    protegido.
+                    {t("home.cotizaSub")}
                   </p>
                 </div>
                 <Link
                   to="/solicitar"
                   className="btn-primary mt-6 md:mt-0 shrink-0 w-full sm:w-auto"
                 >
-                  Pedir cotizaciones
+                  {t("home.pedirCotizaciones")}
                 </Link>
               </div>
             </div>
@@ -734,13 +700,13 @@ function Home() {
             <div className="container-landing py-14 md:py-20 grid gap-8 md:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)] md:gap-14">
               <div>
                 <h2 id="faq-title" className="title-2 text-[#111827]">
-                  Preguntas frecuentes
+                  {t("home.faq")}
                 </h2>
                 <p className="mt-2 text-[#6B7280]">
-                  Si no encuentras tu respuesta, escríbenos desde el centro de ayuda.
+                  {t("home.faqSub")}
                 </p>
               </div>
-              <Faq items={FAQ_CLIENTES} />
+              <Faq items={FAQ_CLIENTES_BY_LANG[idioma]} />
             </div>
           </section>
 
@@ -751,40 +717,33 @@ function Home() {
                 <div className="absolute inset-0 bg-dots-soft pointer-events-none" aria-hidden />
                 <div className="relative md:grid md:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] md:gap-10 md:items-center">
                   <div>
-                    <p className="text-sm font-semibold text-[#EF9F27]">Para profesionales</p>
+                    <p className="text-sm font-semibold text-[#EF9F27]">{t("home.paraPro")}</p>
                     <h2 id="pro-title" className="title-2 mt-2 text-white">
-                      ¿Ofreces un servicio? Trabaja con Homie
+                      {t("home.proTitulo")}
                     </h2>
                     <p className="mt-3 text-white/75 leading-relaxed max-w-[52ch]">
-                      Recibe clientes cerca de ti, cobra seguro con Mercado Pago y construye tu
-                      reputación con reseñas reales.
+                      {t("home.proSub")}
                     </p>
                     <Link
                       to="/registro"
                       search={{ tipo: "prestador" }}
                       className="btn-primary mt-6 w-full sm:w-auto"
                     >
-                      Quiero ofrecer mis servicios
+                      {t("home.uneteBtn")}
                     </Link>
                   </div>
                   <ul className="mt-8 md:mt-0 space-y-3 text-sm">
                     <li className="flex items-start gap-3">
                       <ShieldCheck className="size-5 mt-0.5 text-[#EF9F27] shrink-0" aria-hidden />
-                      <span>
-                        Solo profesionales verificados: cédula, antecedentes y certificado o
-                        estudios del rubro.
-                      </span>
+                      <span>{t("home.proLi1")}</span>
                     </li>
                     <li className="flex items-start gap-3">
                       <Wallet className="size-5 mt-0.5 text-[#EF9F27] shrink-0" aria-hidden />
-                      <span>
-                        Tú defines tu precio y el cliente paga exactamente eso. Gratis 3 meses,
-                        después 15% solo por servicio completado.
-                      </span>
+                      <span>{t("home.proLi2")}</span>
                     </li>
                     <li className="flex items-start gap-3">
                       <Star className="size-5 mt-0.5 text-[#EF9F27] shrink-0" aria-hidden />
-                      <span>Los mejor calificados aparecen primero.</span>
+                      <span>{t("home.proLi3")}</span>
                     </li>
                   </ul>
                 </div>
@@ -807,18 +766,17 @@ function Home() {
           <div className="rounded-[24px] bg-[#111827] text-white p-6 overflow-hidden relative">
             <div className="absolute inset-0 bg-dots-soft pointer-events-none" aria-hidden />
             <div className="relative">
-              <p className="text-sm font-semibold text-[#EF9F27]">Para profesionales</p>
-              <h2 className="title-2 mt-2 text-white">¿Ofreces un servicio? Trabaja con Homie</h2>
+              <p className="text-sm font-semibold text-[#EF9F27]">{t("home.paraPro")}</p>
+              <h2 className="title-2 mt-2 text-white">{t("home.proTitulo")}</h2>
               <p className="mt-2 text-sm text-white/75 leading-relaxed">
-                Recibe clientes cerca de ti, cobra seguro con Mercado Pago y construye tu reputación
-                con reseñas reales.
+                {t("home.proSub")}
               </p>
               <Link
                 to="/registro"
                 search={{ tipo: "prestador" }}
                 className="btn-primary mt-5 w-full sm:w-auto"
               >
-                Quiero ofrecer mis servicios
+                {t("home.uneteBtn")}
               </Link>
             </div>
           </div>
@@ -832,7 +790,7 @@ function Home() {
           onClick={() => setOpenGroup(null)}
           role="dialog"
           aria-modal="true"
-          aria-label={activeGroup.name}
+          aria-label={nombreGrupo(activeGroup.id, idioma)}
         >
           <div
             className="w-full max-w-2xl bg-white rounded-t-[24px] sm:rounded-[24px] p-5 max-h-[85vh] overflow-y-auto"
@@ -844,14 +802,14 @@ function Home() {
                   className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold"
                   style={{ backgroundColor: `${activeGroup.bg}1F`, color: activeGroup.bg }}
                 >
-                  <activeGroup.icon className="size-3.5" aria-hidden /> {activeGroup.name}
+                  <activeGroup.icon className="size-3.5" aria-hidden /> {nombreGrupo(activeGroup.id, idioma)}
                 </div>
-                <h3 className="title-2 mt-2 text-[#111827]">{activeGroup.tagline}</h3>
+                <h3 className="title-2 mt-2 text-[#111827]">{taglineGrupo(activeGroup.id, idioma)}</h3>
               </div>
               <button
                 onClick={() => setOpenGroup(null)}
                 className="p-2 rounded-full hover:bg-[#F3F4F6]"
-                aria-label="Cerrar"
+                aria-label={t("comun.cerrar")}
               >
                 <X className="size-5" />
               </button>
@@ -873,7 +831,7 @@ function Home() {
                       <Icon className="size-5 text-white" />
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block font-semibold text-sm text-[#111827]">{c.name}</span>
+                      <span className="block font-semibold text-sm text-[#111827]">{nombreCategoria(c.id, idioma)}</span>
                       <span className="block text-xs text-[#6B7280] truncate">
                         {c.services.slice(0, 4).join(" · ")}
                         {c.services.length > 4 ? " …" : ""}
@@ -896,7 +854,7 @@ function Home() {
           onClick={() => setOpenCat(null)}
           role="dialog"
           aria-modal="true"
-          aria-label={active.name}
+          aria-label={nombreCategoria(active.id, idioma)}
         >
           <div
             className="w-full max-w-2xl bg-white rounded-t-[24px] sm:rounded-[24px] p-5 max-h-[80vh] overflow-y-auto"
@@ -913,14 +871,14 @@ function Home() {
                     style={{ backgroundColor: active.bg }}
                     aria-hidden
                   />
-                  {active.services.length} servicios
+                  {t("comun.nServicios", { n: active.services.length })}
                 </div>
-                <h3 className="title-2 mt-2 text-[#111827]">{active.name}</h3>
+                <h3 className="title-2 mt-2 text-[#111827]">{nombreCategoria(active.id, idioma)}</h3>
               </div>
               <button
                 onClick={() => setOpenCat(null)}
                 className="p-2 rounded-full hover:bg-[#F3F4F6]"
-                aria-label="Volver"
+                aria-label={t("comun.volver")}
               >
                 <X className="size-5" />
               </button>
@@ -945,6 +903,7 @@ function Home() {
 }
 
 function GasCard() {
+  const { t } = useT();
   return (
     <Link to="/gas" className="card card-link flex items-center gap-4 p-4 md:p-5">
       <span
@@ -954,9 +913,9 @@ function GasCard() {
         <Flame className="size-5 text-white" />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block font-bold text-[15px] text-[#111827]">¿Te quedaste sin gas?</span>
+        <span className="block font-bold text-[15px] text-[#111827]">{t("home.sinGas")}</span>
         <span className="block text-sm text-[#6B7280] mt-0.5">
-          Distribuidoras abiertas cerca de ti, incluso de noche. Llama o pide cómo llegar.
+          {t("home.sinGasSub")}
         </span>
       </span>
       <ChevronRight className="size-5 text-[#9CA3AF] shrink-0" aria-hidden />
@@ -965,20 +924,22 @@ function GasCard() {
 }
 
 function StatsRow({ stats }: { stats: Stats | null | undefined }) {
+  const { t, idioma } = useT();
+  const locale = idioma === "es" ? "es-CL" : idioma === "pt" ? "pt-BR" : idioma === "ht" ? "fr-HT" : "en-US";
   const pocos = !stats || stats.profesionales < 10;
   if (pocos) {
     return (
       <p className="mt-10 md:mt-12 inline-flex items-center gap-2 text-sm font-medium text-[#111827] bg-[#F3F4F6] rounded-full px-4 py-2">
         <BadgeCheck className="size-4" style={{ color: "var(--bosque)" }} aria-hidden />
-        Nuevos profesionales verificados cada semana
+        {t("home.nuevosPro")}
       </p>
     );
   }
   const items = [
-    { v: stats.profesionales.toLocaleString("es-CL"), l: "profesionales verificados" },
-    { v: stats.servicios_completados.toLocaleString("es-CL"), l: "servicios completados" },
-    { v: Number(stats.calificacion).toFixed(1).replace(".", ","), l: "calificación promedio" },
-    { v: stats.resenas.toLocaleString("es-CL"), l: "reseñas reales" },
+    { v: stats.profesionales.toLocaleString(locale), l: t("home.statPro") },
+    { v: stats.servicios_completados.toLocaleString(locale), l: t("home.statServicios") },
+    { v: Number(stats.calificacion).toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }), l: t("home.statCalif") },
+    { v: stats.resenas.toLocaleString(locale), l: t("home.statResenas") },
   ].filter((x) => x.v !== "0");
   return (
     <dl className="mt-10 md:mt-12 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 border-t border-[#E5E7EB] pt-8">

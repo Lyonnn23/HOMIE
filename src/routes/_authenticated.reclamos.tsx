@@ -8,6 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useBookings, useProviderBookings, type Booking } from "@/store/bookings";
 import { mensajeError } from "@/lib/errores";
+import { useT } from "@/i18n";
+import { localeDe } from "@/i18n/estados";
 
 export const Route = createFileRoute("/_authenticated/reclamos")({
   head: () => ({ meta: [
@@ -36,10 +38,10 @@ interface ReclamoRow {
 }
 
 const ESTADO_LABEL: Record<string, string> = {
-  abierto: "Abierto",
-  en_revision: "En revisión",
-  resuelto: "Resuelto",
-  cerrado: "Cerrado",
+  abierto: "reclamos.abierto",
+  en_revision: "reclamos.enRevision",
+  resuelto: "reclamos.resuelto",
+  cerrado: "reclamos.cerrado",
 };
 
 const ESTADO_STYLE: Record<string, string> = {
@@ -50,6 +52,7 @@ const ESTADO_STYLE: Record<string, string> = {
 };
 
 function ReclamosPage() {
+  const { t } = useT();
   const { usuario } = useAuth();
   const qc = useQueryClient();
   const clienteBookings = useBookings();
@@ -83,7 +86,7 @@ function ReclamosPage() {
 
   const enviar = useMutation({
     mutationFn: async () => {
-      if (!usuario?.id) throw new Error("Debes iniciar sesión");
+      if (!usuario?.id) throw new Error(t("reclamos.debesIniciar"));
       const { error } = await supabase.from("reclamos").insert({
         autor_id: usuario.id,
         tipo,
@@ -94,22 +97,22 @@ function ReclamosPage() {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success(tipo === "reclamo" ? "Reclamo enviado. Te responderemos pronto." : "¡Gracias por tu sugerencia!");
+      toast.success(tipo === "reclamo" ? t("reclamos.enviadoReclamo") : t("reclamos.graciasSugerencia"));
       setAsunto("");
       setDetalle("");
       setReservaId("");
       setErrores({});
       qc.invalidateQueries({ queryKey: ["reclamos", "mios"] });
     },
-    onError: (e: Error) => toast.error(mensajeError(e, "No se pudo enviar el reclamo.")),
+    onError: (e: Error) => toast.error(mensajeError(e, t("reclamos.errEnviar"), t)),
   });
 
   const validar = () => {
     const err: typeof errores = {};
     const a = asunto.trim();
     const d = detalle.trim();
-    if (a.length < 3 || a.length > 120) err.asunto = "El asunto debe tener entre 3 y 120 caracteres.";
-    if (d.length < 10 || d.length > 2000) err.detalle = "El detalle debe tener entre 10 y 2000 caracteres.";
+    if (a.length < 3 || a.length > 120) err.asunto = t("reclamos.errAsunto");
+    if (d.length < 10 || d.length > 2000) err.detalle = t("reclamos.errDetalle");
     setErrores(err);
     return Object.keys(err).length === 0;
   };
@@ -121,17 +124,16 @@ function ReclamosPage() {
   };
 
   const bookingLabel = (b: Booking) => {
-    const quien = b.clientId === usuario?.id ? `con ${b.providerName}` : `para ${b.clientName}`;
+    const quien = b.clientId === usuario?.id ? t("reclamos.con", { nombre: b.providerName }) : t("reclamos.para", { nombre: b.clientName });
     return `${b.service} · ${b.date} ${b.time} · ${quien}`;
   };
 
   return (
     <AppShell>
       <header className="px-5 pt-6 pb-4">
-        <h1 className="title-1">Reclamos y sugerencias</h1>
+        <h1 className="title-1">{t("reclamos.titulo")}</h1>
         <p className="mt-2 text-sm text-[#6B7280] leading-relaxed">
-          Si tuviste un problema con un servicio, Homie actúa como mediador entre cliente y profesional. También puedes
-          dejarnos sugerencias.
+          {t("reclamos.sub")}
         </p>
       </header>
 
@@ -139,8 +141,7 @@ function ReclamosPage() {
         <div className="p-4 rounded-2xl bg-[#111827] text-white flex items-start gap-3">
           <Scale className="size-5 text-[#EF9F27] shrink-0 mt-0.5" />
           <p className="text-sm text-white/80">
-            Nuestro equipo revisa cada caso, contacta a ambas partes y busca una solución justa. Te responderemos aquí
-            mismo.
+            {t("reclamos.equipo")}
           </p>
         </div>
       </section>
@@ -148,16 +149,16 @@ function ReclamosPage() {
       <section className="px-5 mt-6">
         <form onSubmit={onSubmit} className="p-5 rounded-2xl bg-white border border-border space-y-4" noValidate>
           <fieldset>
-            <legend className="text-sm font-semibold mb-2">¿Qué quieres enviar?</legend>
+            <legend className="text-sm font-semibold mb-2">{t("reclamos.queEnviar")}</legend>
             <div className="grid grid-cols-2 gap-2 p-1 rounded-2xl bg-[#F5F5F0]" role="radiogroup">
-              <SegBtn active={tipo === "reclamo"} onClick={() => setTipo("reclamo")} icon={MessageSquareWarning} label="Reclamo" />
-              <SegBtn active={tipo === "sugerencia"} onClick={() => setTipo("sugerencia")} icon={Lightbulb} label="Sugerencia" />
+              <SegBtn active={tipo === "reclamo"} onClick={() => setTipo("reclamo")} icon={MessageSquareWarning} label={t("reclamos.reclamo")} />
+              <SegBtn active={tipo === "sugerencia"} onClick={() => setTipo("sugerencia")} icon={Lightbulb} label={t("reclamos.sugerencia")} />
             </div>
           </fieldset>
 
           <div>
             <label htmlFor="reserva" className="block text-sm font-semibold mb-1">
-              Reserva relacionada <span className="font-normal text-muted-foreground">(opcional)</span>
+              {t("reclamos.reservaRelacionada")} <span className="font-normal text-muted-foreground">{t("reclamos.opcional")}</span>
             </label>
             <select
               id="reserva"
@@ -165,7 +166,7 @@ function ReclamosPage() {
               onChange={(e) => setReservaId(e.target.value)}
               className="w-full px-4 py-3 rounded-2xl border border-border bg-white text-sm"
             >
-              <option value="">Sin reserva específica</option>
+              <option value="">{t("reclamos.sinReserva")}</option>
               {bookings.map((b) => (
                 <option key={b.id} value={b.id}>
                   {bookingLabel(b)}
@@ -176,7 +177,7 @@ function ReclamosPage() {
 
           <div>
             <label htmlFor="asunto" className="block text-sm font-semibold mb-1">
-              Asunto
+              {t("reclamos.asunto")}
             </label>
             <input
               id="asunto"
@@ -184,7 +185,7 @@ function ReclamosPage() {
               value={asunto}
               onChange={(e) => setAsunto(e.target.value)}
               maxLength={120}
-              placeholder={tipo === "reclamo" ? "Ej: El profesional no llegó a la hora" : "Ej: Me gustaría poder pagar en cuotas"}
+              placeholder={tipo === "reclamo" ? t("reclamos.asuntoReclamo") : t("reclamos.asuntoSugerencia")}
               aria-invalid={!!errores.asunto}
               aria-describedby={errores.asunto ? "asunto-error" : undefined}
               className="w-full px-4 py-3 rounded-2xl border border-border bg-white text-sm"
@@ -196,7 +197,7 @@ function ReclamosPage() {
 
           <div>
             <label htmlFor="detalle" className="block text-sm font-semibold mb-1">
-              Detalle
+              {t("reclamos.detalle")}
             </label>
             <textarea
               id="detalle"
@@ -204,7 +205,7 @@ function ReclamosPage() {
               onChange={(e) => setDetalle(e.target.value)}
               maxLength={2000}
               rows={5}
-              placeholder="Cuéntanos qué pasó con el mayor detalle posible."
+              placeholder={t("reclamos.detallePlaceholder")}
               aria-invalid={!!errores.detalle}
               aria-describedby={errores.detalle ? "detalle-error" : "detalle-hint"}
               className="w-full px-4 py-3 rounded-2xl border border-border bg-white text-sm resize-y"
@@ -222,19 +223,19 @@ function ReclamosPage() {
             className="w-full h-12 inline-flex items-center justify-center gap-2 px-5 rounded-2xl bg-[#EF9F27] text-[#111827] font-semibold text-sm disabled:opacity-50"
           >
             {enviar.isPending ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
-            {tipo === "reclamo" ? "Enviar reclamo" : "Enviar sugerencia"}
+            {tipo === "reclamo" ? t("reclamos.enviarReclamo") : t("reclamos.enviarSugerencia")}
           </button>
         </form>
       </section>
 
       <section className="px-5 mt-8 pb-10">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">Mis envíos</h2>
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">{t("reclamos.misEnvios")}</h2>
         {misReclamos.isLoading && (
           <div className="text-center py-8"><Loader2 className="size-5 mx-auto animate-spin" /></div>
         )}
         {misReclamos.data && misReclamos.data.length === 0 && (
           <div className="p-6 rounded-2xl bg-white border border-border text-center text-sm text-muted-foreground">
-            Aún no has enviado reclamos ni sugerencias.
+            {t("reclamos.vacio")}
           </div>
         )}
         <div className="space-y-2">
@@ -274,32 +275,34 @@ function SegBtn({
 }
 
 function ReclamoCard({ r, reserva }: { r: ReclamoRow; reserva?: Booking }) {
+  const { t, idioma } = useT();
+  const locale = localeDe(idioma);
   return (
     <div className="p-4 rounded-2xl bg-white border border-border">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="text-[10px] uppercase tracking-wide font-bold text-muted-foreground">
-            {r.tipo === "reclamo" ? "Reclamo" : "Sugerencia"}
+            {r.tipo === "reclamo" ? t("reclamos.reclamo") : t("reclamos.sugerencia")}
           </div>
           <div className="font-semibold truncate">{r.asunto}</div>
-          <div className="text-xs text-muted-foreground mt-0.5">{new Date(r.created_at).toLocaleString("es-CL")}</div>
+          <div className="text-xs text-muted-foreground mt-0.5">{new Date(r.created_at).toLocaleString(locale)}</div>
           {reserva && (
             <div className="text-xs text-muted-foreground mt-0.5">
-              Reserva: {reserva.service} · {reserva.date}
+              {t("reclamos.reserva")} {reserva.service} · {reserva.date}
             </div>
           )}
         </div>
         <span className={`shrink-0 px-2.5 py-1 rounded-full text-xs font-medium ${ESTADO_STYLE[r.estado] ?? ESTADO_STYLE.abierto}`}>
-          {ESTADO_LABEL[r.estado] ?? r.estado}
+          {ESTADO_LABEL[r.estado] ? t(ESTADO_LABEL[r.estado]) : r.estado}
         </span>
       </div>
       <p className="mt-3 text-sm text-[#111827] whitespace-pre-wrap">{r.detalle}</p>
       {r.respuesta_admin && (
         <div className="mt-3 p-3 rounded-xl bg-[#F5F5F0] border-l-4 border-[#EF9F27]">
-          <div className="text-xs font-bold text-[#111827]">Respuesta de Homie</div>
+          <div className="text-xs font-bold text-[#111827]">{t("reclamos.respuestaHomie")}</div>
           <p className="mt-1 text-sm text-[#111827] whitespace-pre-wrap">{r.respuesta_admin}</p>
           {r.respondido_at && (
-            <div className="mt-1 text-[10px] text-muted-foreground">{new Date(r.respondido_at).toLocaleString("es-CL")}</div>
+            <div className="mt-1 text-[10px] text-muted-foreground">{new Date(r.respondido_at).toLocaleString(locale)}</div>
           )}
         </div>
       )}

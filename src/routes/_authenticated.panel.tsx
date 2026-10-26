@@ -26,6 +26,8 @@ import { comprimirImagen } from "@/lib/imagen";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { mensajeError } from "@/lib/errores";
+import { useT } from "@/i18n";
+import { claveEstado, localeDe } from "@/i18n/estados";
 
 export const Route = createFileRoute("/_authenticated/panel")({
   head: () => ({ meta: [
@@ -49,6 +51,7 @@ const STATUS_STYLE: Record<string, string> = {
 type Tab = "resumen" | "pendientes" | "historial" | "perfil";
 
 function PanelPage() {
+  const { t } = useT();
   const { usuario } = useAuth();
   const { bookings, isLoading, hasPrestador } = useProviderBookings();
   const [tab, setTab] = useState<Tab>("resumen");
@@ -57,9 +60,9 @@ function PanelPage() {
     return (
       <AppShell>
         <div className="px-5 pt-16 text-center">
-          <h1 className="text-xl font-bold">Solo prestadores</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Esta sección es para cuentas de tipo prestador.</p>
-          <Link to="/" className="inline-flex h-12 items-center justify-center mt-6 px-5 rounded-2xl bg-foreground text-background font-semibold text-sm">Ir al inicio</Link>
+          <h1 className="text-xl font-bold">{t("panel.soloPrestadores")}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{t("panel.soloPrestadoresSub")}</p>
+          <Link to="/" className="inline-flex h-12 items-center justify-center mt-6 px-5 rounded-2xl bg-foreground text-background font-semibold text-sm">{t("panel.irInicio")}</Link>
         </div>
       </AppShell>
     );
@@ -69,10 +72,10 @@ function PanelPage() {
     return (
       <AppShell>
         <div className="px-5 pt-16 text-center">
-          <h1 className="text-xl font-bold">Completa tu perfil</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Necesitas completar tu onboarding de prestador.</p>
+          <h1 className="text-xl font-bold">{t("panel.completaPerfil")}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{t("panel.completaPerfilSub")}</p>
           <Link to="/onboarding-prestador" className="inline-flex h-12 items-center justify-center mt-6 px-5 rounded-2xl bg-foreground text-background font-semibold text-sm">
-            Completar perfil
+            {t("panel.completarPerfil")}
           </Link>
         </div>
       </AppShell>
@@ -83,8 +86,8 @@ function PanelPage() {
     <AppShell>
       <PullRefresh queryKey={["bookings"]} />
       <header className="bg-[#111827] text-white px-5 pt-6 pb-6 -mt-px">
-        <h1 className="title-1 text-white">Mi panel</h1>
-        <p className="text-sm text-white/70 mt-1">Hola {usuario?.nombre?.split(" ")[0] ?? ""}, aquí gestionas tu negocio</p>
+        <h1 className="title-1 text-white">{t("panel.miPanel")}</h1>
+        <p className="text-sm text-white/70 mt-1">{t("panel.hola", { nombre: usuario?.nombre?.split(" ")[0] ?? "" })}</p>
       </header>
 
       <Tabs tab={tab} setTab={setTab} pendingCount={bookings.filter((b) => b.status === "pendiente").length} />
@@ -107,11 +110,12 @@ function PanelPage() {
 }
 
 function Tabs({ tab, setTab, pendingCount }: { tab: Tab; setTab: (t: Tab) => void; pendingCount: number }) {
+  const { t } = useT();
   const items: { id: Tab; label: string; icon: typeof LayoutDashboard; badge?: number }[] = [
-    { id: "resumen", label: "Resumen", icon: LayoutDashboard },
-    { id: "pendientes", label: "Pendientes", icon: ListTodo, badge: pendingCount },
-    { id: "historial", label: "Historial", icon: History },
-    { id: "perfil", label: "Perfil", icon: UserCog },
+    { id: "resumen", label: t("panel.tabResumen"), icon: LayoutDashboard },
+    { id: "pendientes", label: t("panel.tabPendientes"), icon: ListTodo, badge: pendingCount },
+    { id: "historial", label: t("panel.tabHistorial"), icon: History },
+    { id: "perfil", label: t("panel.tabPerfil"), icon: UserCog },
   ];
   return (
     <div className="px-5 mt-2 overflow-x-auto">
@@ -143,6 +147,7 @@ function Tabs({ tab, setTab, pendingCount }: { tab: Tab; setTab: (t: Tab) => voi
 
 // ---------- RESUMEN ----------
 function Resumen({ bookings }: { bookings: Booking[] }) {
+  const { t } = useT();
   const today = new Date().toISOString().slice(0, 10);
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -166,8 +171,8 @@ function Resumen({ bookings }: { bookings: Booking[] }) {
           <MessageSquareQuote className="size-5 text-[#111827]" />
         </div>
         <div className="flex-1 min-w-0">
-          <div className="font-semibold text-sm">Solicitudes en tu rubro</div>
-          <div className="text-xs text-white/70">Cotiza y consigue clientes nuevos</div>
+          <div className="font-semibold text-sm">{t("panel.solicitudesRubro")}</div>
+          <div className="text-xs text-white/70">{t("panel.solicitudesRubroSub")}</div>
         </div>
         <ChevronRight className="size-4 text-white/60 shrink-0" />
       </Link>
@@ -181,24 +186,24 @@ function Resumen({ bookings }: { bookings: Booking[] }) {
           <Zap className="size-5 text-white fill-white" />
         </div>
         <div className="flex-1 min-w-0">
-          <div className="font-semibold text-sm text-[#111827]">Homie Ya: urgencias en tu rubro</div>
-          <div className="text-xs text-muted-foreground">El primero en aceptar se la queda</div>
+          <div className="font-semibold text-sm text-[#111827]">{t("panel.yaUrgencias")}</div>
+          <div className="text-xs text-muted-foreground">{t("panel.yaUrgenciasSub")}</div>
         </div>
         <ChevronRight className="size-4 text-[#FF3B6B] shrink-0" />
       </Link>
 
       <div className="grid grid-cols-2 gap-3">
-        <StatCard icon={CalendarCheck} label="Hoy" value={String(reservasHoy.length)} sub="reservas activas" />
+        <StatCard icon={CalendarCheck} label={t("panel.hoy")} value={String(reservasHoy.length)} sub={t("panel.reservasActivas")} />
         <RatingCard />
-        <StatCard icon={DollarSign} label="Mes" value={formatCLP(ingresosMes)} sub="ingresos" accent="dark" />
-        <StatCard icon={CheckCircle2} label="Completadas" value={String(completadas)} sub="trabajos del mes" />
+        <StatCard icon={DollarSign} label={t("panel.mes")} value={formatCLP(ingresosMes)} sub={t("panel.ingresos")} accent="dark" />
+        <StatCard icon={CheckCircle2} label={t("panel.completadas")} value={String(completadas)} sub={t("panel.trabajosMes")} />
       </div>
 
       <section>
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">Próximas reservas</h2>
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">{t("panel.proximasReservas")}</h2>
         {reservasHoy.length === 0 ? (
           <div className="p-6 rounded-2xl bg-white border border-border text-center text-sm text-muted-foreground">
-            No tienes reservas para hoy
+            {t("panel.sinReservasHoy")}
           </div>
         ) : (
           <div className="space-y-2">
@@ -226,39 +231,41 @@ function StatCard({
 }
 
 function RatingCard() {
+  const { t } = useT();
   const data = usePrestadorRow();
   return (
     <div className="p-4 rounded-2xl bg-[#F5F5F0] border border-border">
       <div className="inline-flex size-9 items-center justify-center rounded-xl bg-white">
         <Star className="size-4 text-[#EF9F27] fill-[#EF9F27]" />
       </div>
-      <div className="mt-3 text-xs text-muted-foreground uppercase tracking-wide">Calificación</div>
+      <div className="mt-3 text-xs text-muted-foreground uppercase tracking-wide">{t("panel.calificacion")}</div>
       <div className="text-xl font-bold mt-0.5 text-[#EF9F27]">
         {data ? Number(data.calificacion_promedio).toFixed(1) : "—"}
       </div>
-      <div className="text-xs text-muted-foreground">{data?.resenas_count ?? 0} reseñas</div>
+      <div className="text-xs text-muted-foreground">{t("panel.nResenas", { n: data?.resenas_count ?? 0 })}</div>
     </div>
   );
 }
 
 // ---------- PENDIENTES / HISTORIAL ----------
 function Pendientes({ bookings }: { bookings: Booking[] }) {
+  const { t } = useT();
   const pendientes = bookings.filter((b) => b.status === "pendiente");
   const activas = bookings.filter((b) => b.status === "confirmada" || b.status === "en camino");
   if (pendientes.length === 0 && activas.length === 0) {
-    return <Empty icon={ListTodo} title="Sin solicitudes" sub="Las nuevas reservas aparecerán aquí en tiempo real." />;
+    return <Empty icon={ListTodo} title={t("panel.sinSolicitudes")} sub={t("panel.sinSolicitudesSub")} />;
   }
   return (
     <div className="space-y-6">
       {pendientes.length > 0 && (
         <section>
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">Nuevas ({pendientes.length})</h2>
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">{t("panel.nuevas", { n: pendientes.length })}</h2>
           <div className="space-y-2">{pendientes.map((b) => <ProviderBookingCard key={b.id} b={b} />)}</div>
         </section>
       )}
       {activas.length > 0 && (
         <section>
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">En curso</h2>
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">{t("panel.enCurso")}</h2>
           <div className="space-y-2">{activas.map((b) => <ProviderBookingCard key={b.id} b={b} />)}</div>
         </section>
       )}
@@ -267,8 +274,9 @@ function Pendientes({ bookings }: { bookings: Booking[] }) {
 }
 
 function Historial({ bookings }: { bookings: Booking[] }) {
+  const { t } = useT();
   const items = bookings.filter((b) => b.status === "completado" || b.status === "cancelada");
-  if (items.length === 0) return <Empty icon={History} title="Sin historial" sub="Aquí verás los trabajos completados." />;
+  if (items.length === 0) return <Empty icon={History} title={t("panel.sinHistorial")} sub={t("panel.sinHistorialSub")} />;
   return <div className="space-y-2">{items.map((b) => <ProviderBookingCard key={b.id} b={b} />)}</div>;
 }
 
@@ -301,6 +309,7 @@ function useMisCalificacionesCliente() {
 }
 
 function CalificarCliente({ b }: { b: Booking }) {
+  const { t } = useT();
   const qc = useQueryClient();
   const calif = useMisCalificacionesCliente();
   const [open, setOpen] = useState(false);
@@ -309,7 +318,7 @@ function CalificarCliente({ b }: { b: Booking }) {
 
   const m = useMutation({
     mutationFn: async () => {
-      if (puntaje < 1) throw new Error("Elige de 1 a 5 estrellas");
+      if (puntaje < 1) throw new Error(t("panel.elige15"));
       const { error } = await supabase.from("calificaciones_cliente").insert({
         reserva_id: b.id, prestador_id: b.providerId, cliente_id: b.clientId,
         puntaje, comentario: comentario.trim() || null,
@@ -317,18 +326,18 @@ function CalificarCliente({ b }: { b: Booking }) {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Gracias por calificar a tu cliente");
+      toast.success(t("panel.graciasCalificar"));
       setOpen(false);
       qc.invalidateQueries({ queryKey: ["calificaciones-cliente"] });
     },
-    onError: (e) => toast.error(e instanceof Error ? e.message : "No se pudo calificar"),
+    onError: (e) => toast.error(e instanceof Error ? e.message : t("panel.errCalificar")),
   });
 
   const hecha = calif.data?.[b.id];
   if (hecha) {
     return (
       <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-        <Star className="size-3.5 fill-[#EF9F27] text-[#EF9F27]" /> Calificaste {hecha}★
+        <Star className="size-3.5 fill-[#EF9F27] text-[#EF9F27]" /> {t("panel.calificaste", { n: hecha })}
       </span>
     );
   }
@@ -336,16 +345,16 @@ function CalificarCliente({ b }: { b: Booking }) {
     return (
       <button type="button" onClick={() => setOpen(true)}
         className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-[#EF9F27] text-[#111827] text-xs font-semibold">
-        <Star className="size-3.5" /> Calificar cliente
+        <Star className="size-3.5" /> {t("panel.calificarCliente")}
       </button>
     );
   }
   return (
     <div className="w-full mt-1 p-3 rounded-xl bg-[#F5F5F0] border border-border">
-      <div className="text-xs font-semibold text-[#111827]">¿Cómo fue trabajar con {b.clientName}?</div>
-      <div className="mt-2 flex gap-1" role="radiogroup" aria-label="Puntaje">
+      <div className="text-xs font-semibold text-[#111827]">{t("panel.comoFueTrabajar", { nombre: b.clientName })}</div>
+      <div className="mt-2 flex gap-1" role="radiogroup" aria-label={t("panel.puntaje")}>
         {[1, 2, 3, 4, 5].map((n) => (
-          <button key={n} type="button" role="radio" aria-checked={puntaje === n} aria-label={`${n} estrellas`}
+          <button key={n} type="button" role="radio" aria-checked={puntaje === n} aria-label={t("panel.nEstrellas", { n })}
             onClick={() => setPuntaje(n)} className="p-1">
             <Star className={`size-6 ${n <= puntaje ? "fill-[#EF9F27] text-[#EF9F27]" : "text-[#D1D5DB]"}`} />
           </button>
@@ -353,19 +362,19 @@ function CalificarCliente({ b }: { b: Booking }) {
       </div>
       <textarea
         value={comentario} onChange={(e) => setComentario(e.target.value.slice(0, 300))} rows={2} maxLength={300}
-        placeholder="Comentario (opcional): puntualidad, trato, claridad..."
+        placeholder={t("panel.comentarioCliente")}
         className="mt-2 w-full p-3 rounded-xl bg-white border border-border text-sm outline-none focus:border-foreground/30 resize-none"
       />
       <div className="mt-2 flex items-center justify-between gap-2">
-        <span className="text-[11px] text-muted-foreground">{comentario.length}/300 · Solo lo ven otros profesionales</span>
+        <span className="text-[11px] text-muted-foreground">{comentario.length}/300 · {t("panel.soloProfesionales")}</span>
         <div className="flex gap-2">
           <button type="button" onClick={() => setOpen(false)} disabled={m.isPending}
             className="px-3 py-2 rounded-xl border border-border text-xs font-semibold hover:bg-muted disabled:opacity-50">
-            Cancelar
+            {t("comun.cancelar")}
           </button>
           <button type="button" onClick={() => m.mutate()} disabled={m.isPending || puntaje < 1}
             className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-foreground text-background text-xs font-semibold disabled:opacity-50">
-            {m.isPending && <Loader2 className="size-3.5 animate-spin" />} Enviar
+            {m.isPending && <Loader2 className="size-3.5 animate-spin" />} {t("panel.enviar")}
           </button>
         </div>
       </div>
@@ -374,22 +383,23 @@ function CalificarCliente({ b }: { b: Booking }) {
 }
 
 function ProviderBookingCard({ b }: { b: Booking }) {
+  const { t } = useT();
   const update = useUpdateBookingStatus();
   const set = (estado: DbEstado) => update.mutate({ id: b.id, estado });
   const completar = useCompletarConCodigo();
   const [codigo, setCodigo] = useState("");
 
   async function completarConCodigo() {
-    if (codigo.length !== 4) { toast.error("Ingresa el código de 4 dígitos"); return; }
+    if (codigo.length !== 4) { toast.error(t("panel.ingresaCodigo4")); return; }
     try {
       const ok = await completar.mutateAsync({ reservaId: b.id, codigo });
       if (ok) {
         import("@/lib/nativo").then((m) => m.vibrar("exito")).catch(() => {});
-        toast.success("Trabajo completado"); setCodigo("");
+        toast.success(t("panel.trabajoCompletado")); setCodigo("");
       }
-      else toast.error("Código incorrecto");
+      else toast.error(t("panel.codigoIncorrecto"));
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "No se pudo completar");
+      toast.error(e instanceof Error ? e.message : t("panel.errCompletar"));
     }
   }
 
@@ -398,18 +408,18 @@ function ProviderBookingCard({ b }: { b: Booking }) {
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="font-semibold truncate">{b.service}</div>
-          <div className="text-sm text-muted-foreground">para {b.clientName}</div>
+          <div className="text-sm text-muted-foreground">{t("panel.para", { nombre: b.clientName })}</div>
           {b.status === "pendiente" && (
             <span className="mt-1 inline-flex items-center gap-1 text-[11px] text-muted-foreground">
               {b.clienteCalificacion != null && b.clienteCalificacion > 0 ? (
-                <><Star className="size-3 fill-[#EF9F27] text-[#EF9F27]" /> Cliente {b.clienteCalificacion.toFixed(1)}★</>
+                <><Star className="size-3 fill-[#EF9F27] text-[#EF9F27]" /> {t("panel.cliente", { n: b.clienteCalificacion.toFixed(1) })}</>
               ) : (
-                <>Cliente nuevo</>
+                <>{t("panel.clienteNuevo")}</>
               )}
             </span>
           )}
         </div>
-        <span className={`shrink-0 px-2.5 py-1 rounded-full text-xs font-medium ${STATUS_STYLE[b.status]}`}>{b.status}</span>
+        <span className={`shrink-0 px-2.5 py-1 rounded-full text-xs font-medium ${STATUS_STYLE[b.status]}`}>{t(claveEstado(b.status))}</span>
       </div>
       <div className="flex flex-wrap items-center gap-3 mt-3 text-xs text-muted-foreground">
         <span>{b.date} · {b.time}</span>
@@ -421,8 +431,7 @@ function ProviderBookingCard({ b }: { b: Booking }) {
           <span className="font-semibold text-sm">{formatCLP(b.price)}</span>
           {b.status === "completado" && b.comision != null && (
             <div className="text-[11px] text-muted-foreground">
-              Tu pago: {formatCLP(Math.max(b.price + (b.descuento ?? 0) - b.comision, 0))}
-              {" "}(precio − comisión {Math.round((b.comision / Math.max(b.price + (b.descuento ?? 0), 1)) * 100)}%)
+              {t("panel.tuPago", { monto: formatCLP(Math.max(b.price + (b.descuento ?? 0) - b.comision, 0)), pct: Math.round((b.comision / Math.max(b.price + (b.descuento ?? 0), 1)) * 100) })}
             </div>
           )}
         </div>
@@ -433,7 +442,7 @@ function ProviderBookingCard({ b }: { b: Booking }) {
               params={{ reservaId: b.id }}
               className="inline-flex items-center gap-1 px-3 py-2 rounded-xl border border-border text-xs font-semibold hover:bg-muted"
             >
-              <FileText className="size-3.5" /> Comprobante
+              <FileText className="size-3.5" /> {t("panel.comprobante")}
             </Link>
           )}
           {(b.status === "confirmada" || b.status === "en camino") && (
@@ -442,25 +451,25 @@ function ProviderBookingCard({ b }: { b: Booking }) {
               params={{ reservaId: b.id }}
               className="inline-flex items-center gap-1 px-3 py-2 rounded-xl border border-border text-xs font-semibold hover:bg-muted"
             >
-              <MessageCircle className="size-3.5" /> Chat
+              <MessageCircle className="size-3.5" /> {t("panel.chat")}
             </Link>
           )}
           {b.status === "pendiente" && (
             <>
               <button disabled={update.isPending} onClick={() => set("cancelada")}
                 className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-[#FF3B6B] text-white text-xs font-semibold hover:opacity-90 disabled:opacity-50">
-                <X className="size-3.5" /> Rechazar
+                <X className="size-3.5" /> {t("panel.rechazar")}
               </button>
               <button disabled={update.isPending} onClick={() => set("confirmada")}
                 className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-[#00C288] text-white text-xs font-semibold hover:opacity-90 disabled:opacity-50">
-                <Check className="size-3.5" /> Aceptar
+                <Check className="size-3.5" /> {t("panel.aceptar")}
               </button>
             </>
           )}
           {b.status === "confirmada" && (
             <button disabled={update.isPending} onClick={() => set("en_camino")}
               className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-foreground text-background text-xs font-semibold disabled:opacity-50">
-              <Truck className="size-3.5" /> En camino
+              <Truck className="size-3.5" /> {t("panel.enCamino")}
             </button>
           )}
         </div>
@@ -472,18 +481,18 @@ function ProviderBookingCard({ b }: { b: Booking }) {
       )}
       {b.status === "en camino" && (
         <div className="mt-3 pt-3 border-t border-border">
-          <p className="text-xs text-muted-foreground mb-2">Pide al cliente su código de confirmación cuando termines el trabajo.</p>
+          <p className="text-xs text-muted-foreground mb-2">{t("panel.pideCodigo")}</p>
           <div className="flex gap-2">
             <input
               value={codigo}
               onChange={(e) => setCodigo(e.target.value.replace(/\D/g, "").slice(0, 4))}
               inputMode="numeric" pattern="[0-9]*" maxLength={4} placeholder="0000"
-              aria-label="Código de confirmación"
+              aria-label={t("panel.codigoConfirmacion")}
               className="w-24 h-10 px-3 rounded-xl bg-white border border-border text-center font-mono text-base tracking-[0.3em] outline-none focus:border-foreground/30"
             />
             <button disabled={completar.isPending || codigo.length !== 4} onClick={completarConCodigo}
               className="flex-1 inline-flex items-center justify-center gap-1 px-3 py-2 rounded-xl bg-foreground text-background text-xs font-semibold disabled:opacity-50">
-              {completar.isPending ? <Loader2 className="size-3.5 animate-spin" /> : <CheckCircle2 className="size-3.5" />} Completar con código
+              {completar.isPending ? <Loader2 className="size-3.5 animate-spin" /> : <CheckCircle2 className="size-3.5" />} {t("panel.completarConCodigo")}
             </button>
           </div>
         </div>
@@ -511,6 +520,7 @@ function usePrestadorRow() {
 }
 
 function AvailabilityToggle() {
+  const { t } = useT();
   const qc = useQueryClient();
   const row = usePrestadorRow();
   const m = useMutation({
@@ -537,10 +547,10 @@ function AvailabilityToggle() {
         <span className={`size-3 rounded-full shrink-0 ${on ? "bg-[#00C288]" : "bg-[#FF3B6B]"}`} />
         <div>
           <div className={`font-semibold text-sm ${on ? "text-[#00754F]" : "text-[#FF3B6B]"}`}>
-            {on ? "Disponible (verde)" : "No disponible (rojo)"}
+            {on ? t("panel.disponibleVerde") : t("panel.noDisponibleRojo")}
           </div>
           <div className="text-xs text-muted-foreground mt-0.5">
-            {on ? "Estás aceptando reservas" : "No apareces en búsquedas"}
+            {on ? t("panel.aceptandoReservas") : t("panel.noApareces")}
           </div>
         </div>
       </div>
@@ -558,12 +568,14 @@ function AvailabilityToggle() {
   );
 }
 
-function fechaCL(iso: string) {
-  return new Date(iso).toLocaleDateString("es-CL", { day: "2-digit", month: "2-digit", year: "numeric" });
+function fechaCL(iso: string, locale = "es-CL") {
+  return new Date(iso).toLocaleDateString(locale, { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
 /** Banner de cobros: periodo gratis, tarifa vigente y Homie Premium. */
 function ProBanner() {
+  const { t, idioma } = useT();
+  const locale = localeDe(idioma);
   const row = usePrestadorRow();
   if (!row) return null;
   const premium = esPro(row.pro_hasta);
@@ -581,17 +593,17 @@ function ProBanner() {
               <Gift className="size-5 text-white" />
             </span>
             <div className="flex-1 min-w-0">
-              <div className="font-semibold text-sm">Periodo gratis: sin comisión hasta {fechaCL(gratisHasta!.toISOString())}</div>
-              <div className="text-xs text-[#00754F]">Te quedan {diasGratis} {diasGratis === 1 ? "día" : "días"} · recibes el 100% de tu precio</div>
+              <div className="font-semibold text-sm">{t("panel.periodoGratis", { fecha: fechaCL(gratisHasta!.toISOString(), locale) })}</div>
+              <div className="text-xs text-[#00754F]">{diasGratis === 1 ? t("panel.teQuedanDia") : t("panel.teQuedanDias", { n: diasGratis })}</div>
             </div>
           </div>
-          <p className="mt-2 text-xs text-muted-foreground">Después: 15% por servicio completado (12% con Premium).</p>
+          <p className="mt-2 text-xs text-muted-foreground">{t("panel.despues15")}</p>
         </div>
       ) : (
         <div className="p-4 rounded-2xl bg-white border border-border">
-          <div className="font-semibold text-sm">Comisión vigente: {tasaActual}% por servicio completado</div>
+          <div className="font-semibold text-sm">{t("panel.comisionVigente", { pct: tasaActual })}</div>
           <p className="mt-1 text-xs text-muted-foreground">
-            {premium ? "Tarifa Premium. Tu periodo gratis ya terminó." : "Tu periodo gratis ya terminó. Con Homie Premium pagas 12% en vez de 15%."}
+            {premium ? t("panel.tarifaPremium") : t("panel.tarifaNormal")}
           </p>
         </div>
       )}
@@ -602,11 +614,11 @@ function ProBanner() {
             <Crown className="size-5 text-[#111827]" />
           </span>
           <div className="flex-1 min-w-0">
-            <div className="font-semibold text-sm">Premium hasta {fechaCL(row.pro_hasta!)}</div>
-            <div className="text-xs text-white/70">Comisión 12% después del periodo gratis · destacado dorado con buena reputación</div>
+            <div className="font-semibold text-sm">{t("panel.premiumHasta", { fecha: fechaCL(row.pro_hasta!, locale) })}</div>
+            <div className="text-xs text-white/70">{t("panel.premiumSub")}</div>
           </div>
           <Link to="/estadisticas" className="shrink-0 px-3 py-2 rounded-xl bg-white text-[#111827] text-xs font-bold">
-            Estadísticas
+            {t("panel.estadisticas")}
           </Link>
         </div>
       ) : (
@@ -615,8 +627,8 @@ function ProBanner() {
             <Crown className="size-5 text-[#EF9F27]" />
           </span>
           <div className="flex-1 min-w-0">
-            <div className="font-semibold text-sm">{row.pro_trial_usado ? "Vuelve a ser Homie Premium" : "Prueba Homie Premium 3 meses gratis"}</div>
-            <div className="text-xs text-[#854F0B]">Comisión 12% en vez de 15%, destacado dorado, estadísticas y comprobantes</div>
+            <div className="font-semibold text-sm">{row.pro_trial_usado ? t("panel.vuelvePremium") : t("panel.pruebaPremium")}</div>
+            <div className="text-xs text-[#854F0B]">{t("panel.premiumBeneficios")}</div>
           </div>
           <ChevronRight className="size-4 shrink-0" />
         </Link>
@@ -650,8 +662,9 @@ type ServicioPatch = {
 };
 const MAX_INCLUYE = 600;
 const MAX_NO_INCLUYE = 400;
+/** label: clave i18n */
 const MODALIDADES: { id: string; label: string }[] = [
-  { id: "domicilio", label: "A domicilio" }, { id: "online", label: "Online" }, { id: "local", label: "En mi local" },
+  { id: "domicilio", label: "panel.modDomicilio" }, { id: "online", label: "panel.modOnline" }, { id: "local", label: "panel.modLocal" },
 ];
 
 const MAX_DESC = 600;
@@ -676,6 +689,7 @@ async function subirAPerfiles(userId: string, file: File, slug: string) {
 }
 
 function EditorPerfil() {
+  const { t } = useT();
   const qc = useQueryClient();
   const { usuario, user } = useAuth();
   const row = usePrestadorRow();
@@ -746,12 +760,12 @@ function EditorPerfil() {
       if (u.error) throw u.error;
       if (row) await supabase.from("prestadores").update({ foto_url: url }).eq("id", row.id);
       setFoto(url);
-      toast.success("Foto actualizada");
+      toast.success(t("panel.fotoActualizada"));
       qc.invalidateQueries({ queryKey: ["usuario"] });
       qc.invalidateQueries({ queryKey: ["prestador-row"] });
       qc.invalidateQueries({ queryKey: ["provider"] });
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "No se pudo subir la foto");
+      toast.error(e instanceof Error ? e.message : t("panel.errFoto"));
     } finally {
       setSaving(false);
     }
@@ -768,9 +782,9 @@ function EditorPerfil() {
       .update({ bio, direccion, ...(geo ? { lat: geo.lat, lng: geo.lng } : {}) })
       .eq("id", row.id);
     setSaving(false);
-    if (p.error) { const m = mensajeError(p.error, "No se pudo guardar."); setMsg(m); toast.error(m); return; }
-    setMsg("Perfil actualizado");
-    toast.success("Perfil actualizado");
+    if (p.error) { const m = mensajeError(p.error, t("panel.errGuardar"), t); setMsg(m); toast.error(m); return; }
+    setMsg(t("panel.perfilActualizado"));
+    toast.success(t("panel.perfilActualizado"));
     qc.invalidateQueries({ queryKey: ["prestador-row"] });
     qc.invalidateQueries({ queryKey: ["provider"] });
   }
@@ -780,7 +794,7 @@ function EditorPerfil() {
     const existing = misServicios.find((s) => s.nombre === nombre);
     if (existing) {
       const { error } = await supabase.from("prestador_servicios").delete().eq("id", existing.id);
-      if (error) { toast.error(mensajeError(error, "No se pudo guardar.")); return; }
+      if (error) { toast.error(mensajeError(error, t("panel.errGuardar"), t)); return; }
       await syncRangoPrestador(misServicios.filter((s) => s.id !== existing.id));
     } else {
       const { data: srv } = await supabase
@@ -790,7 +804,7 @@ function EditorPerfil() {
         const { error } = await supabase.from("prestador_servicios").insert({
           prestador_id: row.id, servicio_id: srv.id, precio, precio_hasta: sugerirHasta(precio),
         });
-        if (error) { toast.error(mensajeError(error, "No se pudo guardar.")); return; }
+        if (error) { toast.error(mensajeError(error, t("panel.errGuardar"), t)); return; }
       }
     }
     qc.invalidateQueries({ queryKey: ["mis-servicios"] });
@@ -814,13 +828,13 @@ function EditorPerfil() {
       <div className="p-4 rounded-2xl bg-white border border-border flex items-center gap-4">
         <ProviderAvatar url={foto || null} name={usuario?.nombre ?? "U"} size={64} />
         <div className="flex-1 min-w-0">
-          <div className="text-sm font-semibold">Foto de perfil</div>
-          <p className="text-xs text-muted-foreground mt-0.5">JPG o PNG, idealmente cuadrada.</p>
+          <div className="text-sm font-semibold">{t("panel.fotoPerfil")}</div>
+          <p className="text-xs text-muted-foreground mt-0.5">{t("panel.fotoPerfilSub")}</p>
           <button
             type="button" onClick={() => fotoRef.current?.click()} disabled={saving}
             className="mt-2 inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#111827] text-white text-xs font-semibold disabled:opacity-50"
           >
-            <ImagePlus className="size-3.5" /> {foto ? "Cambiar foto" : "Subir foto"}
+            <ImagePlus className="size-3.5" /> {foto ? t("panel.cambiarFoto") : t("panel.subirFoto")}
           </button>
           <input ref={fotoRef} type="file" accept="image/*" className="hidden"
             onChange={(e) => { const f = e.target.files?.[0]; if (f) onPickFoto(f); e.target.value = ""; }} />
@@ -828,13 +842,13 @@ function EditorPerfil() {
       </div>
 
       {/* Bio */}
-      <Field label="Sobre mí (bio)">
+      <Field label={t("panel.sobreMi")}>
         <textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={4}
           className="w-full p-4 rounded-2xl bg-white border border-border outline-none focus:border-foreground/30 resize-none text-sm" />
       </Field>
 
-      <Field label="Dirección base">
-        <input value={direccion} onChange={(e) => setDireccion(e.target.value)} placeholder="Calle o sector"
+      <Field label={t("panel.direccionBase")}>
+        <input value={direccion} onChange={(e) => setDireccion(e.target.value)} placeholder={t("panel.calleSector")}
           className="w-full h-12 px-4 rounded-2xl bg-white border border-border outline-none focus:border-foreground/30" />
       </Field>
 
@@ -844,13 +858,13 @@ function EditorPerfil() {
         onClick={savePerfil} disabled={saving}
         className="w-full h-12 rounded-2xl bg-foreground text-background font-semibold disabled:opacity-60"
       >
-        {saving ? "Guardando..." : "Guardar bio y dirección"}
+        {saving ? t("panel.guardando") : t("panel.guardarBio")}
       </button>
 
       {/* Servicios */}
       <div>
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">
-          Servicios que ofreces {cat ? `· ${cat.name}` : ""}
+          {t("panel.serviciosOfreces")} {cat ? `· ${cat.name}` : ""}
         </h3>
         <div className="flex flex-wrap gap-2">
           {cat?.services.map((s) => {
@@ -906,6 +920,7 @@ function EditorPerfil() {
 const TIPOS_CUENTA = ["Cuenta corriente", "Cuenta vista", "Cuenta RUT", "Ahorro"] as const;
 
 function DatosBancariosCard({ prestadorId }: { prestadorId: string }) {
+  const { t } = useT();
   const qc = useQueryClient();
   const [banco, setBanco] = useState("");
   const [tipoCuenta, setTipoCuenta] = useState<string>("");
@@ -938,7 +953,7 @@ function DatosBancariosCard({ prestadorId }: { prestadorId: string }) {
 
   async function guardar() {
     if (!banco.trim() || !numeroCuenta.trim() || !rut.trim() || !titular.trim()) {
-      toast.error("Completa banco, número de cuenta, RUT y titular."); return;
+      toast.error(t("panel.completaBanco")); return;
     }
     setSaving(true);
     try {
@@ -948,10 +963,10 @@ function DatosBancariosCard({ prestadorId }: { prestadorId: string }) {
         rut: rut.trim(), titular: titular.trim(),
       });
       if (error) throw error;
-      toast.success("Datos bancarios guardados");
+      toast.success(t("panel.bancoGuardado"));
       qc.invalidateQueries({ queryKey: ["prestador-banco"] });
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "No se pudo guardar");
+      toast.error(e instanceof Error ? e.message : t("panel.errGuardarCorto"));
     } finally {
       setSaving(false);
     }
@@ -962,40 +977,40 @@ function DatosBancariosCard({ prestadorId }: { prestadorId: string }) {
   return (
     <div>
       <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-1.5">
-        <DollarSign className="size-3.5" /> Datos bancarios
+        <DollarSign className="size-3.5" /> {t("panel.datosBancarios")}
       </h3>
       <div className="rounded-2xl bg-white border border-border p-4 space-y-4">
         <p className="text-sm text-muted-foreground">
-          Para recibir tus pagos semanales. Homie cobra en Mercado Pago y cada semana te transfiere el 85% de tus servicios completados. Estos datos son privados.
+          {t("panel.datosBancariosSub")}
         </p>
         <div className="grid grid-cols-2 gap-3">
           <label className="block">
-            <span className="block text-xs font-medium mb-1">Banco</span>
-            <input value={banco} onChange={(e) => setBanco(e.target.value)} placeholder="Ej. BancoEstado" className={inputCls} />
+            <span className="block text-xs font-medium mb-1">{t("panel.banco")}</span>
+            <input value={banco} onChange={(e) => setBanco(e.target.value)} placeholder={t("panel.bancoPlaceholder")} className={inputCls} />
           </label>
           <label className="block">
-            <span className="block text-xs font-medium mb-1">Tipo de cuenta</span>
+            <span className="block text-xs font-medium mb-1">{t("panel.tipoCuenta")}</span>
             <select value={tipoCuenta} onChange={(e) => setTipoCuenta(e.target.value)} className={inputCls}>
-              <option value="">Selecciona</option>
-              {TIPOS_CUENTA.map((t) => <option key={t} value={t}>{t}</option>)}
+              <option value="">{t("panel.selecciona")}</option>
+              {TIPOS_CUENTA.map((tc) => <option key={tc} value={tc}>{tc}</option>)}
             </select>
           </label>
           <label className="block">
-            <span className="block text-xs font-medium mb-1">Número de cuenta</span>
-            <input value={numeroCuenta} onChange={(e) => setNumeroCuenta(e.target.value)} inputMode="numeric" placeholder="Ej. 12345678" className={inputCls} />
+            <span className="block text-xs font-medium mb-1">{t("panel.numeroCuenta")}</span>
+            <input value={numeroCuenta} onChange={(e) => setNumeroCuenta(e.target.value)} inputMode="numeric" placeholder={t("panel.numeroCuentaPlaceholder")} className={inputCls} />
           </label>
           <label className="block">
-            <span className="block text-xs font-medium mb-1">RUT del titular</span>
+            <span className="block text-xs font-medium mb-1">{t("panel.rutTitular")}</span>
             <input value={rut} onChange={(e) => setRut(e.target.value)} placeholder="12.345.678-9" className={inputCls} />
           </label>
           <label className="block col-span-2">
-            <span className="block text-xs font-medium mb-1">Nombre del titular</span>
-            <input value={titular} onChange={(e) => setTitular(e.target.value)} placeholder="Como aparece en el banco" className={inputCls} />
+            <span className="block text-xs font-medium mb-1">{t("panel.nombreTitular")}</span>
+            <input value={titular} onChange={(e) => setTitular(e.target.value)} placeholder={t("panel.comoBanco")} className={inputCls} />
           </label>
         </div>
         <button type="button" onClick={guardar} disabled={saving || bancoQ.isLoading}
           className="w-full h-11 rounded-xl bg-[#111827] text-white text-sm font-semibold disabled:opacity-50">
-          {saving ? "Guardando..." : "Guardar datos bancarios"}
+          {saving ? t("panel.guardando") : t("panel.guardarBanco")}
         </button>
       </div>
     </div>
@@ -1003,6 +1018,7 @@ function DatosBancariosCard({ prestadorId }: { prestadorId: string }) {
 }
 
 function MisLiquidacionesCard({ prestadorId }: { prestadorId: string }) {
+  const { t, idioma } = useT();
   const liqQ = useQuery({
     queryKey: ["mis-liquidaciones", prestadorId],
     enabled: !!prestadorId,
@@ -1021,21 +1037,21 @@ function MisLiquidacionesCard({ prestadorId }: { prestadorId: string }) {
   return (
     <div>
       <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-1.5">
-        <History className="size-3.5" /> Mis liquidaciones
+        <History className="size-3.5" /> {t("panel.misLiquidaciones")}
       </h3>
       <div className="rounded-2xl bg-white border border-border overflow-hidden">
         {liqQ.isLoading ? (
           <div className="p-6 text-center"><Loader2 className="size-4 mx-auto animate-spin" /></div>
         ) : (liqQ.data?.length ?? 0) === 0 ? (
-          <div className="p-6 text-center text-sm text-muted-foreground">Aún no tienes liquidaciones. Recibirás un pago semanal por cada servicio completado.</div>
+          <div className="p-6 text-center text-sm text-muted-foreground">{t("panel.sinLiquidaciones")}</div>
         ) : (
           <ul className="divide-y divide-border">
             {liqQ.data!.map((l) => (
               <li key={l.id} className="flex items-center gap-3 px-4 py-3 text-sm">
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium">{new Date(l.pagada_at).toLocaleDateString("es-CL")} · {l.medio ?? "Transferencia"}</div>
+                  <div className="font-medium">{new Date(l.pagada_at).toLocaleDateString(localeDe(idioma))} · {l.medio ?? t("panel.transferencia")}</div>
                   <div className="text-xs text-muted-foreground truncate">
-                    {l.reservas.length} {l.reservas.length === 1 ? "servicio" : "servicios"}{l.referencia ? ` · Ref. ${l.referencia}` : ""}
+                    {l.reservas.length} {l.reservas.length === 1 ? t("panel.servicio") : t("panel.servicios")}{l.referencia ? ` · ${t("panel.ref", { ref: l.referencia })}` : ""}
                   </div>
                 </div>
                 <div className="font-bold text-[#00754F] whitespace-nowrap">{formatCLP(l.monto)}</div>
@@ -1051,6 +1067,7 @@ function MisLiquidacionesCard({ prestadorId }: { prestadorId: string }) {
 function ServicioEditCard({
   s, userId, onSave,
 }: { s: ServicioRow; userId: string; onSave: (p: ServicioPatch) => Promise<void> }) {
+  const { t } = useT();
   const [open, setOpen] = useState(false);
   const [precio, setPrecio] = useState(s.precio);
   const [hasta, setHasta] = useState(s.precio_hasta);
@@ -1084,13 +1101,13 @@ function ServicioEditCard({
   const invalido = !precio || precio < 1000 || hasta < precio || hasta > max;
 
   async function guardar() {
-    if (!precio || precio < 1000) { toast.error("El precio desde debe ser al menos $1.000."); return; }
-    if (hasta < precio) { toast.error("El precio hasta no puede ser menor que el precio desde."); return; }
-    if (hasta > max) { toast.error("El precio hasta no puede superar el 50% sobre el precio desde."); return; }
-    if (desc.length > MAX_DESC) { toast.error(`La descripción supera los ${MAX_DESC} caracteres.`); return; }
-    if (modalidades.length === 0) { toast.error("Elige al menos una modalidad."); return; }
-    if (incluye.length > MAX_INCLUYE) { toast.error(`"Qué incluye" supera los ${MAX_INCLUYE} caracteres.`); return; }
-    if (noIncluye.length > MAX_NO_INCLUYE) { toast.error(`"Qué no incluye" supera los ${MAX_NO_INCLUYE} caracteres.`); return; }
+    if (!precio || precio < 1000) { toast.error(t("panel.errPrecioMin")); return; }
+    if (hasta < precio) { toast.error(t("panel.errHastaMenor")); return; }
+    if (hasta > max) { toast.error(t("panel.errHastaMayor")); return; }
+    if (desc.length > MAX_DESC) { toast.error(t("panel.errDesc", { n: MAX_DESC })); return; }
+    if (modalidades.length === 0) { toast.error(t("panel.errModalidad")); return; }
+    if (incluye.length > MAX_INCLUYE) { toast.error(t("panel.errIncluye", { n: MAX_INCLUYE })); return; }
+    if (noIncluye.length > MAX_NO_INCLUYE) { toast.error(t("panel.errNoIncluye", { n: MAX_NO_INCLUYE })); return; }
     setSaving(true);
     try {
       let url = fotoUrl;
@@ -1101,10 +1118,10 @@ function ServicioEditCard({
         incluye: incluye.trim() || null, no_incluye: noIncluye.trim() || null,
       });
       setFotoUrl(url); setFotoFile(null);
-      toast.success(`"${s.nombre}" actualizado`);
+      toast.success(t("panel.servicioActualizado", { nombre: s.nombre }));
       setOpen(false);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "No se pudo guardar");
+      toast.error(e instanceof Error ? e.message : t("panel.errGuardarCorto"));
     } finally {
       setSaving(false);
     }
@@ -1131,13 +1148,13 @@ function ServicioEditCard({
         <div className="px-4 pb-4 pt-4 border-t border-border space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <label className="block">
-              <span className="block text-xs font-medium mb-1">Precio desde (CLP)</span>
+              <span className="block text-xs font-medium mb-1">{t("panel.precioDesdeCLP")}</span>
               <input type="number" min={1000} step={1000} value={precio || ""}
                 onChange={(e) => { const v = Number(e.target.value); setPrecio(v); setHasta(sugerirHasta(v)); }}
                 className="w-full h-11 px-3 rounded-xl bg-muted/50 border border-border outline-none focus:border-foreground/30 text-sm" />
             </label>
             <label className="block">
-              <span className="block text-xs font-medium mb-1">Precio hasta (CLP)</span>
+              <span className="block text-xs font-medium mb-1">{t("panel.precioHastaCLP")}</span>
               <input type="number" min={precio} max={max} step={1000} value={hasta || ""}
                 onChange={(e) => setHasta(Number(e.target.value))}
                 onBlur={() => { if (hasta > max) setHasta(max); else if (hasta < precio) setHasta(precio); }}
@@ -1145,18 +1162,18 @@ function ServicioEditCard({
             </label>
           </div>
           <p className="text-[11px] text-muted-foreground -mt-2">
-            Máximo 50% sobre el precio desde. El cliente paga el precio desde al reservar; el valor final nunca puede superar el precio hasta.
-            {precio >= 1000 && <> Máximo permitido: <strong>{formatCLP(max)}</strong>.</>}
+            {t("panel.max50")}
+            {precio >= 1000 && <> {t("panel.maxPermitido")} <strong>{formatCLP(max)}</strong>.</>}
           </p>
 
           <div>
-            <span className="block text-xs font-medium mb-2">Unidad de cobro</span>
+            <span className="block text-xs font-medium mb-2">{t("panel.unidadCobro")}</span>
             <SegmentedPanel options={UNIDADES.map((u) => ({ value: u, label: UNIDAD_LABEL[u] }))} value={unidad} onChange={setUnidad} />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <label className="block">
-              <span className="block text-xs font-medium mb-1">Duración estimada</span>
+              <span className="block text-xs font-medium mb-1">{t("panel.duracionEstimada")}</span>
               <select
                 value={duracion === null ? "null" : String(duracion)}
                 onChange={(e) => setDuracion(e.target.value === "null" ? null : Number(e.target.value))}
@@ -1168,15 +1185,15 @@ function ServicioEditCard({
               </select>
             </label>
             <div>
-              <span className="block text-xs font-medium mb-1">Garantía</span>
+              <span className="block text-xs font-medium mb-1">{t("panel.garantia")}</span>
               <SegmentedPanel options={GARANTIA_OPCIONES} value={garantia} onChange={setGarantia} />
             </div>
           </div>
 
           <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-muted/40 border border-border">
             <div className="min-w-0">
-              <div className="text-sm font-medium">Materiales incluidos en el precio</div>
-              <div className="text-xs text-muted-foreground mt-0.5">Si no, el cliente paga materiales aparte dentro del rango hasta.</div>
+              <div className="text-sm font-medium">{t("panel.materialesIncluidos")}</div>
+              <div className="text-xs text-muted-foreground mt-0.5">{t("panel.materialesSub")}</div>
             </div>
             <button type="button" onClick={() => setMateriales((v) => !v)} aria-pressed={materiales}
               className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition ${materiales ? "bg-[#00C288]" : "bg-[#D1D5DB]"}`}>
@@ -1185,31 +1202,31 @@ function ServicioEditCard({
           </div>
 
           <label className="block">
-            <span className="block text-xs font-medium mb-1">Qué incluye</span>
+            <span className="block text-xs font-medium mb-1">{t("panel.queIncluye")}</span>
             <textarea rows={3} maxLength={MAX_INCLUYE} value={incluye} onChange={(e) => setIncluye(e.target.value)}
-              placeholder="Ej. Diagnóstico, mano de obra, prueba final y limpieza del área."
+              placeholder={t("panel.queIncluyePlaceholder")}
               className="w-full p-3 rounded-xl bg-muted/50 border border-border outline-none focus:border-foreground/30 resize-none text-sm" />
             <span className="block text-right text-[11px] text-muted-foreground mt-1">{incluye.length}/{MAX_INCLUYE}</span>
           </label>
 
           <label className="block">
-            <span className="block text-xs font-medium mb-1">Qué NO incluye</span>
+            <span className="block text-xs font-medium mb-1">{t("panel.queNoIncluye")}</span>
             <textarea rows={2} maxLength={MAX_NO_INCLUYE} value={noIncluye} onChange={(e) => setNoIncluye(e.target.value)}
-              placeholder="Ej. Materiales, repuestos de marca, trabajos en altura."
+              placeholder={t("panel.queNoIncluyePlaceholder")}
               className="w-full p-3 rounded-xl bg-muted/50 border border-border outline-none focus:border-foreground/30 resize-none text-sm" />
             <span className="block text-right text-[11px] text-muted-foreground mt-1">{noIncluye.length}/{MAX_NO_INCLUYE}</span>
           </label>
 
           <label className="block">
-            <span className="block text-xs font-medium mb-1">Descripción corta</span>
+            <span className="block text-xs font-medium mb-1">{t("panel.descripcionCorta")}</span>
             <textarea rows={3} maxLength={MAX_DESC} value={desc} onChange={(e) => setDesc(e.target.value)}
-              placeholder="Una frase que resuma tu servicio y lo que te diferencia..."
+              placeholder={t("panel.descripcionPlaceholder")}
               className="w-full p-3 rounded-xl bg-muted/50 border border-border outline-none focus:border-foreground/30 resize-none text-sm" />
             <span className="block text-right text-[11px] text-muted-foreground mt-1">{desc.length}/{MAX_DESC}</span>
           </label>
 
           <div>
-            <span className="block text-xs font-medium mb-2">Modalidad</span>
+            <span className="block text-xs font-medium mb-2">{t("panel.modalidad")}</span>
             <div className="flex flex-wrap gap-2">
               {MODALIDADES.map((m) => {
                 const on = modalidades.includes(m.id);
@@ -1219,12 +1236,12 @@ function ServicioEditCard({
                   }`}>
                     <input type="checkbox" className="sr-only" checked={on} onChange={() => toggleModalidad(m.id)} />
                     {on && <Check className="size-3.5" />}
-                    {m.label}
+                    {t(m.label)}
                   </label>
                 );
               })}
             </div>
-            <p className="text-[11px] text-muted-foreground mt-1">Si eliges Online, el cliente no necesita indicar dirección.</p>
+            <p className="text-[11px] text-muted-foreground mt-1">{t("panel.onlineSinDireccion")}</p>
           </div>
 
           <div className="flex items-center gap-3">
@@ -1233,11 +1250,11 @@ function ServicioEditCard({
               {preview ? <img src={preview} alt="" className="size-full object-cover" /> : <ImagePlus className="size-5 text-[#EF9F27]" />}
             </button>
             <div className="text-xs text-muted-foreground flex-1">
-              <div className="font-medium text-[#111827]">Foto del servicio (opcional)</div>
-              Muestra un trabajo tuyo relacionado.
+              <div className="font-medium text-[#111827]">{t("panel.fotoServicio")}</div>
+              {t("panel.fotoServicioSub")}
               {preview && (
                 <button type="button" onClick={() => { setPreview(null); setFotoUrl(null); setFotoFile(null); }}
-                  className="block mt-1 text-[#FF3B6B] font-semibold">Quitar foto</button>
+                  className="block mt-1 text-[#FF3B6B] font-semibold">{t("panel.quitarFoto")}</button>
               )}
             </div>
             <input ref={ref} type="file" accept="image/*" className="hidden"
@@ -1246,7 +1263,7 @@ function ServicioEditCard({
 
           <button type="button" onClick={guardar} disabled={saving || invalido}
             className="w-full h-11 rounded-xl bg-[#111827] text-white text-sm font-semibold disabled:opacity-50">
-            {saving ? "Guardando..." : "Guardar servicio"}
+            {saving ? t("panel.guardando") : t("panel.guardarServicio")}
           </button>
         </div>
       )}
@@ -1257,6 +1274,7 @@ function ServicioEditCard({
 const MAX_GALERIA = 12;
 
 function GaleriaCard({ prestadorId, userId, initial }: { prestadorId: string; userId: string; initial: string[] }) {
+  const { t } = useT();
   const qc = useQueryClient();
   const [urls, setUrls] = useState<string[]>(initial);
   const [subiendo, setSubiendo] = useState(false);
@@ -1274,7 +1292,7 @@ function GaleriaCard({ prestadorId, userId, initial }: { prestadorId: string; us
       qc.invalidateQueries({ queryKey: ["prestador-row"] });
       qc.invalidateQueries({ queryKey: ["provider"] });
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "No se pudo guardar la galería");
+      toast.error(e instanceof Error ? e.message : t("panel.errGaleria"));
     } finally {
       setGuardando(false);
     }
@@ -1283,9 +1301,9 @@ function GaleriaCard({ prestadorId, userId, initial }: { prestadorId: string; us
   async function onPick(files: FileList | null) {
     if (!files || files.length === 0 || !userId) return;
     const libres = MAX_GALERIA - urls.length;
-    if (libres <= 0) { toast.error(`Máximo ${MAX_GALERIA} fotos.`); return; }
+    if (libres <= 0) { toast.error(t("panel.maxFotos", { n: MAX_GALERIA })); return; }
     const lista = Array.from(files).slice(0, libres);
-    if (lista.length < files.length) toast.info(`Solo se subirán ${lista.length} fotos (máximo ${MAX_GALERIA}).`);
+    if (lista.length < files.length) toast.info(t("panel.soloSubiran", { n: lista.length, max: MAX_GALERIA }));
     setSubiendo(true);
     const nuevas: string[] = [];
     try {
@@ -1294,9 +1312,9 @@ function GaleriaCard({ prestadorId, userId, initial }: { prestadorId: string; us
         nuevas.push(await subirAPerfiles(userId, comp, "galeria"));
       }
       await persistir([...urls, ...nuevas]);
-      toast.success(nuevas.length === 1 ? "Foto agregada" : `${nuevas.length} fotos agregadas`);
+      toast.success(nuevas.length === 1 ? t("panel.fotoAgregada") : t("panel.fotosAgregadas", { n: nuevas.length }));
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "No se pudo subir la foto");
+      toast.error(e instanceof Error ? e.message : t("panel.errFoto"));
       if (nuevas.length > 0) await persistir([...urls, ...nuevas]);
     } finally {
       setSubiendo(false);
@@ -1310,18 +1328,18 @@ function GaleriaCard({ prestadorId, userId, initial }: { prestadorId: string; us
   return (
     <div>
       <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-1.5">
-        <Images className="size-3.5" /> Galería de trabajos
+        <Images className="size-3.5" /> {t("panel.galeria")}
       </h3>
       <div className="rounded-2xl bg-white border border-border p-4">
         <p className="text-sm text-muted-foreground">
-          Muestra hasta {MAX_GALERIA} fotos de trabajos reales. Se ven en tu perfil público y aumentan la confianza.
+          {t("panel.galeriaSub", { n: MAX_GALERIA })}
         </p>
         <div className="mt-3 grid grid-cols-3 sm:grid-cols-4 gap-2">
           {urls.map((u) => (
             <div key={u} className="relative aspect-square rounded-xl overflow-hidden bg-[#F5F5F0] group">
               <img src={u} alt="" loading="lazy" className="size-full object-cover" />
               <button
-                type="button" onClick={() => quitar(u)} disabled={guardando} aria-label="Quitar foto"
+                type="button" onClick={() => quitar(u)} disabled={guardando} aria-label={t("panel.quitarFoto")}
                 className="absolute top-1.5 right-1.5 size-7 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-[#FF3B6B] disabled:opacity-50"
               >
                 <Trash2 className="size-3.5" />
@@ -1334,7 +1352,7 @@ function GaleriaCard({ prestadorId, userId, initial }: { prestadorId: string; us
               className="aspect-square rounded-xl bg-[#F5F5F0] border-2 border-dashed border-[#E5E7EB] flex flex-col items-center justify-center gap-1 text-xs text-muted-foreground hover:border-[#EF9F27] disabled:opacity-50"
             >
               {subiendo ? <Loader2 className="size-5 animate-spin text-[#EF9F27]" /> : <ImagePlus className="size-5 text-[#EF9F27]" />}
-              {subiendo ? "Subiendo..." : "Agregar"}
+              {subiendo ? t("panel.subiendo") : t("panel.agregar")}
             </button>
           )}
         </div>
@@ -1349,6 +1367,7 @@ function GaleriaCard({ prestadorId, userId, initial }: { prestadorId: string; us
 }
 
 function HorarioCard({ prestadorId, horarioRaw }: { prestadorId: string; horarioRaw: unknown }) {
+  const { t } = useT();
   const qc = useQueryClient();
   const [horario, setHorario] = useState<Horario>(() => parseHorario(horarioRaw));
   const [saving, setSaving] = useState(false);
@@ -1356,13 +1375,13 @@ function HorarioCard({ prestadorId, horarioRaw }: { prestadorId: string; horario
   useEffect(() => { setHorario(parseHorario(horarioRaw)); }, [horarioRaw]);
 
   async function guardar() {
-    const e = validarHorario(horario);
+    const e = validarHorario(horario, t);
     if (e) { toast.error(e); return; }
     setSaving(true);
     const { error } = await supabase.from("prestadores").update({ horario }).eq("id", prestadorId);
     setSaving(false);
-    if (error) { toast.error(mensajeError(error, "No se pudo guardar.")); return; }
-    toast.success("Horario actualizado");
+    if (error) { toast.error(mensajeError(error, t("panel.errGuardar"), t)); return; }
+    toast.success(t("panel.horarioActualizado"));
     qc.invalidateQueries({ queryKey: ["prestador-row"] });
     qc.invalidateQueries({ queryKey: ["provider"] });
   }
@@ -1370,12 +1389,12 @@ function HorarioCard({ prestadorId, horarioRaw }: { prestadorId: string; horario
   return (
     <div>
       <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-1.5">
-        <Clock className="size-3.5" /> Horario de atención
+        <Clock className="size-3.5" /> {t("panel.horarioAtencion")}
       </h3>
       <HorarioEditor value={horario} onChange={setHorario} compact />
       <button type="button" onClick={guardar} disabled={saving}
         className="mt-3 w-full h-11 rounded-xl bg-[#111827] text-white text-sm font-semibold disabled:opacity-50">
-        {saving ? "Guardando..." : "Guardar horario"}
+        {saving ? t("panel.guardando") : t("panel.guardarHorario")}
       </button>
     </div>
   );
@@ -1397,6 +1416,7 @@ interface PerfilPublicoInitial {
 }
 
 function PerfilPublicoCard({ prestadorId, userId, initial }: { prestadorId: string; userId: string; initial: PerfilPublicoInitial }) {
+  const { t } = useT();
   const qc = useQueryClient();
   const [bannerUrl, setBannerUrl] = useState<string | null>(initial.banner_url);
   const [bannerFile, setBannerFile] = useState<File | null>(null);
@@ -1450,10 +1470,10 @@ function PerfilPublicoCard({ prestadorId, userId, initial }: { prestadorId: stri
   }, [contactoQ.data]);
 
   async function guardar() {
-    if (titulo.trim().length > 0 && titulo.trim().length < 3) { toast.error("El título profesional es muy corto."); return; }
-    if (!Number.isFinite(anos) || anos < 0 || anos > 60) { toast.error("Ingresa tus años de experiencia (0 a 60)."); return; }
-    if (radioKm < 1 || radioKm > 200) { toast.error("El radio de cobertura debe estar entre 1 y 200 km."); return; }
-    if (idiomas.length === 0) { toast.error("Selecciona al menos un idioma."); return; }
+    if (titulo.trim().length > 0 && titulo.trim().length < 3) { toast.error(t("panel.errTituloCorto")); return; }
+    if (!Number.isFinite(anos) || anos < 0 || anos > 60) { toast.error(t("panel.errAnos")); return; }
+    if (radioKm < 1 || radioKm > 200) { toast.error(t("panel.errRadio")); return; }
+    if (idiomas.length === 0) { toast.error(t("panel.errIdioma")); return; }
     setSaving(true);
     try {
       let url = bannerUrl;
@@ -1470,12 +1490,12 @@ function PerfilPublicoCard({ prestadorId, userId, initial }: { prestadorId: stri
       });
       if (c.error) throw c.error;
       setBannerUrl(url); setBannerFile(null);
-      toast.success("Perfil público actualizado");
+      toast.success(t("panel.perfilPublicoActualizado"));
       qc.invalidateQueries({ queryKey: ["prestador-row"] });
       qc.invalidateQueries({ queryKey: ["prestador-contacto"] });
       qc.invalidateQueries({ queryKey: ["provider"] });
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "No se pudo guardar");
+      toast.error(e instanceof Error ? e.message : t("panel.errGuardarCorto"));
     } finally {
       setSaving(false);
     }
@@ -1484,7 +1504,7 @@ function PerfilPublicoCard({ prestadorId, userId, initial }: { prestadorId: stri
   return (
     <div>
       <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-1.5">
-        <Palette className="size-3.5" /> Perfil público
+        <Palette className="size-3.5" /> {t("panel.perfilPublico")}
       </h3>
       <div className="rounded-2xl bg-white border border-border overflow-hidden">
         {/* Banner */}
@@ -1493,12 +1513,12 @@ function PerfilPublicoCard({ prestadorId, userId, initial }: { prestadorId: stri
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
           <button type="button" onClick={() => bannerRef.current?.click()}
             className="absolute bottom-3 right-3 inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white/90 text-[#111827] text-xs font-semibold">
-            <ImagePlus className="size-3.5" /> {bannerPreview ? "Cambiar banner" : "Subir banner"}
+            <ImagePlus className="size-3.5" /> {bannerPreview ? t("panel.cambiarBanner") : t("panel.subirBanner")}
           </button>
           {bannerPreview && (
             <button type="button" onClick={() => { setBannerPreview(null); setBannerUrl(null); setBannerFile(null); }}
               className="absolute bottom-3 left-3 px-3 py-1.5 rounded-xl bg-black/50 text-white text-xs font-semibold">
-              Quitar
+              {t("panel.quitar")}
             </button>
           )}
           <input ref={bannerRef} type="file" accept="image/*" className="hidden"
@@ -1507,7 +1527,7 @@ function PerfilPublicoCard({ prestadorId, userId, initial }: { prestadorId: stri
 
         <div className="p-4 space-y-4">
           <div>
-            <span className="block text-xs font-medium mb-2">Color de perfil</span>
+            <span className="block text-xs font-medium mb-2">{t("panel.colorPerfil")}</span>
             <div className="flex flex-wrap gap-2">
               {PRESET_COLORS.map((c) => (
                 <button key={c} type="button" onClick={() => setColor(c)} aria-label={c}
@@ -1522,47 +1542,47 @@ function PerfilPublicoCard({ prestadorId, userId, initial }: { prestadorId: stri
           </div>
 
           <label className="block">
-            <span className="block text-xs font-medium mb-1">Título profesional</span>
-            <input value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder='Ej. "Gasfíter certificado SEC"'
+            <span className="block text-xs font-medium mb-1">{t("panel.tituloProfesional")}</span>
+            <input value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder={t("panel.tituloPlaceholder")}
               className="w-full h-11 px-3 rounded-xl bg-muted/50 border border-border outline-none focus:border-foreground/30 text-sm" />
           </label>
 
           <div className="grid grid-cols-2 gap-3">
             <label className="block">
-              <span className="block text-xs font-medium mb-1">Años de experiencia</span>
+              <span className="block text-xs font-medium mb-1">{t("panel.anosExperiencia")}</span>
               <input type="number" min={0} max={60} value={anos} onChange={(e) => setAnos(Number(e.target.value))}
                 className="w-full h-11 px-3 rounded-xl bg-muted/50 border border-border outline-none focus:border-foreground/30 text-sm" />
             </label>
             <label className="block">
-              <span className="block text-xs font-medium mb-1">Comuna</span>
-              <input value={comuna} onChange={(e) => setComuna(e.target.value)} placeholder="Ej. Ñuñoa"
+              <span className="block text-xs font-medium mb-1">{t("panel.comuna")}</span>
+              <input value={comuna} onChange={(e) => setComuna(e.target.value)} placeholder={t("panel.comunaPlaceholder")}
                 className="w-full h-11 px-3 rounded-xl bg-muted/50 border border-border outline-none focus:border-foreground/30 text-sm" />
             </label>
           </div>
 
           <div>
-            <span className="block text-xs font-medium mb-1">Especialidades (máx. 8)</span>
+            <span className="block text-xs font-medium mb-1">{t("panel.especialidades")}</span>
             <ChipsPanel value={especialidades} onChange={setEspecialidades} max={8}
-              suggestions={(cat?.services ?? [])} placeholder="Escribe y presiona Enter" />
+              suggestions={(cat?.services ?? [])} placeholder={t("panel.escribeEnter")} />
           </div>
 
           <div>
-            <span className="block text-xs font-medium mb-1">Comunas donde atiendes</span>
+            <span className="block text-xs font-medium mb-1">{t("panel.comunasAtiendes")}</span>
             <ChipsPanel value={comunasCobertura} onChange={setComunasCobertura} max={30}
-              suggestions={COMUNAS_SUGERIDAS} placeholder="Escribe una comuna y presiona Enter" />
-            <p className="text-[11px] text-muted-foreground mt-1">Si no agregas ninguna, se usa el radio en km desde tu dirección base.</p>
+              suggestions={COMUNAS_SUGERIDAS} placeholder={t("panel.comunaEnter")} />
+            <p className="text-[11px] text-muted-foreground mt-1">{t("panel.sinComunasRadio")}</p>
           </div>
 
           <div>
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-medium">Radio de desplazamiento</span>
+              <span className="text-xs font-medium">{t("panel.radioDesplazamiento")}</span>
               <span className="text-xs font-bold">{radioKm} km</span>
             </div>
             <input type="range" min={1} max={60} step={1} value={radioKm} onChange={(e) => setRadioKm(Number(e.target.value))} className="w-full accent-[#EF9F27]" />
           </div>
 
           <div>
-            <span className="block text-xs font-medium mb-2">Idiomas</span>
+            <span className="block text-xs font-medium mb-2">{t("panel.idiomas")}</span>
             <div className="flex flex-wrap gap-2">
               {IDIOMAS_OPCIONES.map((o) => {
                 const on = idiomas.includes(o);
@@ -1581,14 +1601,14 @@ function PerfilPublicoCard({ prestadorId, userId, initial }: { prestadorId: stri
           </div>
 
           <div className="space-y-2">
-            <TogglePanel label="Tengo vehículo propio" value={tieneVehiculo} onChange={setTieneVehiculo} />
-            <TogglePanel label="Trabajo con mis propias herramientas" value={herramientasPropias} onChange={setHerramientasPropias} />
-            <TogglePanel label="Emito boleta o factura" value={emiteBoleta} onChange={setEmiteBoleta} />
+            <TogglePanel label={t("panel.tengoVehiculo")} value={tieneVehiculo} onChange={setTieneVehiculo} />
+            <TogglePanel label={t("panel.herramientasPropias")} value={herramientasPropias} onChange={setHerramientasPropias} />
+            <TogglePanel label={t("panel.emitoBoleta")} value={emiteBoleta} onChange={setEmiteBoleta} />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <label className="block">
-              <span className="block text-xs font-medium mb-1">Teléfono</span>
+              <span className="block text-xs font-medium mb-1">{t("panel.telefono")}</span>
               <input type="tel" value={telefono} onChange={(e) => setTelefono(e.target.value)} placeholder="+56 9 1234 5678"
                 className="w-full h-11 px-3 rounded-xl bg-muted/50 border border-border outline-none focus:border-foreground/30 text-sm" />
             </label>
@@ -1604,11 +1624,11 @@ function PerfilPublicoCard({ prestadorId, userId, initial }: { prestadorId: stri
               to="/prestador/$id" params={{ id: prestadorId }}
               className="h-11 px-4 rounded-xl border border-border text-sm font-semibold inline-flex items-center gap-1.5 hover:bg-muted"
             >
-              <ExternalLink className="size-4" /> Ver mi perfil público
+              <ExternalLink className="size-4" /> {t("panel.verPerfilPublico")}
             </Link>
             <button type="button" onClick={guardar} disabled={saving}
               className="flex-1 h-11 rounded-xl bg-[#111827] text-white text-sm font-semibold disabled:opacity-50">
-              {saving ? "Guardando..." : "Guardar perfil público"}
+              {saving ? t("panel.guardando") : t("panel.guardarPerfilPublico")}
             </button>
           </div>
         </div>
@@ -1661,6 +1681,7 @@ function TogglePanel({ label, value, onChange }: { label: string; value: boolean
 function ChipsPanel({
   value, onChange, suggestions, placeholder, max,
 }: { value: string[]; onChange: (v: string[]) => void; suggestions: string[]; placeholder?: string; max: number }) {
+  const { t } = useT();
   const [texto, setTexto] = useState("");
   const lleno = value.length >= max;
   const norm = (s: string) => s.trim().toLowerCase();
@@ -1681,7 +1702,7 @@ function ChipsPanel({
           {value.map((v) => (
             <span key={v} className="inline-flex items-center gap-1 pl-2.5 pr-1 py-1 rounded-full bg-[#111827] text-white text-xs">
               {v}
-              <button type="button" onClick={() => onChange(value.filter((x) => x !== v))} aria-label={`Quitar ${v}`} className="p-0.5 rounded-full hover:bg-white/20">
+              <button type="button" onClick={() => onChange(value.filter((x) => x !== v))} aria-label={t("panel.quitarX", { x: v })} className="p-0.5 rounded-full hover:bg-white/20">
                 <X className="size-3" />
               </button>
             </span>
@@ -1691,7 +1712,7 @@ function ChipsPanel({
       <input value={texto} onChange={(e) => setTexto(e.target.value)} disabled={lleno}
         onKeyDown={(e) => { if (e.key === "Enter" || e.key === ",") { e.preventDefault(); agregar(texto); } }}
         onBlur={() => { if (texto.trim()) agregar(texto); }}
-        placeholder={lleno ? `Máximo ${max}` : placeholder}
+        placeholder={lleno ? t("panel.maximoN", { n: max }) : placeholder}
         className="w-full h-11 px-3 rounded-xl bg-muted/50 border border-border outline-none focus:border-foreground/30 text-sm disabled:opacity-60" />
       {!lleno && filtradas.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
@@ -1708,6 +1729,7 @@ function ChipsPanel({
 }
 
 function VerificacionBanner({ prestadorId, verificado }: { prestadorId: string; verificado: boolean }) {
+  const { t } = useT();
   const verifQ = useQuery({
     queryKey: ["mi-verif-status", prestadorId],
     enabled: !!prestadorId,
@@ -1729,8 +1751,8 @@ function VerificacionBanner({ prestadorId, verificado }: { prestadorId: string; 
           <Check className="size-5 text-[#EF9F27]" />
         </span>
         <div className="flex-1">
-          <div className="font-semibold text-sm">Verificado por Homie</div>
-          <div className="text-xs text-white/70">Tu identidad fue confirmada</div>
+          <div className="font-semibold text-sm">{t("panel.verificadoHomie")}</div>
+          <div className="text-xs text-white/70">{t("panel.identidadConfirmada")}</div>
         </div>
       </div>
     );
@@ -1742,8 +1764,8 @@ function VerificacionBanner({ prestadorId, verificado }: { prestadorId: string; 
       <div className="p-4 rounded-2xl bg-[#E5E7EB] text-[#111827] flex items-center gap-3">
         <span className="inline-flex size-9 rounded-full bg-white items-center justify-center text-xs font-bold">⏳</span>
         <div className="flex-1">
-          <div className="font-semibold text-sm">En revisión</div>
-          <div className="text-xs text-[#6B7280]">Revisaremos tu solicitud en menos de 24 horas</div>
+          <div className="font-semibold text-sm">{t("panel.enRevision")}</div>
+          <div className="text-xs text-[#6B7280]">{t("panel.enRevisionSub")}</div>
         </div>
       </div>
     );
@@ -1751,15 +1773,15 @@ function VerificacionBanner({ prestadorId, verificado }: { prestadorId: string; 
 
   return (
     <div className="p-4 rounded-2xl bg-[#FAC775] text-[#111827]">
-      <div className="font-semibold text-sm">Completa tu verificación para recibir reservas</div>
+      <div className="font-semibold text-sm">{t("panel.completaVerificacion")}</div>
       {estado === "rechazado" && verifQ.data?.motivo_rechazo && (
-        <div className="text-xs mt-1 text-[#854F0B]"><strong>Rechazo previo:</strong> {verifQ.data.motivo_rechazo}</div>
+        <div className="text-xs mt-1 text-[#854F0B]"><strong>{t("panel.rechazoPrevio")}</strong> {verifQ.data.motivo_rechazo}</div>
       )}
       <Link
         to="/verificar-identidad"
         className="inline-block mt-3 px-4 py-2 rounded-xl bg-[#EF9F27] text-[#111827] text-sm font-semibold"
       >
-        Verificarme ahora
+        {t("panel.verificarme")}
       </Link>
     </div>
   );

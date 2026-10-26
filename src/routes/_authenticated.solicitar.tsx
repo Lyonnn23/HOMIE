@@ -9,6 +9,10 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { groups, categoriesOfGroup, formatCLP } from "@/data/services";
 import { useEnvioUnico } from "@/lib/doble-envio";
+import { useServerFn } from "@tanstack/react-start";
+import { moderarTexto } from "@/lib/moderacion.functions";
+import { evento } from "@/lib/analitica";
+import { useT } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/solicitar")({
   head: () => ({ meta: [
@@ -26,6 +30,7 @@ const inputCls =
   "w-full px-4 py-3 rounded-2xl bg-white border border-border text-sm outline-none focus:border-[#EF9F27] focus:ring-2 focus:ring-[#EF9F27]/20";
 
 function SolicitarPage() {
+  const { t } = useT();
   const { usuario, user } = useAuth();
   const navigate = useNavigate();
   const router = useRouter();
@@ -35,6 +40,7 @@ function SolicitarPage() {
   const [servicioId, setServicioId] = useState("");
   const [titulo, setTitulo] = useState("");
   const [detalle, setDetalle] = useState("");
+  const moderar = useServerFn(moderarTexto);
   const [fotos, setFotos] = useState<File[]>([]);
   const [comuna, setComuna] = useState("");
   const [direccion, setDireccion] = useState("");
@@ -68,7 +74,7 @@ function SolicitarPage() {
     if (!list) return;
     const incoming = Array.from(list).filter((f) => f.type.startsWith("image/"));
     const next = [...fotos, ...incoming].slice(0, MAX_FOTOS);
-    if (fotos.length + incoming.length > MAX_FOTOS) toast.info(`Máximo ${MAX_FOTOS} fotos`);
+    if (fotos.length + incoming.length > MAX_FOTOS) toast.info(t("solicitar.maxFotos", { n: MAX_FOTOS }));
     setFotos(next);
     if (fileRef.current) fileRef.current.value = "";
   }
@@ -82,6 +88,16 @@ function SolicitarPage() {
     if (!valid || !usuario || !user) return;
     setSending(true);
     try {
+      try {
+        const mod = await moderar({ data: { texto: `${titulo.trim()}\n${detalle.trim()}`, origen: "solicitud" } });
+        if (!mod.ok) {
+          toast.error(mod.mensaje ?? t("solicitar.normas"));
+          setSending(false);
+          return;
+        }
+      } catch {
+        /* si la moderación falla, se permite publicar */
+      }
       const paths: string[] = [];
       for (const f of fotos) {
         const ext = (f.name.split(".").pop() || "jpg").toLowerCase();
@@ -108,11 +124,12 @@ function SolicitarPage() {
         .select("id")
         .single();
       if (error) throw error;
-      toast.success("Solicitud publicada. Te avisaremos cuando lleguen cotizaciones.");
+      evento("solicitud_publicada", { solicitud_id: data.id, categoria_id: categoriaId, urgente, fotos: paths.length, con_presupuesto: presupuestoNum > 0 });
+      toast.success(t("solicitar.publicada"));
       navigate({ to: "/solicitudes/$id", params: { id: data.id } });
     } catch (err) {
       console.error(err);
-      toast.error(err instanceof Error ? err.message : "No se pudo publicar la solicitud");
+      toast.error(err instanceof Error ? err.message : t("solicitar.errPublicar"));
       setSending(false);
     }
   }
@@ -124,19 +141,19 @@ function SolicitarPage() {
           <button onClick={() => router.history.back()} className="p-2 -ml-2 rounded-full hover:bg-muted">
             <ArrowLeft className="size-5" />
           </button>
-          <h1 className="mt-3 text-2xl font-bold tracking-tight">Pide cotizaciones</h1>
+          <h1 className="mt-3 text-2xl font-bold tracking-tight">{t("solicitar.titulo")}</h1>
         </header>
         <div className="px-5 mt-4">
           <div className="p-5 rounded-3xl bg-white border border-border">
-            <div className="font-semibold">Las solicitudes son para clientes</div>
+            <div className="font-semibold">{t("solicitar.paraClientes")}</div>
             <p className="mt-1 text-sm text-muted-foreground">
-              Como profesional, tú eres quien cotiza. Revisa las solicitudes abiertas en tu rubro y envía tu propuesta.
+              {t("solicitar.paraClientesSub")}
             </p>
             <Link
               to="/cotizar"
               className="mt-4 inline-flex items-center justify-center w-full px-5 py-3 rounded-2xl bg-[#111827] text-white font-semibold text-sm"
             >
-              Ir a cotizar solicitudes
+              {t("solicitar.irCotizar")}
             </Link>
           </div>
         </div>
@@ -150,26 +167,26 @@ function SolicitarPage() {
         <button onClick={() => router.history.back()} className="p-2 -ml-2 rounded-full hover:bg-white/10">
           <ArrowLeft className="size-5" />
         </button>
-        <h1 className="mt-3 text-2xl font-bold tracking-tight">Pide cotizaciones</h1>
+        <h1 className="mt-3 text-2xl font-bold tracking-tight">{t("solicitar.titulo")}</h1>
         <p className="mt-2 text-sm text-white/80">
-          Publica lo que necesitas y recibe cotizaciones de profesionales verificados. Gratis. Eliges tú.
+          {t("solicitar.sub")}
         </p>
         <div className="mt-4 flex flex-wrap gap-2 text-[11px] font-semibold">
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/10"><BadgeCheck className="size-3.5 text-[#EF9F27]" /> Solo verificados</span>
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/10"><ShieldCheck className="size-3.5 text-[#EF9F27]" /> Precio protegido</span>
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/10"><Sparkles className="size-3.5 text-[#EF9F27]" /> Sin compromiso</span>
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/10"><BadgeCheck className="size-3.5 text-[#EF9F27]" /> {t("solicitar.soloVerificados")}</span>
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/10"><ShieldCheck className="size-3.5 text-[#EF9F27]" /> {t("solicitar.precioProtegido")}</span>
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/10"><Sparkles className="size-3.5 text-[#EF9F27]" /> {t("solicitar.sinCompromiso")}</span>
         </div>
       </header>
 
       <form onSubmit={submit} className="px-5 mt-5 space-y-5 pb-10">
-        <Field label="Categoría" required>
+        <Field label={t("solicitar.categoria")} required>
           <select
             required
             value={categoriaId}
             onChange={(e) => { setCategoriaId(e.target.value); setServicioId(""); }}
             className={inputCls}
           >
-            <option value="">Elige una categoría</option>
+            <option value="">{t("solicitar.eligeCategoria")}</option>
             {groups.map((g) => (
               <optgroup key={g.id} label={g.name}>
                 {categoriesOfGroup(g.id).map((c) => (
@@ -180,36 +197,36 @@ function SolicitarPage() {
           </select>
         </Field>
 
-        <Field label="Servicio" hint="Opcional, ayuda a que lleguen los profesionales correctos">
+        <Field label={t("solicitar.servicio")} hint={t("solicitar.servicioHint")}>
           <select
             value={servicioId}
             onChange={(e) => setServicioId(e.target.value)}
             disabled={!categoriaId || serviciosQ.isLoading}
             className={`${inputCls} disabled:opacity-60`}
           >
-            <option value="">{categoriaId ? "Cualquiera de la categoría" : "Primero elige una categoría"}</option>
+            <option value="">{categoriaId ? t("solicitar.cualquiera") : t("solicitar.primeroCategoria")}</option>
             {(serviciosQ.data ?? []).map((s) => (
               <option key={s.id} value={s.id}>{s.nombre}</option>
             ))}
           </select>
         </Field>
 
-        <Field label="Título" required hint={`${titulo.trim().length}/120`}>
+        <Field label={t("solicitar.tituloCampo")} required hint={`${titulo.trim().length}/120`}>
           <input
             required
             minLength={5}
             maxLength={120}
             value={titulo}
             onChange={(e) => setTitulo(e.target.value)}
-            placeholder="Ej: Pintar living y comedor (45 m²)"
+            placeholder={t("solicitar.tituloPlaceholder")}
             className={inputCls}
           />
         </Field>
 
         <Field
-          label="Detalle"
+          label={t("solicitar.detalle")}
           required
-          hint={detalle.trim().length < 20 ? `Mínimo 20 caracteres (${detalle.trim().length}/20)` : `${detalle.trim().length}/2000`}
+          hint={detalle.trim().length < 20 ? t("solicitar.min20", { n: detalle.trim().length }) : `${detalle.trim().length}/2000`}
         >
           <textarea
             required
@@ -218,19 +235,19 @@ function SolicitarPage() {
             rows={5}
             value={detalle}
             onChange={(e) => setDetalle(e.target.value)}
-            placeholder="Cuenta qué necesitas, medidas, materiales, estado actual, acceso al lugar… Mientras más detalle, mejores cotizaciones."
+            placeholder={t("solicitar.detallePlaceholder")}
             className={`${inputCls} resize-none`}
           />
         </Field>
 
-        <Field label="Fotos" asDiv hint={`Hasta ${MAX_FOTOS} · ayudan a cotizar con precisión`}>
+        <Field label={t("solicitar.fotos")} asDiv hint={t("solicitar.fotosHint", { n: MAX_FOTOS })}>
           <div className="grid grid-cols-4 gap-2">
             {previews.map((src, i) => (
               <div key={src} className="relative aspect-square rounded-2xl overflow-hidden border border-border bg-muted">
                 <img src={src} alt="" className="size-full object-cover" />
                 <button
                   type="button"
-                  aria-label="Quitar foto"
+                  aria-label={t("solicitar.quitarFoto")}
                   onClick={() => setFotos(fotos.filter((_, j) => j !== i))}
                   className="absolute top-1 right-1 size-6 rounded-full bg-[#111827]/80 text-white flex items-center justify-center"
                 >
@@ -245,7 +262,7 @@ function SolicitarPage() {
                 className="aspect-square rounded-2xl border-2 border-dashed border-border bg-white flex flex-col items-center justify-center gap-1 text-muted-foreground hover:border-[#EF9F27] hover:text-[#111827]"
               >
                 <ImagePlus className="size-5" />
-                <span className="text-[10px] font-semibold">Agregar</span>
+                <span className="text-[10px] font-semibold">{t("solicitar.agregar")}</span>
               </button>
             )}
           </div>
@@ -253,20 +270,20 @@ function SolicitarPage() {
         </Field>
 
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Comuna">
-            <input value={comuna} onChange={(e) => setComuna(e.target.value)} placeholder="Ej: Ñuñoa" className={inputCls} />
+          <Field label={t("solicitar.comuna")}>
+            <input value={comuna} onChange={(e) => setComuna(e.target.value)} placeholder={t("solicitar.comunaPlaceholder")} className={inputCls} />
           </Field>
-          <Field label="Fecha deseada">
+          <Field label={t("solicitar.fechaDeseada")}>
             <input type="date" min={today} value={fechaDeseada} onChange={(e) => setFechaDeseada(e.target.value)} className={inputCls} />
           </Field>
         </div>
 
-        <Field label="Dirección" hint="Solo se comparte con el profesional que elijas">
+        <Field label={t("solicitar.direccion")} hint={t("solicitar.direccionHint")}>
           <div className="relative">
             <input
               value={direccion}
               onChange={(e) => setDireccion(e.target.value)}
-              placeholder="Calle, número, depto (opcional)"
+              placeholder={t("solicitar.direccionPlaceholder")}
               className={`${inputCls} pr-10`}
             />
             <Lock className="absolute right-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
@@ -275,8 +292,8 @@ function SolicitarPage() {
 
         <div className="p-4 rounded-2xl bg-white border border-border flex items-center gap-3">
           <div className="flex-1 min-w-0">
-            <div className="text-sm font-semibold">Es urgente</div>
-            <div className="text-xs text-muted-foreground">Lo necesito en las próximas 24–48 horas</div>
+            <div className="text-sm font-semibold">{t("solicitar.esUrgente")}</div>
+            <div className="text-xs text-muted-foreground">{t("solicitar.esUrgenteSub")}</div>
           </div>
           <button
             type="button"
@@ -289,7 +306,7 @@ function SolicitarPage() {
           </button>
         </div>
 
-        <Field label="Presupuesto máximo" hint={presupuestoNum > 0 ? `Hasta ${formatCLP(presupuestoNum)} · los profesionales lo verán` : "Opcional, orienta a los profesionales"}>
+        <Field label={t("solicitar.presupuesto")} hint={presupuestoNum > 0 ? t("solicitar.presupuestoHasta", { monto: formatCLP(presupuestoNum) }) : t("solicitar.presupuestoHint")}>
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
             <input
@@ -308,10 +325,10 @@ function SolicitarPage() {
           className="w-full inline-flex items-center justify-center gap-2 px-5 py-4 rounded-2xl bg-[#EF9F27] text-[#111827] font-bold text-sm disabled:opacity-50"
         >
           {sending ? <Loader2 className="size-4 animate-spin" /> : null}
-          {sending ? "Publicando…" : "Publicar solicitud"}
+          {sending ? t("solicitar.publicando") : t("solicitar.publicar")}
         </button>
         <p className="text-center text-xs text-muted-foreground">
-          Tu solicitud queda abierta 7 días. Puedes cancelarla cuando quieras.
+          {t("solicitar.abierta7")}
         </p>
       </form>
     </AppShell>

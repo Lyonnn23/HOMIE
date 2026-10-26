@@ -180,10 +180,92 @@ export const REQUISITOS: Record<CategoryId, RequisitosCategoria> = {
   },
 };
 
-export function requisitosDe(categoriaId: string | null | undefined): RequisitosCategoria {
-  return (categoriaId && REQUISITOS[categoriaId as CategoryId]) || {
-    titulo: "Tu rubro",
-    intro: "Sube el documento que acredite tus estudios o experiencia.",
-    documentos: [BASICO, EXPERIENCIA],
-  };
+const DEFAULT_ES: RequisitosCategoria = {
+  titulo: "Tu rubro",
+  intro: "Sube el documento que acredite tus estudios o experiencia.",
+  documentos: [BASICO, EXPERIENCIA],
+};
+
+/**
+ * Traducciones de `titulo` e `intro` por categoría (en / ht / pt).
+ * Los nombres de documentos y el campo `donde` se mantienen en español porque son
+ * documentos e instituciones chilenas (la UI lo indica como "documento chileno").
+ */
+type Trad = Record<string, { titulo: string; intro: string }>;
+const TRAD: Record<"en" | "ht" | "pt", Trad> = {
+  en: {
+    _default: { titulo: "Your trade", intro: "Upload the document that proves your studies or experience." },
+    legal: { titulo: "Lawyers", intro: "In Chile only those holding the degree granted by the Supreme Court may practice." },
+    finanzas: { titulo: "Accountants and business", intro: "We verify the professional degree and, if applicable, registration with the Accountants' Association." },
+    ingenieria: { titulo: "Architecture and engineering", intro: "Signing plans, regularizations or inspections requires a degree and, in some cases, official registration." },
+    "salud-pro": { titulo: "Health professionals", intro: "Every health provider must be listed in the National Registry of Individual Health Providers." },
+    educacion: { titulo: "Classes and education", intro: "We ask for a degree or studies in the area you teach. To work with minors, the disqualification certificate is mandatory." },
+    "tech-fix": { titulo: "Technicians and plumbing", intro: "For electrical and gas installations, the law requires SEC certification." },
+    home: { titulo: "Home and cleaning", intro: "We accept professional cleaning courses or verifiable experience." },
+    garden: { titulo: "Garden and pools", intro: "For pools we ask for a chemical-handling course; for gardening, experience or a course." },
+    moving: { titulo: "Furniture and moving", intro: "We ask for vehicle documents and a cargo transport permit." },
+    beauty: { titulo: "Beauty and aesthetics", intro: "We ask for trade certification and, for invasive procedures, health authorization." },
+    health: { titulo: "Health and wellness", intro: "Trainers, masseurs and therapists must prove their training." },
+    care: { titulo: "Care and advice", intro: "You'll work with children or seniors: the disqualification certificate is mandatory." },
+    pets: { titulo: "Pets", intro: "Veterinarians must hold a degree; walkers and groomers, a course or experience." },
+    auto: { titulo: "Mobile automotive", intro: "We ask for mechanical training and a driver's license." },
+    tech: { titulo: "Technology and digital", intro: "We accept a technical degree, certifications (CCNA, CompTIA, etc.) or a course." },
+    events: { titulo: "Events and photography", intro: "We ask for a portfolio and, if applicable, studies in the area." },
+    party: { titulo: "Parties and fun", intro: "For inflatables and food trucks we ask for insurance and permits; for entertainers, the disqualification certificate." },
+    gifts: { titulo: "Gifts and surprises", intro: "We ask for tax registration and, for food, health authorization." },
+  },
+  ht: {
+    _default: { titulo: "Metye ou", intro: "Telechaje dokiman ki pwouve etid oswa eksperyans ou." },
+    legal: { titulo: "Avoka", intro: "Nan Chili sèlman moun ki gen tit Kou Siprèm nan bay la ka pratike." },
+    finanzas: { titulo: "Kontab ak antrepriz", intro: "Nou verifye tit pwofesyonèl la epi, si sa aplikab, enskripsyon nan Kolèj Kontab yo." },
+    ingenieria: { titulo: "Achitekti ak jeni", intro: "Pou siyen plan, regilarizasyon oswa enspeksyon yo mande tit epi, nan kèk ka, anrejistreman ofisyèl." },
+    "salud-pro": { titulo: "Sante pwofesyonèl", intro: "Tout pwofesyonèl sante dwe enskri nan Rejis Nasyonal Pwofesyonèl Sante Endividyèl yo." },
+    educacion: { titulo: "Klas ak edikasyon", intro: "Nou mande tit oswa etid nan domèn ou anseye a. Pou travay ak timoun minè, sètifika enkapasite a obligatwa." },
+    "tech-fix": { titulo: "Teknisyen ak plonbri", intro: "Pou enstalasyon elektrik ak gaz, lalwa egzije sètifikasyon SEC." },
+    home: { titulo: "Kay ak netwayaj", intro: "Nou aksepte kou netwayaj pwofesyonèl oswa eksperyans ki ka verifye." },
+    garden: { titulo: "Jaden ak pisin", intro: "Pou pisin nou mande kou manyen pwodui chimik; pou jadinaj, eksperyans oswa kou." },
+    moving: { titulo: "Mèb ak demenajman", intro: "Nou mande dokiman machin nan ak pèmi pou transpò chajman." },
+    beauty: { titulo: "Bote ak estetik", intro: "Nou mande sètifikasyon metye a epi, pou pwosedi envazif, otorizasyon sanitè." },
+    health: { titulo: "Sante ak byennèt", intro: "Antrenè, masè ak terapet dwe pwouve fòmasyon yo." },
+    care: { titulo: "Swen ak konsèy", intro: "W ap travay ak timoun oswa granmoun aje: sètifika enkapasite a obligatwa." },
+    pets: { titulo: "Bèt kay", intro: "Veterinè dwe gen diplòm; moun k ap pwomennen chen ak kwafè bèt, kou oswa eksperyans." },
+    auto: { titulo: "Otomobil a domisil", intro: "Nou mande fòmasyon mekanik ak lisans kondwi." },
+    tech: { titulo: "Teknoloji ak dijital", intro: "Nou aksepte tit teknik, sètifikasyon (CCNA, CompTIA, elatriye) oswa kou." },
+    events: { titulo: "Evènman ak fotografi", intro: "Nou mande pòtfolyo epi, si sa aplikab, etid nan domèn nan." },
+    party: { titulo: "Fèt ak amizman", intro: "Pou enflatab ak food truck nou mande asirans ak pèmi; pou animatè, sètifika enkapasite." },
+    gifts: { titulo: "Kado ak sipriz", intro: "Nou mande anrejistreman fiskal epi, pou manje, otorizasyon sanitè." },
+  },
+  pt: {
+    _default: { titulo: "Sua área", intro: "Envie o documento que comprove seus estudos ou experiência." },
+    legal: { titulo: "Advogados", intro: "No Chile só pode exercer quem tem o título outorgado pela Corte Suprema." },
+    finanzas: { titulo: "Contadores e empresas", intro: "Comprovamos o título profissional e, se aplicável, a inscrição no Colégio de Contadores." },
+    ingenieria: { titulo: "Arquitetura e engenharia", intro: "Para assinar plantas, regularizações ou inspeções exige-se título e, em alguns casos, registro oficial." },
+    "salud-pro": { titulo: "Saúde profissional", intro: "Todo prestador de saúde deve estar inscrito no Registro Nacional de Prestadores Individuais de Saúde." },
+    educacion: { titulo: "Aulas e educação", intro: "Pedimos o título ou estudos na área que ensina. Para trabalhar com menores, o certificado de inabilidades é obrigatório." },
+    "tech-fix": { titulo: "Técnicos e encanamento", intro: "Para instalações elétricas e de gás, a lei exige certificação SEC." },
+    home: { titulo: "Casa e limpeza", intro: "Aceitamos cursos de limpeza profissional ou experiência comprovável." },
+    garden: { titulo: "Jardim e piscinas", intro: "Para piscinas pedimos curso de manejo de químicos; para jardinagem, experiência ou curso." },
+    moving: { titulo: "Móveis e mudanças", intro: "Pedimos documentos do veículo e permissão para transporte de carga." },
+    beauty: { titulo: "Beleza e estética", intro: "Pedimos certificação da área e, para procedimentos invasivos, autorização sanitária." },
+    health: { titulo: "Saúde e bem-estar", intro: "Personal trainers, massagistas e terapeutas devem comprovar formação." },
+    care: { titulo: "Cuidado e assessoria", intro: "Você trabalhará com crianças ou idosos: o certificado de inabilidades é obrigatório." },
+    pets: { titulo: "Pets", intro: "Veterinários devem ter diploma; passeadores e tosadores, curso ou experiência." },
+    auto: { titulo: "Automotivo a domicílio", intro: "Pedimos formação mecânica e carteira de motorista." },
+    tech: { titulo: "Tecnologia e digital", intro: "Aceitamos título técnico, certificações (CCNA, CompTIA, etc.) ou curso." },
+    events: { titulo: "Eventos e fotografia", intro: "Pedimos portfólio e, se aplicável, estudos da área." },
+    party: { titulo: "Festas e diversão", intro: "Para infláveis e food trucks pedimos seguro e licenças; para animação, certificado de inabilidades." },
+    gifts: { titulo: "Presentes e surpresas", intro: "Pedimos registro fiscal e, para alimentos, autorização sanitária." },
+  },
+};
+
+/**
+ * Requisitos de una categoría. Con `idioma` (en/ht/pt) devuelve `titulo` e `intro` traducidos;
+ * los nombres de documentos y `donde` quedan en español (documentos chilenos).
+ */
+export function requisitosDe(categoriaId: string | null | undefined, idioma?: string): RequisitosCategoria {
+  const base = (categoriaId && REQUISITOS[categoriaId as CategoryId]) || DEFAULT_ES;
+  const trad = idioma && idioma !== "es" ? TRAD[idioma as "en" | "ht" | "pt"] : undefined;
+  if (!trad) return base;
+  const tr = (categoriaId && trad[categoriaId]) || (base === DEFAULT_ES ? trad._default : undefined);
+  return tr ? { ...base, titulo: tr.titulo, intro: tr.intro } : base;
 }

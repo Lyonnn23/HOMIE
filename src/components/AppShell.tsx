@@ -6,21 +6,23 @@ import { BottomNav } from "./BottomNav";
 import { AccesibilidadBoton } from "./AccesibilidadBoton";
 import { NotificationsBell } from "./NotificationsBell";
 import { SiteFooter } from "./SiteFooter";
+import { SelectorIdioma } from "./SelectorIdioma";
 import { HomieIcon, HomieWordmark } from "./Logo";
 import { useAuth } from "@/hooks/use-auth";
 import { TemaProvider, useTema } from "@/hooks/use-tema";
+import { useT } from "@/i18n";
 
 // Carga perezosa: el banner de "sin conexión" vive en su propio chunk.
 const OfflineBanner = lazy(() =>
   import("./OfflineBanner").then((m) => ({ default: m.OfflineBanner })).catch(() => ({ default: () => null })),
 );
 
-const NAV: { label: string; to: string; search?: Record<string, string> }[] = [
-  { label: "Buscar", to: "/buscar" },
-  { label: "Cómo funciona", to: "/como-funciona" },
-  { label: "Precios", to: "/precios" },
-  { label: "Gas", to: "/gas" },
-  { label: "Para profesionales", to: "/registro", search: { tipo: "prestador" } },
+const NAV: { key: string; to: string; search?: Record<string, string> }[] = [
+  { key: "nav.buscar", to: "/buscar" },
+  { key: "nav.comoFunciona", to: "/como-funciona" },
+  { key: "nav.precios", to: "/precios" },
+  { key: "nav.gas", to: "/gas" },
+  { key: "nav.paraProfesionales", to: "/registro", search: { tipo: "prestador" } },
 ];
 
 interface Props {
@@ -39,6 +41,7 @@ export function AppShell(props: Props) {
 
 function AppShellInner({ children, wide = false }: Props) {
   const { usuario, user } = useAuth();
+  const { t } = useT();
   const loc = useLocation();
   // Asegura que el atributo data-theme se aplique en todas las pantallas.
   useTema();
@@ -47,24 +50,24 @@ function AppShellInner({ children, wide = false }: Props) {
     <div className="min-h-screen bg-white flex flex-col">
       <header className="sticky top-0 z-30 bg-[#111827] text-white">
         <div className="container-landing flex items-center justify-between gap-4 h-14 md:h-16">
-          <Link to="/" className="flex items-center gap-2 rounded-md" aria-label="Homie, inicio">
+          <Link to="/" className="flex items-center gap-2 rounded-md" aria-label={t("shell.inicioAria")}>
             <HomieIcon size={32} />
             <HomieWordmark inverted className="text-base" />
           </Link>
 
-          <nav aria-label="Principal" className="hidden lg:flex items-center gap-1">
+          <nav aria-label={t("shell.navPrincipal")} className="hidden lg:flex items-center gap-1">
             {NAV.map((item) => {
               const active = loc.pathname === item.to;
               return (
                 <Link
-                  key={item.label}
+                  key={item.key}
                   to={item.to}
                   search={item.search as never}
                   className={`px-3 py-2 rounded-[10px] text-sm font-medium whitespace-nowrap transition-colors ${
                     active ? "text-white bg-white/10" : "text-white/75 hover:text-white hover:bg-white/5"
                   }`}
                 >
-                  {item.label}
+                  {t(item.key)}
                 </Link>
               );
             })}
@@ -72,10 +75,11 @@ function AppShellInner({ children, wide = false }: Props) {
 
           {user ? (
             <div className="flex items-center gap-1">
+              <SelectorIdioma compacto />
               <NotificationsBell />
               <Link to="/cuenta" className="flex items-center gap-2 text-sm ml-1 text-white rounded-md">
-                <span className="text-white/60 hidden sm:inline">Hola,</span>
-                <span className="font-semibold">{usuario?.nombre?.split(" ")[0] ?? "tú"}</span>
+                <span className="text-white/60 hidden sm:inline">{t("shell.hola")}</span>
+                <span className="font-semibold">{usuario?.nombre?.split(" ")[0] ?? t("shell.tu")}</span>
                 <span className="size-7 rounded-full bg-[#EF9F27] text-[#111827] flex items-center justify-center text-xs font-bold">
                   {(usuario?.nombre ?? "U").charAt(0).toUpperCase()}
                 </span>
@@ -83,11 +87,12 @@ function AppShellInner({ children, wide = false }: Props) {
             </div>
           ) : (
             <div className="flex items-center gap-2">
+              <SelectorIdioma compacto />
               <Link to="/login" className="text-sm font-semibold text-white/85 hover:text-white px-2 py-2 rounded-md">
-                Ingresar
+                {t("nav.ingresar")}
               </Link>
               <Link to="/registro" className="btn-primary btn-sm hidden sm:inline-flex">
-                Crear cuenta
+                {t("nav.crearCuenta")}
               </Link>
             </div>
           )}
@@ -120,6 +125,7 @@ const PUSH_BANNER_KEY = "homie_push_banner_ocultado";
 
 /** Línea discreta para pedir permiso de push; se oculta al activar o al cerrar (localStorage). */
 function PushBanner() {
+  const { t } = useT();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -144,9 +150,9 @@ function PushBanner() {
     <div className="bg-[#FFF6E5] border-b border-[#EF9F27]/40 text-[#111827]">
       <div className="mx-auto max-w-5xl px-4 py-1.5 flex items-center gap-2 text-xs">
         <BellRing className="size-3.5 text-[#B45309] shrink-0" />
-        <span className="flex-1 min-w-0 truncate">Activa las notificaciones para no perder reservas</span>
-        <button onClick={activar} className="shrink-0 px-2.5 py-1 rounded-lg bg-[#111827] text-white font-semibold">Activar</button>
-        <button onClick={cerrar} aria-label="Cerrar" className="shrink-0 p-1 rounded-md hover:bg-black/5"><X className="size-3.5" /></button>
+        <span className="flex-1 min-w-0 truncate">{t("shell.pushTexto")}</span>
+        <button onClick={activar} className="shrink-0 px-2.5 py-1 rounded-lg bg-[#111827] text-white font-semibold">{t("shell.pushActivar")}</button>
+        <button onClick={cerrar} aria-label={t("comun.cerrar")} className="shrink-0 p-1 rounded-md hover:bg-black/5"><X className="size-3.5" /></button>
       </div>
     </div>
   );

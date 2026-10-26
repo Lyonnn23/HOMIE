@@ -6,6 +6,7 @@ import { ProviderAvatar } from "@/components/Avatar";
 import { useFavoritos, useToggleFavorito } from "@/hooks/use-favoritos";
 import { formatCLP } from "@/data/services";
 import { supabase } from "@/integrations/supabase/client";
+import { useT } from "@/i18n";
 
 /** Disponibilidad actual de los favoritos (id → disponible_ahora). */
 function useDisponibilidad(ids: string[]) {
@@ -36,6 +37,7 @@ export const Route = createFileRoute("/_authenticated/favoritos")({
 });
 
 function FavoritosPage() {
+  const { t } = useT();
   const favs = useFavoritos();
   const toggle = useToggleFavorito();
   const dispo = useDisponibilidad(favs.map((f) => f.prestador_id));
@@ -43,9 +45,9 @@ function FavoritosPage() {
   return (
     <AppShell>
       <header className="px-5 pt-6 pb-4">
-        <h1 className="title-1">Mis favoritos</h1>
+        <h1 className="title-1">{t("favoritos.titulo")}</h1>
         <p className="mt-1 text-sm text-[#6B7280]">
-          Prestadores que has guardado para reservar rápido.
+          {t("favoritos.sub")}
         </p>
       </header>
 
@@ -55,15 +57,15 @@ function FavoritosPage() {
             <div className="mx-auto size-16 rounded-full bg-[#F5F5F0] flex items-center justify-center">
               <Heart className="size-7 text-[#9CA3AF]" />
             </div>
-            <h2 className="mt-4 font-semibold">Aún no tienes favoritos</h2>
+            <h2 className="mt-4 font-semibold">{t("favoritos.vacio")}</h2>
             <p className="mt-1 text-sm text-[#6B7280]">
-              Toca el corazón en el perfil de un prestador para guardarlo aquí.
+              {t("favoritos.vacioSub")}
             </p>
             <Link
               to="/buscar"
               className="inline-block mt-6 px-5 py-3 rounded-2xl bg-[#111827] text-white font-semibold text-sm"
             >
-              Explorar prestadores
+              {t("favoritos.explorar")}
             </Link>
           </div>
         ) : (
@@ -73,29 +75,29 @@ function FavoritosPage() {
             className="mb-3 flex items-center gap-3 p-3 rounded-2xl bg-[#F5F5F0] border border-[#E5E7EB] text-xs text-[#374151] hover:bg-[#EF9F27]/10 transition"
           >
             <Bell className="size-4 text-[#EF9F27] shrink-0" />
-            <span className="flex-1">Te avisamos cuando estén disponibles. <span className="font-semibold text-[#111827] underline">Configurar avisos</span></span>
+            <span className="flex-1">{t("favoritos.avisamos")} <span className="font-semibold text-[#111827] underline">{t("favoritos.configurarAvisos")}</span></span>
           </Link>
           <div className="grid grid-cols-2 gap-3">
             {favs.map((f) => {
               const p = f.prestador;
               if (!p) return null;
-              const name = p.nombre ?? "Prestador";
+              const name = p.nombre ?? t("favoritos.prestador");
               const on = dispo.data?.[p.id];
               return (
                 <div key={f.id} className="relative p-4 rounded-2xl bg-white border border-[#E5E7EB]">
                   {on !== undefined && (
                     <span
                       className={`absolute top-3 left-3 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold text-white ${on ? "bg-[#00C288]" : "bg-[#FF3B6B]"}`}
-                      title={on ? "Disponible ahora" : "No disponible"}
+                      title={on ? t("favoritos.disponibleAhora") : t("favoritos.noDisponible")}
                     >
                       <span className="size-1.5 rounded-full bg-white" />
-                      {on ? "Disponible" : "No disp."}
+                      {on ? t("favoritos.disponible") : t("favoritos.noDisp")}
                     </span>
                   )}
                   <button
                     onClick={() => toggle.mutate({ prestadorId: p.id, isFav: true })}
                     disabled={toggle.isPending}
-                    aria-label="Quitar de favoritos"
+                    aria-label={t("favoritos.quitar")}
                     className="absolute top-3 right-3 size-8 rounded-full bg-white border border-[#E5E7EB] flex items-center justify-center"
                   >
                     <Heart className="size-4 fill-[#EF9F27] text-[#EF9F27]" />
@@ -111,7 +113,7 @@ function FavoritosPage() {
                       <span className="text-[#9CA3AF]">({p.resenas_count})</span>
                     </div>
                     <div className="mt-1 text-xs text-[#6B7280]">
-                      desde {formatCLP(p.precio_desde ?? 0)}
+                      {t("favoritos.desde", { monto: formatCLP(p.precio_desde ?? 0) })}
                     </div>
                   </div>
                   <div className="mt-3 flex flex-col gap-1.5">
@@ -120,14 +122,14 @@ function FavoritosPage() {
                       params={{ id: p.id }}
                       className="w-full h-11 inline-flex items-center justify-center px-3 rounded-xl bg-[#EF9F27] text-[#111827] text-xs font-bold"
                     >
-                      Reservar
+                      {t("favoritos.reservar")}
                     </Link>
                     <Link
                       to="/prestador/$id"
                       params={{ id: p.id }}
                       className="w-full text-center px-3 py-2 rounded-xl bg-[#F5F5F0] text-[#111827] text-xs font-semibold"
                     >
-                      Ver perfil
+                      {t("favoritos.verPerfil")}
                     </Link>
                   </div>
                 </div>

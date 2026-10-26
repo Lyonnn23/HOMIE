@@ -12,6 +12,9 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { formatCLP, esPro } from "@/data/services";
 import { createProPreference } from "@/lib/mercadopago.functions";
+import { evento } from "@/lib/analitica";
+import { useT } from "@/i18n";
+import { localeDe } from "@/i18n/estados";
 
 export const Route = createFileRoute("/_authenticated/pro")({
   validateSearch: z.object({ pago: z.enum(["exito", "pendiente", "error"]).optional() }),
@@ -31,8 +34,8 @@ const TASA_NORMAL = 0.15;
 const TASA_PREMIUM = 0.12;
 const DIAS_TRIAL = 90;
 
-function fechaCL(iso: string) {
-  return new Date(iso).toLocaleDateString("es-CL", { day: "2-digit", month: "2-digit", year: "numeric" });
+function fechaCL(iso: string, locale = "es-CL") {
+  return new Date(iso).toLocaleDateString(locale, { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
 function usePrestadorPro() {
@@ -80,16 +83,19 @@ function useSuscripciones(prestadorId: string | undefined) {
   });
 }
 
+/** title/sub: claves i18n "premium.*" */
 const BENEFICIOS: { icon: typeof Percent; title: string; sub: string }[] = [
-  { icon: Percent, title: "Comisión 12% en vez de 15%", sub: "Después de tus 3 meses gratis, Homie descuenta menos de cada servicio completado: recibes más por el mismo precio." },
-  { icon: Sparkles, title: "Destacado dorado", sub: "Perfil y resultados con sello dorado. Empuja tu posición en el ranking si tienes buena reputación (4.0+ y 3 reseñas)." },
-  { icon: BadgeCheck, title: "Sello Premium en tu perfil", sub: "Una insignia visible que transmite seriedad y confianza." },
-  { icon: BarChart3, title: "Estadísticas de tu negocio", sub: "Ingresos, reservas, aceptación, cotizaciones ganadas y vistas del perfil." },
-  { icon: FileText, title: "Comprobante PDF por servicio", sub: "Un documento imprimible por cada trabajo completado." },
-  { icon: Gift, title: "3 meses gratis, sin tarjeta", sub: "Incluido al verificar tu perfil. Sin compromiso ni renovación automática." },
+  { icon: Percent, title: "premium.b1", sub: "premium.b1s" },
+  { icon: Sparkles, title: "premium.b2", sub: "premium.b2s" },
+  { icon: BadgeCheck, title: "premium.b3", sub: "premium.b3s" },
+  { icon: BarChart3, title: "premium.b4", sub: "premium.b4s" },
+  { icon: FileText, title: "premium.b5", sub: "premium.b5s" },
+  { icon: Gift, title: "premium.b6", sub: "premium.b6s" },
 ];
 
 function ProPage() {
+  const { t, idioma } = useT();
+  const locale = localeDe(idioma);
   const { pago } = Route.useSearch();
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -105,9 +111,9 @@ function ProPage() {
 
   useEffect(() => {
     if (!pago) return;
-    if (pago === "exito") toast.success("¡Pago recibido! Tu plan Premium se activa en unos segundos.");
-    else if (pago === "pendiente") toast.info("Tu pago está pendiente. Te avisaremos cuando se confirme.");
-    else toast.error("El pago no se completó. Puedes intentarlo de nuevo.");
+    if (pago === "exito") toast.success(t("premium.pagoExito"));
+    else if (pago === "pendiente") toast.info(t("premium.pagoPendiente"));
+    else toast.error(t("premium.pagoError"));
     qc.invalidateQueries({ queryKey: ["prestador-pro"] });
     qc.invalidateQueries({ queryKey: ["suscripciones-pro"] });
     navigate({ to: "/pro", search: {}, replace: true });
@@ -125,13 +131,14 @@ function ProPage() {
     try {
       const { data, error } = await supabase.rpc("activar_prueba_pro");
       if (error) throw error;
-      toast.success(`¡Homie Premium activado hasta el ${fechaCL(String(data))}!`);
+      evento("premium_trial_activado", { hasta: String(data) });
+      toast.success(t("premium.activadoHasta", { fecha: fechaCL(String(data), locale) }));
       qc.invalidateQueries({ queryKey: ["prestador-pro"] });
       qc.invalidateQueries({ queryKey: ["prestador-row"] });
       qc.invalidateQueries({ queryKey: ["suscripciones-pro"] });
       qc.invalidateQueries({ queryKey: ["provider"] });
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "No se pudo activar la prueba");
+      toast.error(e instanceof Error ? e.message : t("premium.errPrueba"));
     } finally {
       setActivando(false);
     }
@@ -141,9 +148,10 @@ function ProPage() {
     setPagando(planId);
     try {
       const { initPoint } = await createPreference({ data: { planId } });
+      evento("premium_pago_iniciado", { plan: planId });
       window.location.href = initPoint;
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "No se pudo iniciar el pago");
+      toast.error(e instanceof Error ? e.message : t("premium.errPago"));
       setPagando(null);
     }
   }
@@ -152,9 +160,9 @@ function ProPage() {
     return (
       <AppShell>
         <div className="px-5 pt-16 text-center">
-          <h1 className="text-xl font-bold">Homie Premium es para profesionales</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Esta sección es para cuentas de tipo prestador.</p>
-          <Link to="/" className="inline-block mt-6 btn-primary">Ir al inicio</Link>
+          <h1 className="text-xl font-bold">{t("premium.soloPros")}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{t("premium.soloProsSub")}</p>
+          <Link to="/" className="inline-block mt-6 btn-primary">{t("premium.irInicio")}</Link>
         </div>
       </AppShell>
     );
@@ -171,18 +179,17 @@ function ProPage() {
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-[#EF9F27] to-[#F5C56B] text-[#111827] text-xs font-bold uppercase tracking-wide">
           <Crown className="size-3.5" /> Homie Premium
         </div>
-        <h1 className="mt-4 title-1">Paga menos comisión. Destaca con tu reputación.</h1>
+        <h1 className="mt-4 title-1">{t("premium.heroTitulo")}</h1>
         <p className="mt-2 text-sm text-white/75 max-w-lg">
-          Tus clientes siempre pagan exactamente tu precio. Con Homie Premium, después de tus 3 meses gratis, Homie
-          descuenta 12% en vez de 15% por servicio completado, tu perfil luce dorado y tienes las herramientas de un negocio profesional.
+          {t("premium.heroSub")}
         </p>
 
         {prestadorQ.isLoading ? (
           <div className="mt-6"><Loader2 className="size-5 animate-spin text-white/70" /></div>
         ) : !p ? (
           <div className="mt-6 p-4 rounded-2xl bg-white/10 text-sm">
-            Primero completa tu perfil de profesional.{" "}
-            <Link to="/onboarding-prestador" className="underline font-semibold">Completar perfil</Link>
+            {t("premium.completaPerfil")}{" "}
+            <Link to="/onboarding-prestador" className="underline font-semibold">{t("premium.completarPerfil")}</Link>
           </div>
         ) : proActivo ? (
           <div className="mt-6 p-4 rounded-2xl bg-white/10 flex items-center gap-3">
@@ -190,25 +197,25 @@ function ProPage() {
               <Check className="size-5 text-[#111827]" />
             </span>
             <div>
-              <div className="font-bold">{enTrial ? `Incluido gratis hasta ${fechaCL(p.pro_hasta!)}` : `Premium hasta ${fechaCL(p.pro_hasta!)}`}</div>
+              <div className="font-bold">{enTrial ? t("premium.incluidoHasta", { fecha: fechaCL(p.pro_hasta!, locale) }) : t("premium.premiumHasta", { fecha: fechaCL(p.pro_hasta!, locale) })}</div>
               <div className="text-xs text-white/70">
-                {enTrial ? "Tu Premium de regalo por verificarte. Puedes contratar un plan antes y los días se suman." : "Puedes renovar antes y los días se suman a tu plan actual."}
+                {enTrial ? t("premium.trialSub") : t("premium.renovarSub")}
               </div>
             </div>
             <Link to="/estadisticas" className="ml-auto shrink-0 px-3 py-2 rounded-xl bg-white text-[#111827] text-xs font-bold">
-              Ver estadísticas
+              {t("premium.verEstadisticas")}
             </Link>
           </div>
         ) : !p.verificado ? (
           <div className="mt-6 p-4 rounded-2xl bg-white/10 flex items-start gap-3">
             <ShieldAlert className="size-5 text-[#EF9F27] shrink-0 mt-0.5" />
             <div className="text-sm">
-              <div className="font-semibold">Homie Premium se activa cuando tu perfil está verificado</div>
+              <div className="font-semibold">{t("premium.activaVerificado")}</div>
               <p className="text-white/70 text-xs mt-1">
-                Verifica tu identidad y antecedentes: al verificarte recibes 3 meses de Premium gratis y 3 meses sin comisión.
+                {t("premium.activaVerificadoSub")}
               </p>
               <Link to="/verificar-identidad" className="inline-block mt-3 px-4 py-2 rounded-xl bg-[#EF9F27] text-[#111827] text-xs font-bold">
-                Verificarme ahora
+                {t("premium.verificarme")}
               </Link>
             </div>
           </div>
@@ -218,12 +225,12 @@ function ProPage() {
             className="mt-6 w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-4 rounded-2xl bg-[#EF9F27] text-[#111827] text-base font-bold hover:bg-[#E08F17] disabled:opacity-60"
           >
             {activando ? <Loader2 className="size-5 animate-spin" /> : <Gift className="size-5" />}
-            Activar 3 meses gratis
+            {t("premium.activar3")}
           </button>
         ) : (
           <div className="mt-6 p-4 rounded-2xl bg-white/10 text-sm">
-            <div className="font-semibold">{expirado ? `Tu Premium venció el ${fechaCL(p.pro_hasta!)}` : "Ya usaste tu periodo gratis"}</div>
-            <div className="text-xs text-white/70 mt-0.5">Elige un plan abajo para {expirado ? "volver a ser" : "ser"} Premium.</div>
+            <div className="font-semibold">{expirado ? t("premium.vencio", { fecha: fechaCL(p.pro_hasta!, locale) }) : t("premium.yaUsaste")}</div>
+            <div className="text-xs text-white/70 mt-0.5">{expirado ? t("premium.eligeVolver") : t("premium.eligeSer")}</div>
           </div>
         )}
       </header>
@@ -231,7 +238,7 @@ function ProPage() {
       <div className="px-5 mt-6 space-y-8 pb-10">
         {/* BENEFICIOS */}
         <section>
-          <h2 className="title-3">Lo que incluye</h2>
+          <h2 className="title-3">{t("premium.loQueIncluye")}</h2>
           <div className="mt-3 grid sm:grid-cols-2 gap-3">
             {BENEFICIOS.map(({ icon: Icon, title, sub }) => (
               <div key={title} className="card p-4 flex gap-3">
@@ -239,8 +246,8 @@ function ProPage() {
                   <Icon className="size-5 text-[#854F0B]" />
                 </span>
                 <div>
-                  <div className="font-semibold text-sm">{title}</div>
-                  <div className="text-xs text-muted-foreground mt-0.5">{sub}</div>
+                  <div className="font-semibold text-sm">{t(title)}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">{t(sub)}</div>
                 </div>
               </div>
             ))}
@@ -249,16 +256,16 @@ function ProPage() {
 
         {/* PLANES */}
         <section>
-          <h2 className="title-3">{proActivo ? "Renueva tu plan" : "Planes"}</h2>
-          <p className="text-xs text-muted-foreground mt-1">Pago único por período, a través de Mercado Pago. Sin renovación automática.</p>
+          <h2 className="title-3">{proActivo ? t("premium.renuevaPlan") : t("premium.planes")}</h2>
+          <p className="text-xs text-muted-foreground mt-1">{t("premium.planesSub")}</p>
           {planesQ.isLoading ? (
             <div className="mt-3"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>
           ) : (
             <div className="mt-3 grid sm:grid-cols-2 gap-3">
               {mensual && (
                 <PlanCard
-                  nombre="Mensual" precio={mensual.precio} dias={mensual.dias} sub={`${formatCLP(mensual.precio)} cada 30 días`}
-                  cta={proActivo ? "Renovar 30 días" : "Suscribirme"}
+                  nombre={t("premium.mensual")} precio={mensual.precio} dias={mensual.dias} sub={t("premium.cada30", { monto: formatCLP(mensual.precio) })}
+                  cta={proActivo ? t("premium.renovar30") : t("premium.suscribirme")}
                   disabled={!p || !p.verificado || pagando !== null}
                   loading={pagando === "mensual"}
                   onClick={() => suscribir("mensual")}
@@ -266,10 +273,10 @@ function ProPage() {
               )}
               {anual && (
                 <PlanCard
-                  destacado nombre="Anual" precio={anual.precio} dias={anual.dias}
-                  sub={mensual ? `Equivale a ${formatCLP(Math.round(anual.precio / 12))} al mes` : `${anual.dias} días`}
-                  badge="2 meses gratis"
-                  cta={proActivo ? "Renovar 1 año" : "Suscribirme"}
+                  destacado nombre={t("premium.anual")} precio={anual.precio} dias={anual.dias}
+                  sub={mensual ? t("premium.equivaleMes", { monto: formatCLP(Math.round(anual.precio / 12)) }) : t("premium.nDias", { n: anual.dias })}
+                  badge={t("premium.dosMesesGratis")}
+                  cta={proActivo ? t("premium.renovar1Anio") : t("premium.suscribirme")}
                   disabled={!p || !p.verificado || pagando !== null}
                   loading={pagando === "anual"}
                   onClick={() => suscribir("anual")}
@@ -278,7 +285,7 @@ function ProPage() {
             </div>
           )}
           {p && !p.verificado && (
-            <p className="mt-2 text-xs text-muted-foreground">Los planes se habilitan cuando tu perfil está verificado.</p>
+            <p className="mt-2 text-xs text-muted-foreground">{t("premium.planesVerificado")}</p>
           )}
         </section>
 
@@ -288,28 +295,28 @@ function ProPage() {
         {/* HISTORIAL */}
         {p && (
           <section>
-            <h2 className="title-3 flex items-center gap-2"><History className="size-4" /> Historial</h2>
+            <h2 className="title-3 flex items-center gap-2"><History className="size-4" /> {t("premium.historial")}</h2>
             <div className="card mt-3 overflow-hidden">
               {susQ.isLoading ? (
                 <div className="p-6 text-center"><Loader2 className="size-4 mx-auto animate-spin" /></div>
               ) : (susQ.data?.length ?? 0) === 0 ? (
-                <div className="p-6 text-center text-sm text-muted-foreground">Aún no tienes suscripciones Premium.</div>
+                <div className="p-6 text-center text-sm text-muted-foreground">{t("premium.sinSuscripciones")}</div>
               ) : (
                 <ul className="divide-y divide-border">
                   {susQ.data!.map((s) => (
                     <li key={s.id} className="flex items-center gap-3 px-4 py-3 text-sm">
                       <div className="flex-1 min-w-0">
                         <div className="font-medium">
-                          {s.estado === "prueba" ? `Premium gratis ${DIAS_TRIAL} días` : s.plan_id === "anual" ? "Homie Premium anual" : "Homie Premium mensual"}
+                          {s.estado === "prueba" ? t("premium.gratisDias", { n: DIAS_TRIAL }) : s.plan_id === "anual" ? t("premium.anualNombre") : t("premium.mensualNombre")}
                         </div>
                         <div className="text-xs text-muted-foreground">
                           {s.periodo_desde && s.periodo_hasta
-                            ? `${fechaCL(s.periodo_desde)} → ${fechaCL(s.periodo_hasta)}`
-                            : fechaCL(s.created_at)}
+                            ? `${fechaCL(s.periodo_desde, locale)} → ${fechaCL(s.periodo_hasta, locale)}`
+                            : fechaCL(s.created_at, locale)}
                         </div>
                       </div>
                       <EstadoPill estado={s.estado} />
-                      <div className="font-semibold whitespace-nowrap w-20 text-right">{s.monto === 0 ? "Gratis" : formatCLP(s.monto)}</div>
+                      <div className="font-semibold whitespace-nowrap w-20 text-right">{s.monto === 0 ? t("premium.gratis") : formatCLP(s.monto)}</div>
                     </li>
                   ))}
                 </ul>
@@ -323,13 +330,14 @@ function ProPage() {
 }
 
 function EstadoPill({ estado }: { estado: string }) {
+  const { t } = useT();
   const cls: Record<string, string> = {
     pagada: "bg-[#00C28820] text-[#00754F]",
     prueba: "bg-[#FAC77540] text-[#854F0B]",
     pendiente: "bg-[#E5E7EB] text-[#374151]",
     rechazada: "bg-[#FF3B6B20] text-[#FF3B6B]",
   };
-  return <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${cls[estado] ?? cls.pendiente}`}>{estado}</span>;
+  return <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${cls[estado] ?? cls.pendiente}`}>{cls[estado] ? t(`premium.e.${estado}`) : estado}</span>;
 }
 
 function PlanCard({
@@ -338,6 +346,7 @@ function PlanCard({
   nombre: string; precio: number; dias: number; sub: string; badge?: string; cta: string;
   destacado?: boolean; disabled: boolean; loading: boolean; onClick: () => void;
 }) {
+  const { t } = useT();
   return (
     <div className={`relative rounded-2xl p-5 border ${destacado ? "bg-[#111827] text-white border-[#111827]" : "bg-white border-border"}`}>
       {badge && (
@@ -348,7 +357,7 @@ function PlanCard({
       <div className={`text-xs font-semibold uppercase tracking-wide ${destacado ? "text-white/70" : "text-muted-foreground"}`}>{nombre}</div>
       <div className="mt-1 flex items-baseline gap-1">
         <span className="text-3xl font-extrabold tracking-tight">{formatCLP(precio)}</span>
-        <span className={`text-xs ${destacado ? "text-white/70" : "text-muted-foreground"}`}>/ {dias} días</span>
+        <span className={`text-xs ${destacado ? "text-white/70" : "text-muted-foreground"}`}>{t("premium.porDias", { n: dias })}</span>
       </div>
       <div className={`text-xs mt-1 ${destacado ? "text-white/70" : "text-muted-foreground"}`}>{sub}</div>
       <button
@@ -364,6 +373,7 @@ function PlanCard({
 }
 
 function Calculadora({ precioMensual, precioAnual }: { precioMensual: number; precioAnual: number }) {
+  const { t } = useT();
   const [facturacion, setFacturacion] = useState(600000);
   const r = useMemo(() => {
     const ahorroMes = Math.round(facturacion * (TASA_NORMAL - TASA_PREMIUM));
@@ -376,13 +386,13 @@ function Calculadora({ precioMensual, precioAnual }: { precioMensual: number; pr
 
   return (
     <section>
-      <h2 className="title-3 flex items-center gap-2"><Calculator className="size-4" /> Ahorro estimado</h2>
+      <h2 className="title-3 flex items-center gap-2"><Calculator className="size-4" /> {t("premium.ahorroEstimado")}</h2>
       <p className="text-xs text-muted-foreground mt-1">
-        Después del periodo gratis, con Premium Homie descuenta 12% en vez de 15% de cada servicio: el ahorro es 3% de tu facturación mensual.
+        {t("premium.ahorroSub")}
       </p>
       <div className="card mt-3 p-4 space-y-4">
         <label className="block">
-          <span className="block text-xs font-medium mb-1">¿Cuánto facturas al mes en Homie? (CLP)</span>
+          <span className="block text-xs font-medium mb-1">{t("premium.cuantoFacturas")}</span>
           <input
             type="number" min={0} step={10000} value={facturacion || ""}
             onChange={(e) => setFacturacion(Math.max(0, Number(e.target.value) || 0))}
@@ -392,29 +402,29 @@ function Calculadora({ precioMensual, precioAnual }: { precioMensual: number; pr
             type="range" min={0} max={3000000} step={50000} value={facturacion}
             onChange={(e) => setFacturacion(Number(e.target.value))}
             className="mt-3 w-full accent-[#EF9F27]"
-            aria-label="Facturación mensual"
+            aria-label={t("premium.facturacionMensual")}
           />
         </label>
         <div className="grid grid-cols-3 gap-2 text-center">
           <div className="p-3 rounded-xl bg-[#F5F5F0]">
-            <div className="text-[11px] text-muted-foreground">Ahorro en comisión / mes</div>
+            <div className="text-[11px] text-muted-foreground">{t("premium.ahorroMes")}</div>
             <div className="mt-1 font-bold text-[#111827]">{formatCLP(r.ahorroMes)}</div>
           </div>
           <div className="p-3 rounded-xl bg-[#F5F5F0]">
-            <div className="text-[11px] text-muted-foreground">Neto plan mensual</div>
+            <div className="text-[11px] text-muted-foreground">{t("premium.netoMensual")}</div>
             <div className={`mt-1 font-bold ${r.netoMensual >= 0 ? "text-[#00754F]" : "text-[#B3123F]"}`}>
               {r.netoMensual >= 0 ? "+" : "−"}{formatCLP(Math.abs(r.netoMensual))}
             </div>
           </div>
           <div className="p-3 rounded-xl bg-[#F5F5F0]">
-            <div className="text-[11px] text-muted-foreground">Neto plan anual</div>
+            <div className="text-[11px] text-muted-foreground">{t("premium.netoAnual")}</div>
             <div className={`mt-1 font-bold ${r.netoAnual >= 0 ? "text-[#00754F]" : "text-[#B3123F]"}`}>
               {r.netoAnual >= 0 ? "+" : "−"}{formatCLP(Math.abs(r.netoAnual))}
             </div>
           </div>
         </div>
         <p className="text-[11px] text-muted-foreground">
-          Cálculo referencial: ahorro = 3% de tu facturación mensual, menos el valor del plan. No incluye el efecto del destacado dorado. Durante tus 3 meses gratis la comisión es 0% con o sin Premium.
+          {t("premium.calculoRef")}
         </p>
       </div>
     </section>

@@ -7,6 +7,7 @@ import { Camera, Check, ChevronLeft, Clock, Upload, Plus, X, AlertCircle, Shield
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { mensajeError } from "@/lib/errores";
+import { useT } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/verificar-identidad")({
   head: () => ({ meta: [
@@ -31,6 +32,7 @@ function slugify(s: string) {
 }
 
 function VerificarIdentidad() {
+  const { t } = useT();
   const { user, usuario } = useAuth();
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
@@ -74,15 +76,15 @@ function VerificarIdentidad() {
   }, [usuario, navigate]);
 
   if (!usuario || prestadorQ.isLoading) {
-    return <div className="min-h-screen flex items-center justify-center text-sm text-muted-foreground"><span className="size-5 rounded-full border-2 border-[#EF9F27] border-t-transparent animate-spin" aria-label="Cargando" /></div>;
+    return <div className="min-h-screen flex items-center justify-center text-sm text-muted-foreground"><span className="size-5 rounded-full border-2 border-[#EF9F27] border-t-transparent animate-spin" aria-label={t("verificar.cargando")} /></div>;
   }
   if (!prestadorQ.data) {
     return (
       <div className="min-h-screen flex items-center justify-center px-6 text-center">
         <div>
-          <p className="text-sm text-muted-foreground">Primero completa tu perfil de prestador.</p>
+          <p className="text-sm text-muted-foreground">{t("verificar.completaPerfil")}</p>
           <Link to="/onboarding-prestador" className="inline-block mt-4 px-5 py-3 rounded-2xl bg-[#EF9F27] text-[#111827] font-semibold text-sm">
-            Completar perfil
+            {t("verificar.completarPerfil")}
           </Link>
         </div>
       </div>
@@ -100,10 +102,10 @@ function VerificarIdentidad() {
           <div className="mx-auto size-16 rounded-full bg-[#111827] flex items-center justify-center">
             <ShieldCheck className="size-8 text-[#EF9F27]" />
           </div>
-          <h1 className="mt-4 text-2xl font-bold">¡Ya estás verificado!</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Tu identidad fue confirmada por Homie.</p>
+          <h1 className="mt-4 text-2xl font-bold">{t("verificar.yaVerificado")}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{t("verificar.yaVerificadoSub")}</p>
           <Link to="/panel" className="inline-block mt-6 px-5 py-3 rounded-2xl bg-[#111827] text-white font-semibold text-sm">
-            Volver al panel
+            {t("verificar.volverPanel")}
           </Link>
         </div>
       </div>
@@ -121,16 +123,16 @@ function VerificarIdentidad() {
   async function enviar() {
     setErr(null);
     if (!frente || !reverso || !selfie) {
-      setErr("Faltan fotos por subir");
+      setErr(t("verificar.faltanFotos"));
       return;
     }
     const certsListos = certs.filter((c) => c.file);
     if (certsListos.length === 0) {
-      setErr("Debes subir al menos un certificado, título o diploma.");
+      setErr(t("verificar.faltaCert"));
       return;
     }
     if (certsListos.some((c) => !c.tipo.trim())) {
-      setErr("Indica el tipo de cada certificado que subiste.");
+      setErr(t("verificar.faltaTipo"));
       return;
     }
     setSubmitting(true);
@@ -157,13 +159,13 @@ function VerificarIdentidad() {
       if (error) throw error;
       setDone(true);
     } catch (e) {
-      setErr(mensajeError(e, "No se pudo enviar la verificación."));
+      setErr(mensajeError(e, t("verificar.errEnviar"), t));
     } finally {
       setSubmitting(false);
     }
   }
 
-  const steps = ["Carnet frente", "Carnet reverso", "Selfie", "Certificados"];
+  const steps = [t("verificar.stepFrente"), t("verificar.stepReverso"), t("verificar.stepSelfie"), t("verificar.stepCerts")];
 
   return (
     <div className="min-h-screen bg-[#F5F5F0] pb-32">
@@ -171,8 +173,8 @@ function VerificarIdentidad() {
         <button onClick={() => (step > 1 ? setStep(step - 1) : navigate({ to: "/panel" }))} className="p-2 -ml-2 rounded-full hover:bg-white/10">
           <ChevronLeft className="size-5" />
         </button>
-        <h1 className="mt-2 text-2xl font-bold">Verificar identidad</h1>
-        <p className="text-sm text-white/70 mt-1">Paso {step} de 4 · {steps[step - 1]}</p>
+        <h1 className="mt-2 text-2xl font-bold">{t("verificar.titulo")}</h1>
+        <p className="text-sm text-white/70 mt-1">{t("verificar.pasoDe", { n: step, total: 4, nombre: steps[step - 1] })}</p>
         <div className="mt-4 flex gap-1.5">
           {steps.map((_, i) => (
             <div key={i} className={`h-1 flex-1 rounded-full ${i < step ? "bg-[#EF9F27]" : "bg-white/15"}`} />
@@ -183,24 +185,24 @@ function VerificarIdentidad() {
       <main className="px-5 pt-6 max-w-lg mx-auto">
         {step === 1 && (
           <StepFoto
-            title="Foto del carnet — Frente"
-            help="Asegúrate de que se vean los 4 bordes y los datos sean legibles. Sin reflejos."
+            title={t("verificar.frenteTitulo")}
+            help={t("verificar.frenteHelp")}
             slot={frente}
             onPick={setFrente}
           />
         )}
         {step === 2 && (
           <StepFoto
-            title="Foto del carnet — Reverso"
-            help="Toma la foto sobre una superficie plana, con buena luz y sin recortes."
+            title={t("verificar.reversoTitulo")}
+            help={t("verificar.reversoHelp")}
             slot={reverso}
             onPick={setReverso}
           />
         )}
         {step === 3 && (
           <StepFoto
-            title="Selfie con tu carnet"
-            help="Tómate una foto sosteniendo tu carnet junto a tu cara. Ambos deben verse claramente."
+            title={t("verificar.selfieTitulo")}
+            help={t("verificar.selfieHelp")}
             slot={selfie}
             onPick={setSelfie}
             circular
@@ -225,7 +227,7 @@ function VerificarIdentidad() {
               disabled={(step === 1 && !frente) || (step === 2 && !reverso) || (step === 3 && !selfie)}
               className="w-full h-12 rounded-2xl bg-[#EF9F27] text-[#111827] font-semibold disabled:opacity-40"
             >
-              Continuar
+              {t("comun.continuar")}
             </button>
           ) : (
             <button
@@ -233,7 +235,7 @@ function VerificarIdentidad() {
               disabled={submitting || !certs.some((c) => c.file)}
               className="w-full h-12 rounded-2xl bg-[#111827] text-white font-semibold disabled:opacity-50"
             >
-              {submitting ? "Enviando..." : "Enviar solicitud"}
+              {submitting ? t("verificar.enviando") : t("verificar.enviarSolicitud")}
             </button>
           )}
         </div>
@@ -247,6 +249,7 @@ function StepFoto({
 }: {
   title: string; help: string; slot: FileSlot; onPick: (s: FileSlot) => void; circular?: boolean;
 }) {
+  const { t } = useT();
   const ref = useRef<HTMLInputElement>(null);
   const camRef = useRef<HTMLInputElement>(null);
   function handle(f: File | undefined) {
@@ -264,17 +267,17 @@ function StepFoto({
         ) : (
           <div className="text-center text-[#9CA3AF] text-xs px-4">
             <Camera className="size-8 mx-auto text-[#EF9F27]" />
-            <p className="mt-2">Tu foto aparecerá aquí</p>
+            <p className="mt-2">{t("verificar.fotoAqui")}</p>
           </div>
         )}
       </div>
 
       <div className="mt-5 grid grid-cols-2 gap-3">
         <button onClick={() => camRef.current?.click()} className="h-12 rounded-2xl bg-[#111827] text-white text-sm font-semibold flex items-center justify-center gap-2">
-          <Camera className="size-4" /> Tomar foto
+          <Camera className="size-4" /> {t("verificar.tomarFoto")}
         </button>
         <button onClick={() => ref.current?.click()} className="h-12 rounded-2xl bg-white border border-[#E5E7EB] text-[#111827] text-sm font-semibold flex items-center justify-center gap-2">
-          <Upload className="size-4" /> Galería
+          <Upload className="size-4" /> {t("verificar.galeria")}
         </button>
         <input ref={camRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => handle(e.target.files?.[0])} />
         <input ref={ref} type="file" accept="image/*" className="hidden" onChange={(e) => handle(e.target.files?.[0])} />
@@ -286,7 +289,8 @@ function StepFoto({
 function StepCertificados({
   certs, setCerts, categoriaId,
 }: { certs: CertSlot[]; setCerts: (c: CertSlot[]) => void; categoriaId: string | null }) {
-  const req = requisitosDe(categoriaId);
+  const { t, idioma } = useT();
+  const req = requisitosDe(categoriaId, idioma);
   function update(i: number, patch: Partial<CertSlot>) {
     setCerts(certs.map((c, idx) => (idx === i ? { ...c, ...patch } : c)));
   }
@@ -301,12 +305,12 @@ function StepCertificados({
   }
   return (
     <div>
-      <h2 className="text-xl font-bold text-[#111827]">Certificados del rubro</h2>
+      <h2 className="text-xl font-bold text-[#111827]">{t("verificar.certsTitulo")}</h2>
       <p className="mt-1 text-sm text-[#6B7280]">
-        <strong className="text-[#111827]">Obligatorio.</strong> Homie solo acepta profesionales con certificación o estudios comprobables.
+        <strong className="text-[#111827]">{t("verificar.obligatorio")}</strong> {t("verificar.certsSub")}
       </p>
       <div className="mt-3 p-4 rounded-2xl bg-[#111827] text-white">
-        <div className="text-xs font-semibold text-[#EF9F27] uppercase tracking-wide">Documentos para {req.titulo}</div>
+        <div className="text-xs font-semibold text-[#EF9F27] uppercase tracking-wide">{t("verificar.documentosPara", { rubro: req.titulo })}</div>
         <p className="mt-1 text-xs text-white/75">{req.intro}</p>
         <ul className="mt-3 space-y-2">
           {req.documentos.map((d) => (
@@ -315,7 +319,7 @@ function StepCertificados({
                 type="button"
                 onClick={() => agregarConTipo(d.nombre)}
                 className="mt-0.5 shrink-0 size-5 rounded-full border border-[#EF9F27] text-[#EF9F27] flex items-center justify-center"
-                aria-label={`Agregar ${d.nombre}`}
+                aria-label={t("verificar.agregar", { doc: d.nombre })}
               >
                 <Plus className="size-3" />
               </button>
@@ -323,15 +327,15 @@ function StepCertificados({
                 <div className="text-sm font-medium leading-tight">
                   {d.nombre}
                   <span className={`ml-2 px-1.5 py-0.5 rounded-full text-[10px] font-bold ${d.obligatorio ? "bg-[#FF3B6B] text-white" : "bg-white/15 text-white/80"}`}>
-                    {d.obligatorio ? "Obligatorio" : "Opcional"}
+                    {d.obligatorio ? t("verificar.obligatorioTag") : t("verificar.opcionalTag")}
                   </span>
                 </div>
-                <div className="text-[11px] text-white/60 mt-0.5">Dónde obtenerlo: {d.donde}</div>
+                <div className="text-[11px] text-white/60 mt-0.5">{t("verificar.dondeObtenerlo")} {d.donde}</div>
               </div>
             </li>
           ))}
         </ul>
-        <p className="mt-3 text-[11px] text-white/60">Toca el + para agregar ese documento. Puedes subir hasta {MAX_CERTS}. PDF o imagen.</p>
+        <p className="mt-3 text-[11px] text-white/60">{t("verificar.tocaMas", { max: MAX_CERTS })}</p>
       </div>
 
       <div className="mt-5 space-y-4">
@@ -353,7 +357,7 @@ function StepCertificados({
           onClick={() => setCerts([...certs, { tipo: "", file: null }])}
           className="mt-4 w-full h-11 rounded-2xl border border-dashed border-[#EF9F27] text-[#111827] text-sm font-semibold flex items-center justify-center gap-2 bg-white"
         >
-          <Plus className="size-4 text-[#EF9F27]" /> Agregar otro certificado
+          <Plus className="size-4 text-[#EF9F27]" /> {t("verificar.agregarOtro")}
         </button>
       )}
     </div>
@@ -363,23 +367,24 @@ function StepCertificados({
 function CertItem({
   index, cert, canRemove, onChange, onRemove,
 }: { index: number; cert: CertSlot; canRemove: boolean; onChange: (p: Partial<CertSlot>) => void; onRemove: () => void }) {
+  const { t } = useT();
   const ref = useRef<HTMLInputElement>(null);
   return (
     <div className="p-4 rounded-2xl bg-white border border-[#E5E7EB] space-y-3">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold text-[#6B7280] uppercase tracking-wide">Certificado {index + 1}</span>
+        <span className="text-xs font-semibold text-[#6B7280] uppercase tracking-wide">{t("verificar.certificadoN", { n: index + 1 })}</span>
         {canRemove && (
-          <button type="button" onClick={onRemove} className="p-1 rounded-full hover:bg-[#F5F5F0] text-[#9CA3AF]" aria-label="Quitar">
+          <button type="button" onClick={onRemove} className="p-1 rounded-full hover:bg-[#F5F5F0] text-[#9CA3AF]" aria-label={t("verificar.quitar")}>
             <X className="size-4" />
           </button>
         )}
       </div>
       <label className="block">
-        <span className="block text-sm font-medium mb-2">Tipo de certificado</span>
+        <span className="block text-sm font-medium mb-2">{t("verificar.tipoCert")}</span>
         <input
           value={cert.tipo}
           onChange={(e) => onChange({ tipo: e.target.value })}
-          placeholder="Ej: Certificado SEC clase D, Título técnico, Curso..."
+          placeholder={t("verificar.tipoPlaceholder")}
           className="w-full h-12 px-4 rounded-2xl bg-white border border-[#E5E7EB] outline-none focus:border-[#EF9F27]"
         />
       </label>
@@ -396,8 +401,8 @@ function CertItem({
         ) : (
           <>
             <Upload className="size-6 mx-auto text-[#EF9F27]" />
-            <p className="mt-2 text-sm text-[#111827] font-medium">Sube tu certificado</p>
-            <p className="text-xs text-[#6B7280] mt-1">PDF o imagen, máx 5MB</p>
+            <p className="mt-2 text-sm text-[#111827] font-medium">{t("verificar.subeCert")}</p>
+            <p className="text-xs text-[#6B7280] mt-1">{t("verificar.pdfMax")}</p>
           </>
         )}
         <input
@@ -414,23 +419,24 @@ function CertItem({
 }
 
 function ConfirmacionEnviada({ motivo }: { motivo: string | null }) {
+  const { t } = useT();
   return (
     <div className="min-h-screen flex items-center justify-center px-6 text-center bg-[#F5F5F0]">
       <div className="max-w-sm">
         <div className="mx-auto size-20 rounded-full bg-[#EF9F27]/15 flex items-center justify-center">
           <Clock className="size-10 text-[#EF9F27]" />
         </div>
-        <h1 className="mt-5 text-2xl font-bold text-[#111827]">¡Solicitud enviada!</h1>
+        <h1 className="mt-5 text-2xl font-bold text-[#111827]">{t("verificar.enviada")}</h1>
         <p className="mt-2 text-sm text-[#6B7280]">
-          Revisaremos tu verificación en menos de 24 horas. Te avisaremos por notificación.
+          {t("verificar.enviadaSub")}
         </p>
         {motivo && (
           <div className="mt-4 p-3 rounded-xl bg-[#FF3B6B]/10 border border-[#FF3B6B]/30 text-sm text-[#FF3B6B] text-left">
-            <strong>Motivo de rechazo anterior:</strong> {motivo}
+            <strong>{t("verificar.motivoRechazo")}</strong> {motivo}
           </div>
         )}
         <Link to="/panel" className="inline-block mt-6 px-5 py-3 rounded-2xl bg-[#111827] text-white font-semibold text-sm">
-          Volver al panel
+          {t("verificar.volverPanel")}
         </Link>
       </div>
     </div>

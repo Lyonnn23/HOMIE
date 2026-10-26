@@ -1,8 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronRight, Bell, CreditCard, HelpCircle, MapPin, Shield, LogOut, Heart, Scale, Accessibility, ShieldCheck, MessageSquareQuote, Gift, Star, LifeBuoy, SunMoon, Crown } from "lucide-react";
+import { ChevronRight, Bell, CreditCard, HelpCircle, MapPin, Shield, LogOut, Heart, Scale, Accessibility, ShieldCheck, MessageSquareQuote, Gift, Star, LifeBuoy, SunMoon, Crown, Languages } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { SelectorTema } from "@/components/SelectorTema";
+import { SelectorIdioma } from "@/components/SelectorIdioma";
+import { useT } from "@/i18n";
 import { useBookings } from "@/store/bookings";
 import { useFavoritos } from "@/hooks/use-favoritos";
 import { useAuth } from "@/hooks/use-auth";
@@ -21,6 +23,7 @@ export const Route = createFileRoute("/_authenticated/cuenta")({
 });
 
 function Cuenta() {
+  const { t } = useT();
   const bookings = useBookings();
   const favs = useFavoritos();
   const { usuario, signOut, user } = useAuth();
@@ -64,24 +67,24 @@ function Cuenta() {
 
   const items: Array<{ icon: typeof Bell; label: string; to?: string; badge?: string }> = [
     usuario?.tipo === "prestador"
-      ? { icon: MessageSquareQuote, label: "Cotizar solicitudes", to: "/cotizar" }
-      : { icon: MessageSquareQuote, label: "Mis solicitudes de cotización", to: "/solicitudes" },
+      ? { icon: MessageSquareQuote, label: t("cuenta.cotizarSolicitudes"), to: "/cotizar" }
+      : { icon: MessageSquareQuote, label: t("cuenta.misSolicitudes"), to: "/solicitudes" },
     ...(usuario?.tipo === "prestador" ? [{ icon: Crown, label: "Homie Premium", to: "/pro" }] : []),
-    { icon: Gift, label: "Invita y gana $3.000", to: "/referidos" },
-    { icon: MapPin, label: "Direcciones guardadas", to: "/direcciones" },
-    { icon: CreditCard, label: "Métodos de pago", badge: "Próximamente" },
-    { icon: Heart, label: "Mis favoritos", to: "/favoritos", badge: favs.length ? String(favs.length) : undefined },
-    { icon: Bell, label: "Notificaciones", to: "/notif-config" },
-    { icon: Shield, label: "Privacidad y seguridad", to: "/seguridad" },
-    { icon: HelpCircle, label: "Ayuda y soporte", to: "/ayuda" },
-    { icon: LifeBuoy, label: "Soporte", to: "/soporte" },
-    { icon: Scale, label: "Reclamos y sugerencias", to: "/reclamos" },
+    { icon: Gift, label: t("cuenta.invitaGana"), to: "/referidos" },
+    { icon: MapPin, label: t("cuenta.direcciones"), to: "/direcciones" },
+    { icon: CreditCard, label: t("cuenta.metodosPago"), badge: t("cuenta.proximamente") },
+    { icon: Heart, label: t("cuenta.favoritos"), to: "/favoritos", badge: favs.length ? String(favs.length) : undefined },
+    { icon: Bell, label: t("cuenta.notificaciones"), to: "/notif-config" },
+    { icon: Shield, label: t("cuenta.privacidad"), to: "/seguridad" },
+    { icon: HelpCircle, label: t("cuenta.ayudaSoporte"), to: "/ayuda" },
+    { icon: LifeBuoy, label: t("cuenta.soporte"), to: "/soporte" },
+    { icon: Scale, label: t("cuenta.reclamos"), to: "/reclamos" },
   ];
 
   return (
     <AppShell>
       <header className="px-5 pt-6 pb-4">
-        <h1 className="title-1">Mi cuenta</h1>
+        <h1 className="title-1">{t("cuenta.titulo")}</h1>
       </header>
 
       <section className="px-5">
@@ -94,15 +97,15 @@ function Cuenta() {
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <div className="font-semibold truncate">{usuario?.nombre ?? "Mi perfil"}</div>
+            <div className="font-semibold truncate">{usuario?.nombre ?? t("cuenta.miPerfil")}</div>
             <div className="text-sm text-muted-foreground truncate">{usuario?.email}</div>
             <div className="mt-1 inline-block text-[10px] uppercase tracking-wide px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
-              {usuario?.tipo === "prestador" ? "Prestador" : "Cliente"}
+              {usuario?.tipo === "prestador" ? t("cuenta.prestador") : t("cuenta.cliente")}
             </div>
             {repScore > 0 && (
-              <div className="mt-1.5 inline-flex items-center gap-1 text-xs text-[#374151]" title="Calificación que te dan los profesionales">
+              <div className="mt-1.5 inline-flex items-center gap-1 text-xs text-[#374151]" title={t("cuenta.reputacionTitle")}>
                 <Star className="size-3.5 fill-[#EF9F27] text-[#EF9F27]" />
-                Tu reputación como cliente: <b className="text-[#111827]">{repScore.toFixed(1)}★</b> ({repCount})
+                {t("cuenta.reputacion")} <b className="text-[#111827]">{repScore.toFixed(1)}★</b> ({repCount})
               </div>
             )}
           </div>
@@ -110,21 +113,21 @@ function Cuenta() {
       </section>
 
       <section className="px-5 mt-4 grid grid-cols-3 gap-2">
-        <Stat label="Reservas" value={bookings.length} />
-        <Stat label="Completadas" value={completed} />
-        <Stat label="Activas" value={bookings.length - completed} />
+        <Stat label={t("cuenta.reservas")} value={bookings.length} />
+        <Stat label={t("cuenta.completadas")} value={completed} />
+        <Stat label={t("cuenta.activas")} value={bookings.length - completed} />
       </section>
 
       <section className="px-5 mt-6">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">Historial</h2>
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">{t("cuenta.historial")}</h2>
         {bookings.length === 0 ? (
           <div className="p-6 rounded-2xl bg-white border border-border text-center text-sm text-muted-foreground">
-            Aún no tienes servicios contratados.
-            <Link to="/" className="block mt-2 text-foreground font-medium underline">Buscar servicios</Link>
+            {t("cuenta.sinServicios")}
+            <Link to="/" className="block mt-2 text-foreground font-medium underline">{t("cuenta.buscarServicios")}</Link>
           </div>
         ) : (
           <Link to="/reservas" className="flex items-center justify-between p-4 rounded-2xl bg-white border border-border">
-            <span className="text-sm">Ver mis reservas ({bookings.length})</span>
+            <span className="text-sm">{t("cuenta.verReservas", { n: bookings.length })}</span>
             <ChevronRight className="size-4 text-muted-foreground" />
           </Link>
         )}
@@ -169,17 +172,27 @@ function Cuenta() {
       </section>
 
       <section className="px-5 mt-6">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">Apariencia y accesibilidad</h2>
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">{t("cuenta.aparienciaAcc")}</h2>
         <div className="rounded-2xl bg-white border border-border divide-y divide-border overflow-hidden">
           <div className="px-4 py-3.5">
             <div className="flex items-center gap-3">
               <SunMoon className="size-4 text-[#EF9F27]" />
               <span className="flex-1 min-w-0">
-                <span className="block text-sm">Apariencia</span>
-                <span className="block text-xs text-muted-foreground">Sistema, claro u oscuro</span>
+                <span className="block text-sm">{t("cuenta.apariencia")}</span>
+                <span className="block text-xs text-muted-foreground">{t("cuenta.aparienciaSub")}</span>
               </span>
             </div>
             <SelectorTema className="mt-3" />
+          </div>
+          <div className="px-4 py-3.5">
+            <div className="flex items-center gap-3">
+              <Languages className="size-4 text-[#EF9F27]" />
+              <span className="flex-1 min-w-0">
+                <span className="block text-sm">{t("cuenta.idioma")}</span>
+                <span className="block text-xs text-muted-foreground">{t("cuenta.idiomaSub")}</span>
+              </span>
+            </div>
+            <SelectorIdioma className="mt-3" />
           </div>
           <button
             type="button"
@@ -191,8 +204,8 @@ function Cuenta() {
           >
             <Accessibility className="size-4 text-[#EF9F27]" />
             <span className="flex-1 min-w-0">
-              <span className="block text-sm">Accesibilidad: Modo fácil</span>
-              <span className="block text-xs text-muted-foreground">Letras grandes, más contraste, sin animaciones</span>
+              <span className="block text-sm">{t("cuenta.modoFacil")}</span>
+              <span className="block text-xs text-muted-foreground">{t("cuenta.modoFacilSub")}</span>
             </span>
             <span
               aria-hidden="true"
@@ -206,13 +219,13 @@ function Cuenta() {
 
       {isAdminQ.data && (
         <section className="px-5 mt-6">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">Administración</h2>
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">{t("cuenta.administracion")}</h2>
           <div className="rounded-2xl bg-white border border-border divide-y divide-border overflow-hidden">
             {[
-              { label: "Panel de administración", to: "/admin" as const },
-              { label: "Reportes", to: "/admin/reportes" as const },
-              { label: "Verificaciones", to: "/admin/verificaciones" as const },
-              { label: "Reclamos", to: "/admin/reclamos" as const },
+              { label: t("cuenta.adminPanel"), to: "/admin" as const },
+              { label: t("cuenta.adminReportes"), to: "/admin/reportes" as const },
+              { label: t("cuenta.adminVerificaciones"), to: "/admin/verificaciones" as const },
+              { label: t("cuenta.adminReclamos"), to: "/admin/reclamos" as const },
             ].map((a) => (
               <Link key={a.to} to={a.to} className="flex items-center gap-3 w-full px-4 py-3.5 text-left hover:bg-muted/40 transition">
                 <ShieldCheck className="size-4 text-[#EF9F27]" />
@@ -229,7 +242,7 @@ function Cuenta() {
           onClick={async () => { await signOut(); navigate({ to: "/login" }); }}
           className="flex items-center justify-center gap-2 w-full p-4 rounded-2xl bg-white border border-border text-sm text-destructive font-medium"
         >
-          <LogOut className="size-4" /> Cerrar sesión
+          <LogOut className="size-4" /> {t("cuenta.cerrarSesion")}
         </button>
       </section>
     </AppShell>

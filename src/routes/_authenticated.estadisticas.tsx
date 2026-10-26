@@ -8,6 +8,7 @@ import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { formatCLP, esPro } from "@/data/services";
+import { useT } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/estadisticas")({
   head: () => ({ meta: [
@@ -20,7 +21,7 @@ export const Route = createFileRoute("/_authenticated/estadisticas")({
   component: EstadisticasPage,
 });
 
-const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+const MESES = ["stats.m1", "stats.m2", "stats.m3", "stats.m4", "stats.m5", "stats.m6", "stats.m7", "stats.m8", "stats.m9", "stats.m10", "stats.m11", "stats.m12"];
 
 function usePrestadorMin() {
   const { usuario } = useAuth();
@@ -72,6 +73,7 @@ function useReservasUltimos6Meses(prestadorId: string | undefined) {
 }
 
 function EstadisticasPage() {
+  const { t } = useT();
   const { usuario } = useAuth();
   const prestadorQ = usePrestadorMin();
   const p = prestadorQ.data;
@@ -84,7 +86,7 @@ function EstadisticasPage() {
     const out: { key: string; label: string; total: number; completadas: number }[] = [];
     for (let i = 5; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      out.push({ key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`, label: MESES[d.getMonth()], total: 0, completadas: 0 });
+      out.push({ key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`, label: t(MESES[d.getMonth()]), total: 0, completadas: 0 });
     }
     for (const r of reservasQ.data ?? []) {
       const k = String(r.fecha).slice(0, 7);
@@ -94,15 +96,15 @@ function EstadisticasPage() {
       if (r.estado === "completada") m.completadas += 1;
     }
     return out;
-  }, [reservasQ.data]);
+  }, [reservasQ.data, t]);
   const maxMes = Math.max(1, ...meses.map((m) => m.total));
 
   if (usuario && usuario.tipo !== "prestador") {
     return (
       <AppShell>
         <div className="px-5 pt-16 text-center">
-          <h1 className="text-xl font-bold">Solo para profesionales</h1>
-          <Link to="/" className="inline-block mt-6 btn-primary">Ir al inicio</Link>
+          <h1 className="text-xl font-bold">{t("stats.soloPros")}</h1>
+          <Link to="/" className="inline-block mt-6 btn-primary">{t("stats.irInicio")}</Link>
         </div>
       </AppShell>
     );
@@ -115,8 +117,8 @@ function EstadisticasPage() {
     return (
       <AppShell>
         <div className="px-5 pt-16 text-center">
-          <h1 className="text-xl font-bold">Completa tu perfil</h1>
-          <Link to="/onboarding-prestador" className="inline-block mt-6 btn-primary">Completar perfil</Link>
+          <h1 className="text-xl font-bold">{t("stats.completaPerfil")}</h1>
+          <Link to="/onboarding-prestador" className="inline-block mt-6 btn-primary">{t("stats.completarPerfil")}</Link>
         </div>
       </AppShell>
     );
@@ -130,14 +132,14 @@ function EstadisticasPage() {
       <header className="bg-[#111827] text-white px-5 pt-8 pb-6 -mt-px">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <h1 className="title-1">Estadísticas</h1>
-            <p className="text-sm text-white/70 mt-1">Así va tu negocio en Homie</p>
+            <h1 className="title-1">{t("stats.titulo")}</h1>
+            <p className="text-sm text-white/70 mt-1">{t("stats.sub")}</p>
           </div>
           {pro ? (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#EF9F27] text-[#111827] text-xs font-bold"><Crown className="size-3.5" /> Premium</span>
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#EF9F27] text-[#111827] text-xs font-bold"><Crown className="size-3.5" /> {t("stats.premium")}</span>
           ) : (
             <Link to="/pro" className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-[#EF9F27] text-[#111827] text-xs font-bold">
-              <Crown className="size-3.5" /> Hazte Premium
+              <Crown className="size-3.5" /> {t("stats.hazte")}
             </Link>
           )}
         </div>
@@ -150,12 +152,12 @@ function EstadisticasPage() {
               <span className="inline-flex size-12 rounded-full bg-[#FAC77540] items-center justify-center">
                 <Lock className="size-6 text-[#854F0B]" />
               </span>
-              <h2 className="mt-3 font-bold text-lg">Estadísticas de tu negocio</h2>
+              <h2 className="mt-3 font-bold text-lg">{t("stats.lockTitulo")}</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Ingresos, reservas, tasa de aceptación, cotizaciones ganadas y vistas del perfil. Disponible con Homie Premium (incluido gratis 3 meses al verificarte).
+                {t("stats.lockSub")}
               </p>
               <Link to="/pro" className="btn-primary mt-4 w-full">
-                {p.pro_trial_usado ? "Ver planes Premium" : "Activar 3 meses gratis"}
+                {p.pro_trial_usado ? t("stats.verPlanes") : t("stats.activar3")}
               </Link>
             </div>
           </div>
@@ -167,18 +169,18 @@ function EstadisticasPage() {
           ) : (
             <>
               <div className="grid grid-cols-2 gap-3">
-                <Tile icon={CheckCircle2} label="Servicios completados" value={String(s?.servicios_completados ?? 0)} />
-                <Tile icon={DollarSign} label="Ingresos totales" value={formatCLP(s?.ingresos_total ?? 0)} dark />
-                <Tile icon={CalendarDays} label="Ingresos del mes" value={formatCLP(s?.ingresos_mes ?? 0)} dark />
-                <Tile icon={CalendarCheck} label="Reservas del mes" value={String(s?.reservas_mes ?? 0)} />
-                <Tile icon={ThumbsUp} label="Tasa de aceptación" value={s?.tasa_aceptacion != null ? `${Math.round(Number(s.tasa_aceptacion))}%` : "—"} sub="reservas no rechazadas" />
-                <Tile icon={Star} label="Calificación" value={s ? Number(s.calificacion).toFixed(1) : "—"} sub={`${s?.resenas ?? 0} reseñas`} />
-                <Tile icon={MessageSquareQuote} label="Cotizaciones" value={`${s?.cotizaciones_ganadas ?? 0} / ${s?.cotizaciones_enviadas ?? 0}`} sub={tasaCot != null ? `${tasaCot}% ganadas` : "ganadas / enviadas"} />
-                <Tile icon={Eye} label="Vistas del perfil" value={String(s?.vistas_perfil ?? 0)} />
+                <Tile icon={CheckCircle2} label={t("stats.serviciosCompletados")} value={String(s?.servicios_completados ?? 0)} />
+                <Tile icon={DollarSign} label={t("stats.ingresosTotales")} value={formatCLP(s?.ingresos_total ?? 0)} dark />
+                <Tile icon={CalendarDays} label={t("stats.ingresosMes")} value={formatCLP(s?.ingresos_mes ?? 0)} dark />
+                <Tile icon={CalendarCheck} label={t("stats.reservasMes")} value={String(s?.reservas_mes ?? 0)} />
+                <Tile icon={ThumbsUp} label={t("stats.tasaAceptacion")} value={s?.tasa_aceptacion != null ? `${Math.round(Number(s.tasa_aceptacion))}%` : "—"} sub={t("stats.noRechazadas")} />
+                <Tile icon={Star} label={t("stats.calificacion")} value={s ? Number(s.calificacion).toFixed(1) : "—"} sub={t("stats.resenas", { n: s?.resenas ?? 0 })} />
+                <Tile icon={MessageSquareQuote} label={t("stats.cotizaciones")} value={`${s?.cotizaciones_ganadas ?? 0} / ${s?.cotizaciones_enviadas ?? 0}`} sub={tasaCot != null ? t("stats.ganadasPct", { n: tasaCot }) : t("stats.ganadasEnviadas")} />
+                <Tile icon={Eye} label={t("stats.vistasPerfil")} value={String(s?.vistas_perfil ?? 0)} />
               </div>
 
               <section className="mt-6">
-                <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">Reservas últimos 6 meses</h2>
+                <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">{t("stats.ultimos6")}</h2>
                 <div className="card p-4">
                   <div className="flex items-end gap-2 h-40">
                     {meses.map((m) => {
@@ -188,8 +190,8 @@ function EstadisticasPage() {
                         <div key={m.key} className="flex-1 flex flex-col items-center justify-end h-full gap-1">
                           <span className="text-[11px] font-semibold text-[#111827]">{m.total}</span>
                           <div className="w-full relative flex-1 flex items-end">
-                            <div className="w-full rounded-t-lg bg-[#E5E7EB]" style={{ height: `${hTotal}%` }} title={`${m.total} reservas`} />
-                            <div className="absolute bottom-0 w-full rounded-t-lg bg-[#EF9F27]" style={{ height: `${hComp}%` }} title={`${m.completadas} completadas`} />
+                            <div className="w-full rounded-t-lg bg-[#E5E7EB]" style={{ height: `${hTotal}%` }} title={t("stats.nReservas", { n: m.total })} />
+                            <div className="absolute bottom-0 w-full rounded-t-lg bg-[#EF9F27]" style={{ height: `${hComp}%` }} title={t("stats.nCompletadas", { n: m.completadas })} />
                           </div>
                           <span className="text-[11px] text-muted-foreground uppercase">{m.label}</span>
                         </div>
@@ -197,8 +199,8 @@ function EstadisticasPage() {
                     })}
                   </div>
                   <div className="mt-3 flex items-center gap-4 text-[11px] text-muted-foreground">
-                    <span className="inline-flex items-center gap-1"><span className="size-2.5 rounded-sm bg-[#EF9F27]" /> Completadas</span>
-                    <span className="inline-flex items-center gap-1"><span className="size-2.5 rounded-sm bg-[#E5E7EB]" /> Todas las reservas</span>
+                    <span className="inline-flex items-center gap-1"><span className="size-2.5 rounded-sm bg-[#EF9F27]" /> {t("stats.completadas")}</span>
+                    <span className="inline-flex items-center gap-1"><span className="size-2.5 rounded-sm bg-[#E5E7EB]" /> {t("stats.todas")}</span>
                   </div>
                 </div>
               </section>
@@ -208,7 +210,7 @@ function EstadisticasPage() {
 
         {pro && (
           <p className="mt-6 text-xs text-muted-foreground">
-            Los ingresos consideran solo servicios completados y pagados (tu 88% del total). Las vistas se cuentan por visita al perfil público.
+            {t("stats.nota")}
           </p>
         )}
       </div>

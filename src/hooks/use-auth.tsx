@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { iniciarPush, loginPush, logoutPush } from "@/lib/push";
 import { iniciarPushNativo, cerrarSesionPushNativo } from "@/lib/nativo";
 import { setUsuarioMonitoreo } from "@/lib/monitoreo";
+import { identificar, resetAnalitica } from "@/lib/analitica";
 
 interface Usuario {
   id: string;
@@ -75,6 +76,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
+  // Analítica: identifica al usuario (solo id y tipo) cuando se conoce su fila.
+  useEffect(() => {
+    if (user?.id && usuario?.tipo) identificar(user.id, { tipo: usuario.tipo });
+  }, [user?.id, usuario?.tipo]);
+
   return (
     <Ctx.Provider
       value={{
@@ -84,6 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loading,
         signOut: async () => {
           try { void logoutPush(); cerrarSesionPushNativo(); } catch { /* ignorar */ }
+          resetAnalitica();
           await supabase.auth.signOut();
         },
       }}

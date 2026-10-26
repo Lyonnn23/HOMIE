@@ -3,6 +3,8 @@
  * definida en styles.css y son compatibles con modo oscuro.
  */
 
+import { useT } from "@/i18n";
+
 function Bloque({ className = "" }: { className?: string }) {
   return <div aria-hidden="true" className={`skeleton rounded-lg ${className}`} />;
 }
@@ -27,20 +29,22 @@ export function TarjetaSkeleton({ conAvatar = true }: { conAvatar?: boolean }) {
 
 /** Lista de N tarjetas. */
 export function ListaSkeleton({ items = 4, conAvatar = true, className = "" }: { items?: number; conAvatar?: boolean; className?: string }) {
+  const { t } = useT();
   return (
-    <div className={`space-y-2 ${className}`} role="status" aria-live="polite" aria-label="Cargando">
+    <div className={`space-y-2 ${className}`} role="status" aria-live="polite" aria-label={t("comun.cargando")}>
       {Array.from({ length: items }).map((_, i) => (
         <TarjetaSkeleton key={i} conAvatar={conAvatar} />
       ))}
-      <span className="sr-only">Cargando…</span>
+      <span className="sr-only">{t("comun.cargando")}</span>
     </div>
   );
 }
 
 /** Perfil de prestador: cabecera con avatar grande, título, chips y bloques. */
 export function PerfilSkeleton() {
+  const { t } = useT();
   return (
-    <div className="px-5 pt-6 space-y-5" role="status" aria-live="polite" aria-label="Cargando perfil">
+    <div className="px-5 pt-6 space-y-5" role="status" aria-live="polite" aria-label={t("comun.cargandoPerfil")}>
       <div className="flex items-center gap-4">
         <Bloque className="size-20 rounded-full shrink-0" />
         <div className="flex-1 space-y-2">
@@ -62,7 +66,7 @@ export function PerfilSkeleton() {
         <Bloque className="h-16 rounded-2xl" />
         <Bloque className="h-16 rounded-2xl" />
       </div>
-      <span className="sr-only">Cargando…</span>
+      <span className="sr-only">{t("comun.cargando")}</span>
     </div>
   );
 }

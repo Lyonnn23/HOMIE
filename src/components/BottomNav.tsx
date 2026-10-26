@@ -1,25 +1,27 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { Home, Search, CalendarCheck, User, Briefcase, Zap, type LucideIcon } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { useT } from "@/i18n";
 
 export function BottomNav() {
   const { usuario } = useAuth();
+  const { t } = useT();
   const loc = useLocation();
   const isPrestador = usuario?.tipo === "prestador";
 
   const items: { to: string; label: string; icon: LucideIcon; accent?: boolean }[] = isPrestador
     ? [
-        { to: "/", label: "Inicio", icon: Home },
-        { to: "/panel", label: "Panel", icon: Briefcase },
-        { to: "/reservas", label: "Reservas", icon: CalendarCheck },
-        { to: "/cuenta", label: "Perfil", icon: User },
+        { to: "/", label: t("nav.inicio"), icon: Home },
+        { to: "/panel", label: t("nav.panel"), icon: Briefcase },
+        { to: "/reservas", label: t("nav.reservas"), icon: CalendarCheck },
+        { to: "/cuenta", label: t("nav.perfil"), icon: User },
       ]
     : [
-        { to: "/", label: "Inicio", icon: Home },
-        { to: "/buscar", label: "Buscar", icon: Search },
-        { to: "/ya", label: "Ya", icon: Zap, accent: true },
-        { to: "/reservas", label: "Reservas", icon: CalendarCheck },
-        { to: "/cuenta", label: "Perfil", icon: User },
+        { to: "/", label: t("nav.inicio"), icon: Home },
+        { to: "/buscar", label: t("nav.buscar"), icon: Search },
+        { to: "/ya", label: t("nav.ya"), icon: Zap, accent: true },
+        { to: "/reservas", label: t("nav.reservas"), icon: CalendarCheck },
+        { to: "/cuenta", label: t("nav.perfil"), icon: User },
       ];
 
   return (

@@ -7,6 +7,8 @@ import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { mensajeError } from "@/lib/errores";
+import { useT } from "@/i18n";
+import { localeDe } from "@/i18n/estados";
 
 export const Route = createFileRoute("/_authenticated/soporte")({
   head: () => ({ meta: [
@@ -28,26 +30,29 @@ interface SoporteMsg {
   created_at: string;
 }
 
+/** Claves i18n: label → "soporte.tN", texto → "soporte.tNtxt". */
 const TEMAS: { label: string; texto: string }[] = [
-  { label: "Problema con un pago", texto: "Hola, tengo un problema con un pago: " },
-  { label: "Problema con un profesional", texto: "Hola, tuve un problema con un profesional: " },
-  { label: "Mi verificación", texto: "Hola, tengo una consulta sobre mi verificación: " },
-  { label: "Otro", texto: "Hola, necesito ayuda con: " },
+  { label: "soporte.t1", texto: "soporte.t1txt" },
+  { label: "soporte.t2", texto: "soporte.t2txt" },
+  { label: "soporte.t3", texto: "soporte.t3txt" },
+  { label: "soporte.t4", texto: "soporte.t4txt" },
 ];
 
-function formatHora(iso: string) {
-  return new Date(iso).toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" });
+function formatHora(iso: string, locale: string) {
+  return new Date(iso).toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
 }
-function formatFechaSep(iso: string) {
+function formatFechaSep(iso: string, locale: string, hoyTxt: string, ayerTxt: string) {
   const d = new Date(iso);
   const hoy = new Date();
   const ayer = new Date(); ayer.setDate(hoy.getDate() - 1);
-  if (d.toDateString() === hoy.toDateString()) return "Hoy";
-  if (d.toDateString() === ayer.toDateString()) return "Ayer";
-  return d.toLocaleDateString("es-CL", { day: "2-digit", month: "long" });
+  if (d.toDateString() === hoy.toDateString()) return hoyTxt;
+  if (d.toDateString() === ayer.toDateString()) return ayerTxt;
+  return d.toLocaleDateString(locale, { day: "2-digit", month: "long" });
 }
 
 function SoportePage() {
+  const { t, idioma } = useT();
+  const locale = localeDe(idioma);
   const router = useRouter();
   const { usuario } = useAuth();
   const qc = useQueryClient();
@@ -88,7 +93,7 @@ function SoportePage() {
 
   const enviar = useMutation({
     mutationFn: async (contenido: string) => {
-      if (!usuario?.id) throw new Error("Sin sesión");
+      if (!usuario?.id) throw new Error(t("soporte.sinSesion"));
       const { error } = await supabase.from("soporte_mensajes").insert({
         usuario_id: usuario.id,
         de_admin: false,
@@ -100,18 +105,18 @@ function SoportePage() {
       setText("");
       qc.invalidateQueries({ queryKey: ["soporte-mensajes"] });
     },
-    onError: (e: Error) => toast.error(mensajeError(e, "No se pudo enviar el mensaje.")),
+    onError: (e: Error) => toast.error(mensajeError(e, t("soporte.errEnviar"), t)),
   });
 
   function send() {
-    const t = text.trim();
-    if (!t || enviar.isPending) return;
-    enviar.mutate(t);
+    const txt = text.trim();
+    if (!txt || enviar.isPending) return;
+    enviar.mutate(txt);
   }
 
   const grouped: Array<{ date: string; items: SoporteMsg[] }> = [];
   for (const m of mensajes) {
-    const key = formatFechaSep(m.created_at);
+    const key = formatFechaSep(m.created_at, locale, t("soporte.hoy"), t("soporte.ayer"));
     const last = grouped[grouped.length - 1];
     if (last && last.date === key) last.items.push(m);
     else grouped.push({ date: key, items: [m] });
@@ -120,16 +125,16 @@ function SoportePage() {
   return (
     <AppShell>
       <header className="px-5 pt-6 pb-3">
-        <button onClick={() => router.history.back()} className="p-2 -ml-2 rounded-full hover:bg-[#F5F5F0]" aria-label="Volver">
+        <button onClick={() => router.history.back()} className="p-2 -ml-2 rounded-full hover:bg-[#F5F5F0]" aria-label={t("soporte.volver")}>
           <ArrowLeft className="size-5" />
         </button>
         <h1 className="mt-3 title-2 flex items-center gap-2">
-          <LifeBuoy className="size-6 text-[#EF9F27]" /> Soporte Homie
+          <LifeBuoy className="size-6 text-[#EF9F27]" /> {t("soporte.titulo")}
         </h1>
-        <p className="mt-1 text-sm text-[#6B7280]">Respondemos en menos de 24 h (lun–sáb).</p>
+        <p className="mt-1 text-sm text-[#6B7280]">{t("soporte.respondemos")}</p>
         <div className="mt-2 flex gap-3 text-xs">
-          <Link to="/reclamos" className="underline underline-offset-2 text-[#111827]">Reclamos y sugerencias</Link>
-          <Link to="/ayuda" className="underline underline-offset-2 text-[#111827]">Preguntas frecuentes</Link>
+          <Link to="/reclamos" className="underline underline-offset-2 text-[#111827]">{t("soporte.reclamos")}</Link>
+          <Link to="/ayuda" className="underline underline-offset-2 text-[#111827]">{t("soporte.faq")}</Link>
         </div>
       </header>
 
@@ -138,7 +143,7 @@ function SoportePage() {
           <div className="flex justify-center py-10"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>
         ) : mensajes.length === 0 ? (
           <div className="text-center text-sm text-[#6B7280] py-10">
-            Cuéntanos qué pasó. Elige un tema o escribe tu mensaje.
+            {t("soporte.vacio")}
           </div>
         ) : (
           grouped.map((g) => (
@@ -151,7 +156,7 @@ function SoportePage() {
                   <div className={`max-w-[80%] px-3 py-2 rounded-2xl shadow-sm ${m.de_admin ? "bg-white text-[#111827] rounded-bl-md" : "bg-[#111827] text-white rounded-br-md"}`}>
                     {m.de_admin && <div className="text-[10px] font-semibold text-[#B45309] mb-0.5">Homie</div>}
                     <div className="text-sm whitespace-pre-wrap break-words">{m.contenido}</div>
-                    <div className={`text-[10px] mt-0.5 text-right ${m.de_admin ? "text-[#6B7280]" : "text-white/70"}`}>{formatHora(m.created_at)}</div>
+                    <div className={`text-[10px] mt-0.5 text-right ${m.de_admin ? "text-[#6B7280]" : "text-white/70"}`}>{formatHora(m.created_at, locale)}</div>
                   </div>
                 </div>
               ))}
@@ -161,15 +166,15 @@ function SoportePage() {
       </div>
 
       <div className="px-5 mt-3">
-        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2" aria-label="Temas frecuentes">
-          {TEMAS.map((t) => (
+        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2" aria-label={t("soporte.temas")}>
+          {TEMAS.map((tema) => (
             <button
-              key={t.label}
+              key={tema.label}
               type="button"
-              onClick={() => { setText(t.texto); inputRef.current?.focus(); }}
+              onClick={() => { setText(t(tema.texto)); inputRef.current?.focus(); }}
               className="shrink-0 px-3 py-1.5 rounded-full bg-white border border-[#E5E7EB] text-xs font-medium text-[#111827] hover:bg-[#FFF6E5]"
             >
-              {t.label}
+              {t(tema.label)}
             </button>
           ))}
         </div>
@@ -181,19 +186,19 @@ function SoportePage() {
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
             rows={2}
             maxLength={2000}
-            placeholder="Escribe tu mensaje"
+            placeholder={t("soporte.placeholder")}
             className="flex-1 max-h-40 px-4 py-2.5 rounded-2xl bg-white border border-[#E5E7EB] outline-none focus:border-[#111827]/40 text-sm resize-none"
           />
           <button
             onClick={send}
             disabled={!text.trim() || enviar.isPending}
             className="size-11 rounded-full bg-[#EF9F27] text-[#111827] flex items-center justify-center disabled:opacity-50"
-            aria-label="Enviar"
+            aria-label={t("soporte.enviar")}
           >
             {enviar.isPending ? <Loader2 className="size-5 animate-spin" /> : <Send className="size-5" />}
           </button>
         </div>
-        <p className="mt-2 text-[11px] text-[#6B7280]">Te avisaremos con una notificación cuando respondamos.</p>
+        <p className="mt-2 text-[11px] text-[#6B7280]">{t("soporte.aviso")}</p>
       </div>
     </AppShell>
   );

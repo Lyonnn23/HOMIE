@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { aplicarTemaGuardado } from "@/hooks/use-tema";
 import { mensajeError } from "@/lib/errores";
+import { evento } from "@/lib/analitica";
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthGate,
@@ -22,6 +23,16 @@ function AuthGate() {
 
   // Tema (claro/oscuro) también en pantallas sin AppShell.
   useEffect(() => { aplicarTemaGuardado(); }, []);
+
+  // Analítica: "sesion_iniciada" una vez por sesión del navegador.
+  useEffect(() => {
+    if (!usuario?.id) return;
+    try {
+      if (sessionStorage.getItem("homie_sesion_ev") === usuario.id) return;
+      sessionStorage.setItem("homie_sesion_ev", usuario.id);
+    } catch { /* sin sessionStorage: igual se registra */ }
+    evento("sesion_iniciada", { tipo: usuario.tipo });
+  }, [usuario?.id, usuario?.tipo]);
 
   useEffect(() => {
     if (!loading && !user) {

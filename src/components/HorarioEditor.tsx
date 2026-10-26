@@ -1,3 +1,5 @@
+import { useT } from "@/i18n";
+
 export type DiaKey = "lun" | "mar" | "mie" | "jue" | "vie" | "sab" | "dom";
 
 // Type alias (no interface) para que sea asignable al tipo Json de Supabase.
@@ -9,15 +11,18 @@ export type DiaHorario = {
 
 export type Horario = Record<DiaKey, DiaHorario>;
 
-export const DIAS: { key: DiaKey; label: string }[] = [
-  { key: "lun", label: "Lunes" },
-  { key: "mar", label: "Martes" },
-  { key: "mie", label: "Miércoles" },
-  { key: "jue", label: "Jueves" },
-  { key: "vie", label: "Viernes" },
-  { key: "sab", label: "Sábado" },
-  { key: "dom", label: "Domingo" },
+/** `label` en español (fuente de verdad); `clave` es la clave i18n "horario.*" para t(). */
+export const DIAS: { key: DiaKey; label: string; clave: string }[] = [
+  { key: "lun", label: "Lunes", clave: "horario.lun" },
+  { key: "mar", label: "Martes", clave: "horario.mar" },
+  { key: "mie", label: "Miércoles", clave: "horario.mie" },
+  { key: "jue", label: "Jueves", clave: "horario.jue" },
+  { key: "vie", label: "Viernes", clave: "horario.vie" },
+  { key: "sab", label: "Sábado", clave: "horario.sab" },
+  { key: "dom", label: "Domingo", clave: "horario.dom" },
 ];
+
+type TFn = (clave: string, vars?: Record<string, string | number>) => string;
 
 export function defaultHorario(): Horario {
   const base = (activo: boolean): DiaHorario => ({ activo, desde: "09:00", hasta: "18:00" });
@@ -46,14 +51,15 @@ export function parseHorario(raw: unknown): Horario {
   return def;
 }
 
-/** Devuelve un mensaje de error en español o null si el horario es válido. */
-export function validarHorario(h: Horario): string | null {
+/** Devuelve un mensaje de error (traducido si se pasa `t`, español por defecto) o null si el horario es válido. */
+export function validarHorario(h: Horario, t?: TFn): string | null {
   const activos = DIAS.filter((d) => h[d.key].activo);
-  if (activos.length === 0) return "Activa al menos un día de atención.";
+  if (activos.length === 0) return t ? t("horario.errNinguno") : "Activa al menos un día de atención.";
   for (const d of activos) {
     const { desde, hasta } = h[d.key];
-    if (!desde || !hasta) return `Completa el horario del ${d.label.toLowerCase()}.`;
-    if (desde >= hasta) return `En ${d.label.toLowerCase()}, la hora de inicio debe ser menor que la de término.`;
+    const dia = (t ? t(d.clave) : d.label).toLowerCase();
+    if (!desde || !hasta) return t ? t("horario.errIncompleto", { dia }) : `Completa el horario del ${dia}.`;
+    if (desde >= hasta) return t ? t("horario.errOrden", { dia }) : `En ${dia}, la hora de inicio debe ser menor que la de término.`;
   }
   return null;
 }
@@ -61,6 +67,7 @@ export function validarHorario(h: Horario): string | null {
 export function HorarioEditor({
   value, onChange, compact,
 }: { value: Horario; onChange: (h: Horario) => void; compact?: boolean }) {
+  const { t } = useT();
   function set(key: DiaKey, patch: Partial<DiaHorario>) {
     onChange({ ...value, [key]: { ...value[key], ...patch } });
   }
@@ -75,7 +82,7 @@ export function HorarioEditor({
 
   return (
     <div className="rounded-2xl bg-white border border-border divide-y divide-border overflow-hidden">
-      {DIAS.map(({ key, label }) => {
+      {DIAS.map(({ key, clave }) => {
         const d = value[key];
         return (
           <div key={key} className={`flex flex-wrap items-center gap-3 ${compact ? "px-3 py-2.5" : "px-4 py-3"}`}>
@@ -89,7 +96,7 @@ export function HorarioEditor({
             >
               <span className={`inline-block size-4 rounded-full bg-white shadow transition ${d.activo ? "translate-x-6" : "translate-x-1"}`} />
             </button>
-            <span className={`w-20 text-sm font-medium ${d.activo ? "text-[#111827]" : "text-muted-foreground"}`}>{label}</span>
+            <span className={`w-20 text-sm font-medium ${d.activo ? "text-[#111827]" : "text-muted-foreground"}`}>{t(clave)}</span>
             {d.activo ? (
               <div className="flex items-center gap-2 ml-auto">
                 <input
@@ -98,7 +105,7 @@ export function HorarioEditor({
                   onChange={(e) => set(key, { desde: e.target.value })}
                   className="h-9 px-2 rounded-lg bg-muted/50 border border-border text-sm outline-none focus:border-foreground/30"
                 />
-                <span className="text-xs text-muted-foreground">a</span>
+                <span className="text-xs text-muted-foreground">{t("horario.a")}</span>
                 <input
                   type="time"
                   value={d.hasta}
@@ -107,15 +114,15 @@ export function HorarioEditor({
                 />
                 <button
                   type="button"
-                  title="Aplicar este horario a todos los días activos"
+                  title={t("horario.copiarTitle")}
                   onClick={() => copiarATodos(key)}
                   className="hidden sm:inline text-[11px] text-[#EF9F27] font-semibold hover:underline"
                 >
-                  Copiar
+                  {t("horario.copiar")}
                 </button>
               </div>
             ) : (
-              <span className="ml-auto text-xs text-muted-foreground">Cerrado</span>
+              <span className="ml-auto text-xs text-muted-foreground">{t("horario.cerrado")}</span>
             )}
           </div>
         );

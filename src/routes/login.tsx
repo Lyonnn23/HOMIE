@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { HomieLogo } from "@/components/Logo";
 import { mensajeError } from "@/lib/errores";
 import { useTemaGuardado } from "@/hooks/use-tema";
+import { useT } from "@/i18n";
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [
@@ -21,6 +22,7 @@ export const Route = createFileRoute("/login")({
 
 function LoginPage() {
   useTemaGuardado();
+  const { t } = useT();
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const [email, setEmail] = useState("");
@@ -41,7 +43,7 @@ function LoginPage() {
     manejandoLogin.current = true;
     const { data: auth, error } = await supabase.auth.signInWithPassword({ email, password });
     setSubmitting(false);
-    if (error) { manejandoLogin.current = false; setErr(mensajeError(error, "No pudimos iniciar sesión.")); }
+    if (error) { manejandoLogin.current = false; setErr(mensajeError(error, t("login.errLogin"), t)); }
     else {
       // Prestador sin perfil completo → directo al asistente de perfil profesional
       const { data: u } = await supabase.from("usuarios").select("id, tipo").eq("user_id", auth.user.id).maybeSingle();
@@ -58,7 +60,7 @@ function LoginPage() {
     const res = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: window.location.origin,
     });
-    if (res.error) setErr(mensajeError(res.error, "No pudimos iniciar sesión con Google."));
+    if (res.error) setErr(mensajeError(res.error, t("login.errGoogle"), t));
   }
 
   const fieldClass =
@@ -72,17 +74,17 @@ function LoginPage() {
         </div>
 
         <h1 className="title-2 text-center text-[#111827]">
-          Bienvenido de vuelta
+          {t("login.bienvenido")}
         </h1>
         <p className="text-sm text-gray-500 text-center mt-1">
-          Ingresa con tu cuenta para continuar
+          {t("login.sub")}
         </p>
 
         <form onSubmit={onSubmit} className="mt-7 space-y-3">
           <input
             type="email"
             required
-            placeholder="Email"
+            placeholder={t("login.email")}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className={fieldClass}
@@ -91,7 +93,7 @@ function LoginPage() {
             <input
               type={showPw ? "text" : "password"}
               required
-              placeholder="Contraseña"
+              placeholder={t("login.password")}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className={`${fieldClass} pr-12`}
@@ -100,7 +102,7 @@ function LoginPage() {
               type="button"
               onClick={() => setShowPw((v) => !v)}
               className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-gray-500 hover:text-[#111827]"
-              aria-label={showPw ? "Ocultar contraseña" : "Mostrar contraseña"}
+              aria-label={showPw ? t("login.ocultarPassword") : t("login.mostrarPassword")}
             >
               {showPw ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
             </button>
@@ -113,19 +115,19 @@ function LoginPage() {
             disabled={submitting}
             className="w-full h-12 rounded-2xl bg-[#111827] text-white font-semibold disabled:opacity-60"
           >
-            {submitting ? "Ingresando..." : "Iniciar sesión"}
+            {submitting ? t("login.ingresando") : t("login.iniciarSesion")}
           </button>
 
           <div className="text-right">
             <Link to="/forgot-password" className="text-sm font-semibold text-[#EF9F27]">
-              ¿Olvidaste tu contraseña?
+              {t("login.olvide")}
             </Link>
           </div>
         </form>
 
         <div className="my-6 flex items-center gap-3 text-xs text-gray-500">
           <span className="flex-1 h-px bg-[#E5E7EB]" />
-          o continúa con
+          {t("login.oContinua")}
           <span className="flex-1 h-px bg-[#E5E7EB]" />
         </div>
 
@@ -139,13 +141,13 @@ function LoginPage() {
             <path fill="#FBBC05" d="M5.84 14.1A6.7 6.7 0 0 1 5.49 12c0-.73.13-1.44.35-2.1V7.07H2.18A11 11 0 0 0 1 12c0 1.78.43 3.46 1.18 4.93l3.66-2.83z"/>
             <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.83C6.71 7.31 9.14 5.38 12 5.38z"/>
           </svg>
-          Continuar con Google
+          {t("login.google")}
         </button>
 
         <p className="mt-6 text-center text-sm text-gray-500">
-          ¿No tienes cuenta?{" "}
+          {t("login.sinCuenta")}{" "}
           <Link to="/registro" className="font-semibold text-[#EF9F27]">
-            Regístrate
+            {t("login.registrate")}
           </Link>
         </p>
       </div>

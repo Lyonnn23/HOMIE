@@ -1,5 +1,6 @@
 import { Loader2, ArrowDown } from "lucide-react";
 import { usePullRefresh } from "@/hooks/use-pull-refresh";
+import { useT } from "@/i18n";
 
 interface Props {
   /** Claves a invalidar al soltar; sin esto se invalida todo. */
@@ -12,6 +13,7 @@ interface Props {
  * de la pantalla; solo se activa en pantallas táctiles.
  */
 export function PullRefresh({ queryKey, onRefresh }: Props) {
+  const { t } = useT();
   const { distancia, refrescando, listo } = usePullRefresh({ queryKey, onRefresh });
   const visible = distancia > 0 || refrescando;
   if (!visible) return null;
@@ -23,11 +25,11 @@ export function PullRefresh({ queryKey, onRefresh }: Props) {
     >
       <span className="inline-flex items-center gap-2 text-xs font-medium">
         {refrescando ? (
-          <><Loader2 className="size-4 animate-spin" /> Actualizando…</>
+          <><Loader2 className="size-4 animate-spin" /> {t("comun.actualizando")}</>
         ) : (
           <>
             <ArrowDown className={`size-4 transition-transform ${listo ? "rotate-180" : ""}`} />
-            {listo ? "Suelta para actualizar" : "Desliza para actualizar"}
+            {listo ? t("comun.sueltaActualizar") : t("comun.deslizaActualizar")}
           </>
         )}
       </span>

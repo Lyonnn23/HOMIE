@@ -8,7 +8,9 @@ import { z } from "zod";
 import { AppShell } from "@/components/AppShell";
 import { ProviderAvatar } from "@/components/Avatar";
 import { useQuery } from "@tanstack/react-query";
-import { useProvider, formatCLP, DIAS, MODALIDAD_LABEL, type Horario, type DiaKey } from "@/data/services";
+import { useProvider, formatCLP, DIAS, type Horario, type DiaKey } from "@/data/services";
+import { useT, type Idioma } from "@/i18n";
+import { TextoNegrita } from "@/components/TextoNegrita";
 import { useAddBooking } from "@/store/bookings";
 import { useEnvioUnico } from "@/lib/doble-envio";
 import { createPaymentPreference } from "@/lib/mercadopago.functions";
@@ -27,18 +29,22 @@ export const Route = createFileRoute("/reservar/$id")({
   component: BookingPage,
 });
 
-function nextDays(n: number) {
+function localeDe(idioma: Idioma) {
+  return idioma === "es" ? "es-CL" : idioma === "pt" ? "pt-BR" : idioma === "ht" ? "fr-HT" : "en-US";
+}
+
+function nextDays(n: number, idioma: Idioma, hoy: string) {
   const out: { value: string; label: string; day: string }[] = [];
-  const months = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
-  const days = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
+  const locale = localeDe(idioma);
   const today = new Date();
   for (let i = 0; i < n; i++) {
     const d = new Date(today);
     d.setDate(today.getDate() + i);
+    const dia = d.toLocaleDateString(locale, { weekday: "short" }).replace(/\.$/, "");
     out.push({
       value: d.toISOString().slice(0, 10),
-      label: `${d.getDate()} ${months[d.getMonth()]}`,
-      day: i === 0 ? "Hoy" : days[d.getDay()],
+      label: d.toLocaleDateString(locale, { day: "numeric", month: "short" }).replace(/\.$/, ""),
+      day: i === 0 ? hoy : dia.charAt(0).toUpperCase() + dia.slice(1),
     });
   }
   return out;
@@ -107,6 +113,7 @@ function BookingPage() {
   const { id } = Route.useParams();
   const { service: incoming } = Route.useSearch();
   const router = useRouter();
+  const { t, idioma } = useT();
   const { data: p, isLoading } = useProvider(id);
   const addBooking = useAddBooking();
   const createPreference = useServerFn(createPaymentPreference);
@@ -115,7 +122,7 @@ function BookingPage() {
   const [cupon, setCupon] = useState<CuponAplicado | null>(null);
   const [validando, setValidando] = useState(false);
 
-  const days = useMemo(() => nextDays(10), []);
+  const days = useMemo(() => nextDays(10, idioma, t("reservar.hoy")), [idioma, t]);
   const [date, setDate] = useState(days[0].value);
   const [time, setTime] = useState<string | null>(null);
   const ocupadasQ = useHorasOcupadas(p?.id, date);
@@ -124,7 +131,7 @@ function BookingPage() {
   const diaActivo = p ? p.horario[diaKeyDe(date)]?.activo : true;
   const nowMin = date === days[0].value ? new Date().getHours() * 60 + new Date().getMinutes() : -1;
 
-  const disponible = (t: string) => !ocupadas.has(t) && toMin(t) > nowMin;
+  const disponible = (h: string) => !ocupadas.has(h) && toMin(h) > nowMin;
 
   // Si cambia la fecha/horario y la hora elegida ya no es válida, elige la primera disponible.
   useEffect(() => {
@@ -146,8 +153,8 @@ function BookingPage() {
     }
   }, [p, serviceName]);
 
-  if (isLoading) return <AppShell><div className="p-8 text-center text-muted-foreground">Cargando...</div></AppShell>;
-  if (!p) return <AppShell><div className="p-8">Prestador no encontrado</div></AppShell>;
+  if (isLoading) return <AppShell><div className="p-8 text-center text-muted-foreground">{t("comun.cargando")}</div></AppShell>;
+  if (!p) return <AppShell><div className="p-8">{t("reservar.noEncontrado")}</div></AppShell>;
 
   const selected = p.services.find((s) => s.name === serviceName) ?? p.services[0];
   // El cliente paga exactamente el precio del profesional (sin recargo). La comisión de Homie
@@ -166,7 +173,7 @@ function BookingPage() {
       const r = data?.[0];
       if (!r || !r.valido) {
         setCupon(null);
-        toast.error(r?.mensaje || "Cupón no válido");
+        toast.error(r?.mensaje || t("reservar.cuponInvalido"));
         return;
       }
       setCupon({ codigo, descuento: r.descuento, mensaje: r.mensaje });
@@ -174,7 +181,7 @@ function BookingPage() {
       toast.success(`${r.mensaje}: -${formatCLP(r.descuento)}`);
     } catch (err) {
       setCupon(null);
-      toast.error(err instanceof Error ? err.message : "No se pudo validar el cupón");
+      toast.error(err instanceof Error ? err.message : t("reservar.cuponError"));
     } finally {
       setValidando(false);
     }
@@ -189,8 +196,9 @@ function BookingPage() {
   const esOnline = modalidadEfectiva === "online";
   const direccionOk = esOnline || !!address.trim();
 
+  const modalidadTxt = (m: string) => (["domicilio", "online", "local"].includes(m) ? t(`modalidad.${m}`) : m);
   const horarioHint = DIAS.filter((d) => p.horario[d.key]?.activo)
-    .map((d) => `${d.corto} ${p.horario[d.key].desde}–${p.horario[d.key].hasta}`)
+    .map((d) => `${t(`diaCorto.${d.key}`)} ${p.horario[d.key].desde}–${p.horario[d.key].hasta}`)
     .join(" · ");
 
   async function confirm() {
@@ -212,7 +220,7 @@ function BookingPage() {
       console.error(err);
       // El trigger de la BD lanza mensajes en español (día inactivo, fuera de horario, hora ocupada...).
       const msg = (err as { message?: string })?.message;
-      toast.error(msg?.trim() || "No se pudo crear la reserva");
+      toast.error(msg?.trim() || t("reservar.errorCrear"));
       ocupadasQ.refetch();
       setPaying(false);
       return;
@@ -222,7 +230,7 @@ function BookingPage() {
       window.location.href = initPoint;
     } catch (err) {
       console.error(err);
-      toast.error(err instanceof Error ? err.message : "No se pudo iniciar el pago");
+      toast.error(err instanceof Error ? err.message : t("reservar.errorPago"));
       setPaying(false);
     }
   }
@@ -231,10 +239,10 @@ function BookingPage() {
   return (
     <AppShell>
       <header className="px-5 pt-6 pb-2">
-        <button onClick={() => router.history.back()} className="p-2 -ml-2 rounded-full hover:bg-muted">
+        <button onClick={() => router.history.back()} className="p-2 -ml-2 rounded-full hover:bg-muted" aria-label={t("comun.volver")}>
           <ArrowLeft className="size-5" />
         </button>
-        <h1 className="mt-3 text-2xl font-bold tracking-tight">Reservar</h1>
+        <h1 className="mt-3 text-2xl font-bold tracking-tight">{t("reservar.titulo")}</h1>
       </header>
 
       <div className="px-5 mt-2">
@@ -248,7 +256,7 @@ function BookingPage() {
       </div>
 
       <section className="px-5 mt-6">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Servicio</h2>
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t("reservar.servicio")}</h2>
         <div className="mt-2 flex flex-wrap gap-2">
           {p.services.map((s) => (
             <button key={s.id} onClick={() => setServiceName(s.name)}
@@ -262,7 +270,7 @@ function BookingPage() {
       </section>
 
       <section className="px-5 mt-6">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Fecha</h2>
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t("reservar.fecha")}</h2>
         <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
           {days.map((d) => (
             <button key={d.value} onClick={() => setDate(d.value)}
@@ -277,48 +285,48 @@ function BookingPage() {
       </section>
 
       <section className="px-5 mt-6">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Hora</h2>
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t("reservar.hora")}</h2>
         {!diaActivo ? (
           <div className="mt-2 p-4 rounded-2xl bg-[#F5F5F0] border border-border text-sm text-muted-foreground text-center">
-            No atiende este día
+            {t("reservar.noAtiende")}
           </div>
         ) : slots.length === 0 ? (
           <div className="mt-2 p-4 rounded-2xl bg-[#F5F5F0] border border-border text-sm text-muted-foreground text-center">
-            Sin horas disponibles
+            {t("reservar.sinHoras")}
           </div>
         ) : (
           <div className="mt-2 grid grid-cols-4 gap-2">
-            {slots.map((t) => {
-              const libre = disponible(t);
+            {slots.map((hora) => {
+              const libre = disponible(hora);
               return (
-                <button key={t} disabled={!libre} onClick={() => setTime(t)}
-                  title={ocupadas.has(t) ? "Hora ocupada" : undefined}
+                <button key={hora} disabled={!libre} onClick={() => setTime(hora)}
+                  title={ocupadas.has(hora) ? t("reservar.horaOcupada") : undefined}
                   className={`py-2.5 rounded-xl text-sm border transition ${
-                    time === t ? "bg-foreground text-background border-foreground"
+                    time === hora ? "bg-foreground text-background border-foreground"
                     : libre ? "bg-white border-border"
                     : "bg-muted text-muted-foreground/50 border-border line-through cursor-not-allowed"
                   }`}>
-                  {t}
+                  {hora}
                 </button>
               );
             })}
           </div>
         )}
         <p className="mt-2 text-[11px] text-muted-foreground">
-          <span className="font-semibold">Horario del profesional:</span> {horarioHint || "no informado"}
+          <span className="font-semibold">{t("reservar.horarioPro")}</span> {horarioHint || t("reservar.noInformado")}
         </p>
       </section>
 
       {elegirModalidad && (
         <section className="px-5 mt-6">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Modalidad</h2>
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t("reservar.modalidad")}</h2>
           <div className="mt-2 flex flex-wrap gap-2">
             {modalidadesServicio.map((m) => (
               <label key={m} className={`inline-flex items-center gap-2 px-3 py-2 rounded-full text-sm border cursor-pointer transition ${
                 modalidadEfectiva === m ? "bg-foreground text-background border-foreground" : "bg-white border-border"
               }`}>
                 <input type="radio" name="modalidad" className="sr-only" value={m} checked={modalidadEfectiva === m} onChange={() => setModalidad(m)} />
-                {MODALIDAD_LABEL[m] ?? m}
+                {modalidadTxt(m)}
               </label>
             ))}
           </div>
@@ -327,24 +335,24 @@ function BookingPage() {
 
       <section className="px-5 mt-6">
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-          Dirección {esOnline && <span className="normal-case font-normal">(opcional, servicio online)</span>}
+          {t("reservar.direccion")} {esOnline && <span className="normal-case font-normal">{t("reservar.direccionOnline")}</span>}
         </h2>
         {!elegirModalidad && modalidadEfectiva !== "domicilio" && (
-          <p className="mt-1 text-xs text-muted-foreground">Este servicio es {MODALIDAD_LABEL[modalidadEfectiva]?.toLowerCase()}.</p>
+          <p className="mt-1 text-xs text-muted-foreground">{t("reservar.esteServicioEs", { modalidad: modalidadTxt(modalidadEfectiva).toLowerCase() })}</p>
         )}
         <input value={address} onChange={(e) => setAddress(e.target.value)}
-          placeholder={esOnline ? "No es necesaria para un servicio online" : modalidadEfectiva === "local" ? "Tu dirección de contacto (el servicio es en el local del profesional)" : "Calle, número, comuna"}
+          placeholder={esOnline ? t("reservar.dirNoNecesaria") : modalidadEfectiva === "local" ? t("reservar.dirLocal") : t("reservar.dirPlaceholder")}
           className="mt-2 w-full h-12 px-4 rounded-2xl bg-white border border-border outline-none focus:border-foreground/30" />
       </section>
 
       <section className="px-5 mt-4">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Nota (opcional)</h2>
-        <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={3} placeholder="Detalles para el prestador..."
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t("reservar.nota")}</h2>
+        <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={3} placeholder={t("reservar.notaPlaceholder")}
           className="mt-2 w-full px-4 py-3 rounded-2xl bg-white border border-border outline-none focus:border-foreground/30 resize-none" />
       </section>
 
       <section className="px-5 mt-6">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">¿Tienes un cupón?</h2>
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t("reservar.cupon")}</h2>
         {(misCupones.data?.length ?? 0) > 0 && (
           <div className="mt-2 flex flex-wrap gap-2">
             {misCupones.data!.map((c) => {
@@ -368,51 +376,49 @@ function BookingPage() {
             value={cuponInput}
             onChange={(e) => { setCuponInput(e.target.value.toUpperCase()); if (cupon) setCupon(null); }}
             onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); aplicarCupon(cuponInput); } }}
-            placeholder="Código (ej. HOMIE20)"
+            placeholder={t("reservar.cuponPlaceholder")}
             autoCapitalize="characters" autoCorrect="off" spellCheck={false}
-            aria-label="Código de cupón"
+            aria-label={t("reservar.cuponAria")}
             className="flex-1 h-12 px-4 rounded-2xl bg-white border border-border outline-none focus:border-foreground/30 font-mono tracking-wide uppercase"
           />
           {cupon ? (
             <button type="button" onClick={quitarCupon}
               className="inline-flex items-center gap-1 px-4 rounded-2xl border border-border text-sm font-semibold hover:bg-muted">
-              <X className="size-4" /> Quitar
+              <X className="size-4" /> {t("reservar.quitar")}
             </button>
           ) : (
             <button type="button" onClick={() => aplicarCupon(cuponInput)} disabled={validando || !cuponInput.trim() || !base}
               className="inline-flex items-center gap-1 px-4 rounded-2xl bg-[#111827] text-white text-sm font-semibold disabled:opacity-50">
-              {validando ? <Loader2 className="size-4 animate-spin" /> : null} Aplicar
+              {validando ? <Loader2 className="size-4 animate-spin" /> : null} {t("reservar.aplicar")}
             </button>
           )}
         </div>
         {cupon && (
-          <p className="mt-1.5 text-xs text-[#00754F] font-medium">✓ {cupon.mensaje} · ahorras {formatCLP(descuento)}</p>
+          <p className="mt-1.5 text-xs text-[#00754F] font-medium">✓ {cupon.mensaje} · {t("reservar.ahorras", { monto: formatCLP(descuento) })}</p>
         )}
       </section>
 
       <section className="px-5 mt-6">
         <div className="p-4 rounded-2xl bg-[#F5F5F0] border border-border space-y-2 text-sm">
-          <Row label={selected?.name ?? "Precio del servicio"} value={formatCLP(base)} />
+          <Row label={selected?.name ?? t("reservar.precioServicio")} value={formatCLP(base)} />
           {cupon && descuento > 0 && (
             <div className="flex items-center justify-between gap-3 text-[#00754F]">
-              <span className="inline-flex items-center gap-1"><Ticket className="size-3.5" /> Cupón {cupon.codigo}</span>
+              <span className="inline-flex items-center gap-1"><Ticket className="size-3.5" /> {t("reservar.cuponLabel", { codigo: cupon.codigo })}</span>
               <span className="font-semibold">−{formatCLP(descuento)}</span>
             </div>
           )}
           {selected && selected.priceTo > selected.price && (
             <div className="mt-1 p-3 rounded-xl bg-white border border-border text-xs text-[#374151]">
-              <div className="font-semibold text-[#111827]">Estimado del trabajo: {formatCLP(selected.price)} – {formatCLP(selected.priceTo)}</div>
-              Hoy pagas el precio desde. Si el trabajo requiere materiales o tiempo extra, el profesional te lo informa
-              antes de empezar y el valor final <b>nunca puede superar {formatCLP(selected.priceTo)}</b>.
-              Si te cobran más, repórtalo y Homie media.
+              <div className="font-semibold text-[#111827]">{t("reservar.estimadoTrabajo", { desde: formatCLP(selected.price), hasta: formatCLP(selected.priceTo) })}</div>
+              <TextoNegrita texto={t("reservar.estimadoNota", { hasta: formatCLP(selected.priceTo) })} />
             </div>
           )}
           <div className="h-px bg-border my-2" />
           <div className="flex items-center justify-between gap-3">
-            <span className="font-bold">Total</span>
+            <span className="font-bold">{t("reservar.total")}</span>
             <span className="font-bold text-lg text-[#EF9F27]">{formatCLP(total)}</span>
           </div>
-          <p className="text-[11px] text-muted-foreground">Sin recargos: pagas exactamente el precio del profesional.</p>
+          <p className="text-[11px] text-muted-foreground">{t("reservar.sinRecargo")}</p>
         </div>
       </section>
 
@@ -423,7 +429,7 @@ function BookingPage() {
             onClick={() => ejecutar(confirm)}
             className="w-full py-3.5 rounded-2xl bg-foreground text-background font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            {paying ? "Redirigiendo a Mercado Pago..." : `Pagar ${formatCLP(total)} con Mercado Pago`}
+            {paying ? t("reservar.redirigiendo") : t("reservar.pagar", { monto: formatCLP(total) })}
           </button>
         </div>
       </div>

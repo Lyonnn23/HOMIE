@@ -3,7 +3,8 @@ import { useMemo, useState } from "react";
 import { ArrowLeft, Star, MapPin } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { ProviderAvatar } from "@/components/Avatar";
-import { getCategoryByService, useProvidersForService, formatCLP, type ProviderListItem } from "@/data/services";
+import { getCategoryByService, useProvidersForService, formatCLP, nombreCategoria, type ProviderListItem } from "@/data/services";
+import { useT } from "@/i18n";
 
 export const Route = createFileRoute("/servicio/$service")({
   head: () => ({ meta: [
@@ -23,6 +24,7 @@ function ServicePage() {
   const { service: raw } = Route.useParams();
   const service = decodeURIComponent(raw);
   const navigate = useNavigate();
+  const { t, idioma } = useT();
   const cat = getCategoryByService(service);
   const { data: providers = [], isLoading } = useProvidersForService(service);
   const [sort, setSort] = useState<SortKey>("rating");
@@ -38,10 +40,10 @@ function ServicePage() {
   }, [providers, sort]);
 
   const filters: { key: SortKey; label: string }[] = [
-    { key: "rating", label: "Mejor calificación" },
-    { key: "distance", label: "Más cercano" },
-    { key: "price", label: "Precio: menor a mayor" },
-    { key: "availability", label: "Disponible ahora" },
+    { key: "rating", label: t("servicio.mejorCalif") },
+    { key: "distance", label: t("servicio.masCercano") },
+    { key: "price", label: t("servicio.precioMenor") },
+    { key: "availability", label: t("buscar.disponibleAhora") },
   ];
 
   const catColor = cat?.bg ?? "#111827";
@@ -53,6 +55,7 @@ function ServicePage() {
         <button
           onClick={() => navigate({ to: "/" })}
           className="p-2 -ml-2 rounded-full hover:bg-white/15 text-white"
+          aria-label={t("comun.volver")}
         >
           <ArrowLeft className="size-5" />
         </button>
@@ -63,18 +66,18 @@ function ServicePage() {
             </div>
           )}
           <div>
-            <div className="text-xs text-white/80 font-medium">{cat?.name}</div>
+            <div className="text-xs text-white/80 font-medium">{cat ? nombreCategoria(cat.id, idioma) : ""}</div>
             <h1 className="title-2 text-white">{service}</h1>
           </div>
         </div>
         <p className="text-sm text-white/80 mt-2">
-          {isLoading ? "Cargando prestadores..." : `${providers.length} prestadores disponibles`}
+          {isLoading ? t("servicio.cargando") : t("servicio.nPrestadores", { n: providers.length })}
         </p>
         <Link
           to="/solicitar"
           className="mt-3 inline-flex items-center justify-center w-full px-4 py-2.5 rounded-xl bg-white/15 border border-white/30 text-white text-sm font-semibold hover:bg-white/25 transition"
         >
-          Pedir cotizaciones para este servicio
+          {t("servicio.pedirCotizaciones")}
         </Link>
       </header>
 
@@ -109,7 +112,7 @@ function ServicePage() {
           </div>
         ) : sorted.length === 0 ? (
           <div className="text-center py-20 text-muted-foreground">
-            <p>No hay prestadores para este servicio aún.</p>
+            <p>{t("servicio.sinPrestadores")}</p>
           </div>
         ) : (
           sorted.map((p) => (
@@ -119,7 +122,7 @@ function ServicePage() {
                   className="absolute top-3 right-3 text-[11px] font-semibold px-2.5 py-1 rounded-full text-white"
                   style={{ backgroundColor: "#00C288" }}
                 >
-                  Disponible
+                  {t("buscar.disponible")}
                 </span>
               )}
               <div className="flex items-start gap-3">
@@ -137,12 +140,12 @@ function ServicePage() {
                   <div className="flex items-center gap-1 mt-1 text-sm">
                     <Star className="size-4" style={{ fill: "#EF9F27", color: "#EF9F27" }} />
                     <span className="font-semibold text-[#111827]">{p.rating.toFixed(1)}</span>
-                    <span className="text-xs text-[#6B7280]">({p.reviewsCount} reseñas)</span>
+                    <span className="text-xs text-[#6B7280]">({t("prestador.resenasCount", { n: p.reviewsCount })})</span>
                   </div>
                   <div className="flex items-center justify-between mt-2">
                     <div className="text-[#111827]">
                       <span className="text-lg font-bold">{formatCLP(p.pricePerHour)}</span>
-                      <span className="text-xs font-normal text-[#6B7280]">/hr</span>
+                      <span className="text-xs font-normal text-[#6B7280]">{t("servicio.porHora")}</span>
                     </div>
                     <span className="inline-flex items-center gap-1 text-xs text-[#9CA3AF]">
                       <MapPin className="size-[14px]" />{p.distanceKm} km
@@ -162,7 +165,7 @@ function ServicePage() {
                   borderRadius: 10,
                 }}
               >
-                Ver perfil
+                {t("servicio.verPerfil")}
               </Link>
             </div>
           ))

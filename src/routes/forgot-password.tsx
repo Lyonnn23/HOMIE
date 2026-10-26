@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { HomieLogo } from "@/components/Logo";
 import { mensajeError } from "@/lib/errores";
 import { useTemaGuardado } from "@/hooks/use-tema";
+import { useT } from "@/i18n";
 
 export const Route = createFileRoute("/forgot-password")({
   head: () => ({ meta: [
@@ -19,6 +20,7 @@ export const Route = createFileRoute("/forgot-password")({
 
 function ForgotPasswordPage() {
   useTemaGuardado();
+  const { t } = useT();
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -32,7 +34,7 @@ function ForgotPasswordPage() {
       redirectTo: `${window.location.origin}/reset-password`,
     });
     setSubmitting(false);
-    if (error) setErr(mensajeError(error, "No pudimos enviar el correo."));
+    if (error) setErr(mensajeError(error, t("login.errEnviar"), t));
     else setSent(true);
   }
 
@@ -46,10 +48,10 @@ function ForgotPasswordPage() {
           <HomieLogo size={48} inverted={false} />
         </div>
         <h1 className="title-2 text-center text-[#111827]">
-          Recuperar contraseña
+          {t("login.recuperarTitulo")}
         </h1>
         <p className="text-sm text-gray-500 text-center mt-1">
-          Te enviaremos un link para crear una nueva contraseña.
+          {t("login.recuperarSub")}
         </p>
 
         {sent ? (
@@ -59,11 +61,10 @@ function ForgotPasswordPage() {
           >
             <CheckCircle2 className="mx-auto size-7 mb-2" style={{ color: "#00C288" }} />
             <p className="text-sm font-medium">
-              Si <span className="font-semibold">{email}</span> está registrado,
-              recibirás las instrucciones en unos minutos.
+              {t("login.recuperarEnviado", { email: "\u0000" }).split("\u0000").map((parte, i) => i === 0 ? <span key={i}>{parte}<span className="font-semibold">{email}</span></span> : <span key={i}>{parte}</span>)}
             </p>
             <Link to="/login" className="block mt-4 text-sm font-semibold text-[#EF9F27]">
-              Volver al login
+              {t("login.volverLogin")}
             </Link>
           </div>
         ) : (
@@ -72,7 +73,7 @@ function ForgotPasswordPage() {
               <input
                 type="email"
                 required
-                placeholder="Email"
+                placeholder={t("login.email")}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className={fieldClass}
@@ -83,12 +84,12 @@ function ForgotPasswordPage() {
                 disabled={submitting}
                 className="w-full h-12 rounded-2xl bg-[#111827] text-white font-semibold disabled:opacity-60"
               >
-                {submitting ? "Enviando..." : "Enviar instrucciones"}
+                {submitting ? t("login.enviando") : t("login.enviarInstrucciones")}
               </button>
             </form>
             <p className="mt-6 text-center text-sm text-gray-500">
               <Link to="/login" className="font-semibold text-[#EF9F27]">
-                Volver al login
+                {t("login.volverLogin")}
               </Link>
             </p>
           </>

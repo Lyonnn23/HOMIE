@@ -14,6 +14,7 @@ import OnboardingGate from "../components/OnboardingGate";
 import { Toaster } from "@/components/ui/sonner";
 import { AccesibilidadProvider } from "@/hooks/use-accesibilidad";
 import { AuthProvider } from "@/hooks/use-auth";
+import { I18nProvider } from "@/i18n";
 import { useEffect } from "react";
 import { esNativo, configurarBarraEstado, manejarBotonAtras } from "@/lib/nativo";
 import { ErrorBoundaryMonitoreo, reportarError } from "@/lib/monitoreo";
@@ -161,14 +162,16 @@ function RootComponent() {
       onError={(error, componentStack) => reportarError(error, { componentStack })}
     >
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <AccesibilidadProvider>
-            <OnboardingGate>
-              <Outlet />
-            </OnboardingGate>
-            <Toaster />
-          </AccesibilidadProvider>
-        </AuthProvider>
+        <I18nProvider>
+          <AuthProvider>
+            <AccesibilidadProvider>
+              <OnboardingGate>
+                <Outlet />
+              </OnboardingGate>
+              <Toaster />
+            </AccesibilidadProvider>
+          </AuthProvider>
+        </I18nProvider>
       </QueryClientProvider>
     </ErrorBoundaryMonitoreo>
   );

@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { useT } from "@/i18n";
 
 export type NotifKey =
   | "master"
@@ -29,24 +30,26 @@ export const DEFAULT_NOTIF_CONFIG: NotifConfig = {
   marketing: false,
 };
 
+/** Claves i18n ("notif.l.*" título, "notif.s.*" subtítulo) para cada preferencia. Usar con t(). */
 export const NOTIF_LABELS: Record<Exclude<NotifKey, "master">, { title: string; sub: string }> = {
-  reserva_recibida: { title: "Nuevas reservas", sub: "Cuando recibes una nueva reserva" },
-  reserva_confirmada: { title: "Reservas confirmadas", sub: "Cuando un prestador acepta tu reserva" },
-  reserva_rechazada: { title: "Reservas rechazadas", sub: "Cuando un prestador no puede atenderte" },
-  en_camino: { title: "En camino", sub: "Cuando tu prestador está en camino" },
-  completada: { title: "Servicio completado", sub: "Para que dejes tu reseña" },
-  recordatorio: { title: "Recordatorios", sub: "1 hora antes de tu reserva" },
-  favorito_disponible: { title: "Favoritos disponibles", sub: "Cuando un favorito tiene cupos" },
-  marketing: { title: "Promociones", sub: "Ofertas y novedades de Homie" },
-  push: { title: "Avisos push", sub: "Recibir avisos en el teléfono o navegador" },
+  reserva_recibida: { title: "notif.l.reserva_recibida", sub: "notif.s.reserva_recibida" },
+  reserva_confirmada: { title: "notif.l.reserva_confirmada", sub: "notif.s.reserva_confirmada" },
+  reserva_rechazada: { title: "notif.l.reserva_rechazada", sub: "notif.s.reserva_rechazada" },
+  en_camino: { title: "notif.l.en_camino", sub: "notif.s.en_camino" },
+  completada: { title: "notif.l.completada", sub: "notif.s.completada" },
+  recordatorio: { title: "notif.l.recordatorio", sub: "notif.s.recordatorio" },
+  favorito_disponible: { title: "notif.l.favorito_disponible", sub: "notif.s.favorito_disponible" },
+  marketing: { title: "notif.l.marketing", sub: "notif.s.marketing" },
+  push: { title: "notif.l.push", sub: "notif.s.push" },
 };
 
 export function useUpdateNotifConfig() {
   const qc = useQueryClient();
   const { usuario } = useAuth();
+  const { t } = useT();
   return useMutation({
     mutationFn: async (next: NotifConfig) => {
-      if (!usuario?.id) throw new Error("Sin sesión");
+      if (!usuario?.id) throw new Error(t("notif.sinSesion"));
       const { error } = await supabase
         .from("usuarios")
         .update({ notif_config: next })

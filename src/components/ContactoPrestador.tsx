@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Phone, MessageSquareText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useT } from "@/i18n";
 
 /**
  * Botones WhatsApp / Llamar. Solo aparecen cuando la reserva está PAGADA y
@@ -8,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
  * no devuelve nada en otro caso, así la comisión de Homie queda protegida.
  */
 export function ContactoPrestador({ reservaId, nombre }: { reservaId: string; nombre: string }) {
+  const { t } = useT();
   const q = useQuery({
     queryKey: ["contacto-prestador", reservaId],
     queryFn: async () => {
@@ -21,7 +23,7 @@ export function ContactoPrestador({ reservaId, nombre }: { reservaId: string; no
   if (!c || (!c.telefono && !c.whatsapp)) return null;
   const wa = (c.whatsapp ?? c.telefono ?? "").replace(/[^\d]/g, "");
   const waNum = wa.startsWith("56") ? wa : `56${wa.replace(/^0/, "")}`;
-  const msg = encodeURIComponent(`Hola ${nombre.split(" ")[0]}, te contacto por mi reserva en Homie para coordinar la visita.`);
+  const msg = encodeURIComponent(t("reservas.waMsg", { nombre: nombre.split(" ")[0] }));
   return (
     <>
       {c.whatsapp || c.telefono ? (
@@ -39,7 +41,7 @@ export function ContactoPrestador({ reservaId, nombre }: { reservaId: string; no
           href={`tel:${c.telefono.replace(/\s/g, "")}`}
           className="inline-flex items-center gap-1 px-3 py-2 rounded-xl border border-border text-xs font-semibold hover:bg-muted"
         >
-          <Phone className="size-3.5" /> Llamar
+          <Phone className="size-3.5" /> {t("reservas.llamar")}
         </a>
       )}
     </>

@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { Idioma } from "@/i18n";
 
 export type CategoryId =
   | "beauty" | "home" | "tech-fix" | "health" | "pets" | "moving" | "tech" | "events"
@@ -34,6 +35,65 @@ export const groups: Group[] = [
   { id: "tecnologia", name: "Tecnología", tagline: "Computación, redes, celulares", bg: "#EF9F27", icon: Laptop },
 ];
 export function getGroup(id: string) { return groups.find((g) => g.id === id); }
+
+// ---- Nombres traducidos de grupos y categorías (los nombres de servicios se quedan como en la BD) ----
+type Trad = Record<Exclude<Idioma, "es">, string>;
+const GRUPO_NOMBRE: Record<GroupId, Trad> = {
+  hogar: { en: "Home", ht: "Kay", pt: "Casa" },
+  personas: { en: "Beauty & wellness", ht: "Bote ak byennèt", pt: "Beleza e bem-estar" },
+  profesionales: { en: "Professionals", ht: "Pwofesyonèl", pt: "Profissionais" },
+  vehiculos: { en: "Vehicles", ht: "Machin", pt: "Veículos" },
+  mascotas: { en: "Pets", ht: "Bèt kay", pt: "Pets" },
+  celebraciones: { en: "Events & gifts", ht: "Evènman ak kado", pt: "Eventos e presentes" },
+  tecnologia: { en: "Technology", ht: "Teknoloji", pt: "Tecnologia" },
+};
+const GRUPO_TAGLINE: Record<GroupId, Trad> = {
+  hogar: { en: "Cleaning, repairs, garden, moving", ht: "Netwayaj, teknisyen, jaden, demenajman", pt: "Limpeza, técnicos, jardim, mudanças" },
+  personas: { en: "Beauty, health, personal care", ht: "Estetik, sante, swen moun", pt: "Estética, saúde, cuidado de pessoas" },
+  profesionales: { en: "Lawyers, accountants, engineers, health, classes", ht: "Avoka, kontab, enjenyè, sante, kou", pt: "Advogados, contadores, engenheiros, saúde, aulas" },
+  vehiculos: { en: "Mechanics and car wash at home", ht: "Mekanik ak lavaj machin lakay ou", pt: "Mecânica e lavagem em domicílio" },
+  mascotas: { en: "Walking, grooming, vet", ht: "Pwomnad, beny, veterinè", pt: "Passeio, banho, veterinário" },
+  celebraciones: { en: "Parties, photography, surprises", ht: "Fèt, fotografi, sipriz", pt: "Festas, fotografia, surpresas" },
+  tecnologia: { en: "Computers, networks, phones", ht: "Òdinatè, rezo, telefòn", pt: "Computadores, redes, celulares" },
+};
+const CATEGORIA_NOMBRE: Record<CategoryId, Trad> = {
+  beauty: { en: "Beauty & aesthetics", ht: "Bote ak estetik", pt: "Beleza e estética" },
+  home: { en: "Home & cleaning", ht: "Kay ak netwayaj", pt: "Casa e limpeza" },
+  "tech-fix": { en: "Repairs & plumbing", ht: "Teknisyen ak plonbri", pt: "Técnicos e encanamento" },
+  health: { en: "Health & wellness", ht: "Sante ak byennèt", pt: "Saúde e bem-estar" },
+  pets: { en: "Pets", ht: "Bèt kay", pt: "Pets" },
+  moving: { en: "Furniture & moving", ht: "Mèb ak demenajman", pt: "Móveis e mudanças" },
+  tech: { en: "Tech & digital", ht: "Teknoloji ak dijital", pt: "Tecnologia e digital" },
+  events: { en: "Events & photography", ht: "Evènman ak fotografi", pt: "Eventos e fotografia" },
+  auto: { en: "Automotive at home", ht: "Machin lakay ou", pt: "Automotivo em domicílio" },
+  garden: { en: "Garden & pools", ht: "Jaden ak pisin", pt: "Jardim e piscinas" },
+  gifts: { en: "Gifts & surprises", ht: "Kado ak sipriz", pt: "Presentes e surpresas" },
+  care: { en: "Care & assistance", ht: "Swen ak asistans", pt: "Cuidado e assessoria" },
+  party: { en: "Parties & fun", ht: "Fèt ak plezi", pt: "Festas e diversão" },
+  legal: { en: "Lawyers", ht: "Avoka", pt: "Advogados" },
+  finanzas: { en: "Accountants & business", ht: "Kontab ak antrepriz", pt: "Contadores e empresas" },
+  ingenieria: { en: "Architecture & engineering", ht: "Achitekti ak jeni", pt: "Arquitetura e engenharia" },
+  "salud-pro": { en: "Health professionals", ht: "Sante pwofesyonèl", pt: "Saúde profissional" },
+  educacion: { en: "Classes & education", ht: "Kou ak edikasyon", pt: "Aulas e educação" },
+};
+/** Nombre del grupo en el idioma dado (es = nombre original). */
+export function nombreGrupo(id: GroupId | string, idioma: Idioma): string {
+  const g = getGroup(id);
+  if (!g) return "";
+  return idioma === "es" ? g.name : GRUPO_NOMBRE[g.id]?.[idioma] ?? g.name;
+}
+/** Tagline del grupo en el idioma dado. */
+export function taglineGrupo(id: GroupId | string, idioma: Idioma): string {
+  const g = getGroup(id);
+  if (!g) return "";
+  return idioma === "es" ? g.tagline : GRUPO_TAGLINE[g.id]?.[idioma] ?? g.tagline;
+}
+/** Nombre de la categoría en el idioma dado (es = nombre original). */
+export function nombreCategoria(id: CategoryId | string, idioma: Idioma): string {
+  const c = categories.find((x) => x.id === id);
+  if (!c) return "";
+  return idioma === "es" ? c.name : CATEGORIA_NOMBRE[c.id]?.[idioma] ?? c.name;
+}
 export function categoriesOfGroup(id: GroupId) { return categories.filter((c) => c.group === id); }
 
 export interface Category {

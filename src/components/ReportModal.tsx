@@ -3,13 +3,15 @@ import { Shield, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { mensajeError } from "@/lib/errores";
+import { useT } from "@/i18n";
 
-const MOTIVOS = [
-  "No llegó a la cita",
-  "Comportamiento inapropiado",
-  "Trabajo mal ejecutado",
-  "Me cobró diferente al precio acordado",
-  "Otro",
+/** Motivos: el valor guardado en BD se mantiene en español; la UI muestra la traducción. */
+const MOTIVOS: { valor: string; clave: string }[] = [
+  { valor: "No llegó a la cita", clave: "report.m1" },
+  { valor: "Comportamiento inapropiado", clave: "report.m2" },
+  { valor: "Trabajo mal ejecutado", clave: "report.m3" },
+  { valor: "Me cobró diferente al precio acordado", clave: "report.m4" },
+  { valor: "Otro", clave: "report.m5" },
 ];
 
 export function ReportModal({
@@ -21,6 +23,7 @@ export function ReportModal({
   reportadoId: string;
   onClose: () => void;
 }) {
+  const { t } = useT();
   const { usuario } = useAuth();
   const [motivo, setMotivo] = useState<string | null>(null);
   const [descripcion, setDescripcion] = useState("");
@@ -42,7 +45,7 @@ export function ReportModal({
     });
     setSubmitting(false);
     if (error) {
-      setErr(mensajeError(error, "No se pudo enviar el reporte."));
+      setErr(mensajeError(error, t("report.errEnviar"), t));
       return;
     }
     setDone(true);
@@ -56,12 +59,12 @@ export function ReportModal({
             <div className="mx-auto size-14 rounded-full bg-[#00C288]/15 flex items-center justify-center">
               <Shield className="size-7 text-[#00C288]" />
             </div>
-            <h3 className="mt-3 text-lg font-bold text-[#111827]">Reporte recibido</h3>
+            <h3 className="mt-3 text-lg font-bold text-[#111827]">{t("report.recibido")}</h3>
             <p className="mt-1 text-sm text-[#6B7280]">
-              Homie lo revisará en menos de 24 horas.
+              {t("report.recibidoSub")}
             </p>
             <button onClick={onClose} className="mt-5 w-full py-3 rounded-2xl bg-[#111827] text-white font-semibold text-sm">
-              Cerrar
+              {t("comun.cerrar")}
             </button>
           </div>
         ) : (
@@ -69,25 +72,25 @@ export function ReportModal({
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-2">
                 <Shield className="size-5 text-[#FF3B6B]" />
-                <h3 className="text-lg font-bold text-[#111827]">Reportar problema</h3>
+                <h3 className="text-lg font-bold text-[#111827]">{t("report.titulo")}</h3>
               </div>
               <button onClick={onClose} className="p-1 rounded-full hover:bg-muted">
                 <X className="size-5 text-[#6B7280]" />
               </button>
             </div>
 
-            <p className="text-sm text-[#6B7280]">Selecciona el motivo del reporte.</p>
+            <p className="text-sm text-[#6B7280]">{t("report.selecciona")}</p>
 
             <div className="space-y-2">
               {MOTIVOS.map((m) => (
                 <button
-                  key={m}
-                  onClick={() => setMotivo(m)}
+                  key={m.valor}
+                  onClick={() => setMotivo(m.valor)}
                   className={`w-full text-left p-3 rounded-xl border text-sm transition ${
-                    motivo === m ? "border-[#FF3B6B] bg-[#FF3B6B]/5 text-[#111827] font-semibold" : "border-[#E5E7EB] text-[#111827]"
+                    motivo === m.valor ? "border-[#FF3B6B] bg-[#FF3B6B]/5 text-[#111827] font-semibold" : "border-[#E5E7EB] text-[#111827]"
                   }`}
                 >
-                  {m}
+                  {t(m.clave)}
                 </button>
               ))}
             </div>
@@ -97,7 +100,7 @@ export function ReportModal({
                 value={descripcion}
                 onChange={(e) => setDescripcion(e.target.value)}
                 rows={3}
-                placeholder={motivo === "Otro" ? "Describe lo que ocurrió" : "Detalles adicionales (opcional)"}
+                placeholder={motivo === "Otro" ? t("report.describe") : t("report.detalles")}
                 maxLength={1000}
                 className="w-full p-3 rounded-xl border border-[#E5E7EB] text-sm outline-none focus:border-[#FF3B6B] resize-none"
               />
@@ -110,7 +113,7 @@ export function ReportModal({
               onClick={enviar}
               className="w-full h-12 rounded-2xl bg-[#FF3B6B] text-white font-semibold disabled:opacity-50"
             >
-              {submitting ? "Enviando..." : "Enviar reporte"}
+              {submitting ? t("report.enviando") : t("report.enviar")}
             </button>
           </>
         )}

@@ -6,9 +6,14 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { comprimirImagen } from "@/lib/imagen";
+import { useServerFn } from "@tanstack/react-start";
+import { moderarTexto } from "@/lib/moderacion.functions";
+import { evento } from "@/lib/analitica";
+import { useT } from "@/i18n";
+import { localeDe } from "@/i18n/estados";
 
-const QUICK_PRESTADOR = ["Voy en camino", "Llego en 15 min", "Ya llegué", "¿Puedes confirmar la dirección?"];
-const QUICK_CLIENTE = ["¿A qué hora llegas?", "Te espero", "Llámame al llegar"];
+const QUICK_PRESTADOR = ["chat.q.enCamino", "chat.q.llego15", "chat.q.llegue", "chat.q.confirmarDireccion"];
+const QUICK_CLIENTE = ["chat.q.aQueHora", "chat.q.teEspero", "chat.q.llamame"];
 
 /** Cache pequeño de URLs firmadas del bucket privado `chat` (válidas 1 h, se renuevan a los 50 min). */
 const fotoCache = new Map<string, { url: string; exp: number }>();
@@ -22,6 +27,7 @@ async function urlFirmadaChat(path: string): Promise<string | null> {
 }
 
 function FotoChat({ path }: { path: string }) {
+  const { t } = useT();
   const { data: url, isError } = useQuery({
     queryKey: ["chat-foto", path],
     staleTime: 50 * 60 * 1000,
@@ -37,7 +43,7 @@ function FotoChat({ path }: { path: string }) {
   }
   return (
     <a href={url} target="_blank" rel="noopener noreferrer" className="block">
-      <img src={url} alt="Foto enviada en el chat" className="max-w-full w-56 rounded-xl object-cover" loading="lazy" />
+      <img src={url} alt={t("chat.fotoAlt")} className="max-w-full w-56 rounded-xl object-cover" loading="lazy" />
     </a>
   );
 }
@@ -72,19 +78,21 @@ interface ReservaInfo {
   cliente: { id: string; nombre: string; foto_url: string | null } | null;
 }
 
-function formatHora(iso: string) {
-  return new Date(iso).toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" });
+function formatHora(iso: string, locale: string) {
+  return new Date(iso).toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
 }
-function formatFechaSep(iso: string) {
+function formatFechaSep(iso: string, locale: string, hoyTxt: string, ayerTxt: string) {
   const d = new Date(iso);
   const hoy = new Date();
   const ayer = new Date(); ayer.setDate(hoy.getDate() - 1);
-  if (d.toDateString() === hoy.toDateString()) return "Hoy";
-  if (d.toDateString() === ayer.toDateString()) return "Ayer";
-  return d.toLocaleDateString("es-CL", { day: "2-digit", month: "long" });
+  if (d.toDateString() === hoy.toDateString()) return hoyTxt;
+  if (d.toDateString() === ayer.toDateString()) return ayerTxt;
+  return d.toLocaleDateString(locale, { day: "2-digit", month: "long" });
 }
 
 function ChatPage() {
+  const { t, idioma } = useT();
+  const locale = localeDe(idioma);
   const { reservaId } = Route.useParams();
   const { usuario, user } = useAuth();
   const navigate = useNavigate();
@@ -94,6 +102,7 @@ function ChatPage() {
   const [subiendo, setSubiendo] = useState(false);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const moderar = useServerFn(moderarTexto);
 
   const { data: reserva } = useQuery({
     queryKey: ["reserva-chat", reservaId],
@@ -114,9 +123,9 @@ function ChatPage() {
         cliente_id: r.cliente_id,
         prestador_id: r.prestador_id,
         prestador_usuario: r.prestador_usuario_id
-          ? { id: r.prestador_usuario_id, nombre: r.prestador_nombre ?? "Prestador", foto_url: r.prestador_foto_url ?? null }
+          ? { id: r.prestador_usuario_id, nombre: r.prestador_nombre ?? t("chat.prestador"), foto_url: r.prestador_foto_url ?? null }
           : null,
-        cliente: { id: r.cliente_id, nombre: r.cliente_nombre ?? "Cliente", foto_url: r.cliente_foto_url ?? null },
+        cliente: { id: r.cliente_id, nombre: r.cliente_nombre ?? t("chat.cliente"), foto_url: r.cliente_foto_url ?? null },
       };
     },
   });
@@ -155,26 +164,37 @@ function ChatPage() {
   const quick = esCliente ? QUICK_CLIENTE : QUICK_PRESTADOR;
 
   async function send(contenido?: string) {
-    const t = (contenido ?? text).trim();
-    if (!t || !usuario || sending) return;
+    const txt = (contenido ?? text).trim();
+    if (!txt || !usuario || sending) return;
     setSending(true);
+    try {
+      const mod = await moderar({ data: { texto: txt.slice(0, 2000), origen: "chat", reservaId } });
+      if (!mod.ok) {
+        setSending(false);
+        toast.error(mod.mensaje ?? t("chat.normas"));
+        return;
+      }
+    } catch {
+      /* si la moderación falla, la base de datos aplica sus propias reglas */
+    }
     const { error } = await supabase.from("mensajes").insert({
       reserva_id: reservaId,
       remitente_id: usuario.id,
-      contenido: t.slice(0, 2000),
+      contenido: txt.slice(0, 2000),
     });
     setSending(false);
     if (!error) {
       if (contenido === undefined) setText("");
+      evento("mensaje_enviado", { reserva_id: reservaId, rapido: contenido !== undefined });
       qc.invalidateQueries({ queryKey: ["mensajes", reservaId] });
     } else {
-      toast.error("No se pudo enviar el mensaje");
+      toast.error(t("chat.errEnviar"));
     }
   }
 
   async function enviarFoto(file: File) {
     if (!usuario || !user || subiendo) return;
-    if (!file.type.startsWith("image/")) { toast.error("Solo se pueden enviar imágenes"); return; }
+    if (!file.type.startsWith("image/")) { toast.error(t("chat.soloImagenes")); return; }
     setSubiendo(true);
     try {
       const comprimida = await comprimirImagen(file);
@@ -187,13 +207,13 @@ function ChatPage() {
       const { error } = await supabase.from("mensajes").insert({
         reserva_id: reservaId,
         remitente_id: usuario.id,
-        contenido: "📷 Foto",
+        contenido: t("chat.foto"),
         foto_url: path,
       });
       if (error) throw error;
       qc.invalidateQueries({ queryKey: ["mensajes", reservaId] });
     } catch (e) {
-      toast.error((e as Error).message || "No se pudo enviar la foto");
+      toast.error((e as Error).message || t("chat.errFoto"));
     } finally {
       setSubiendo(false);
       if (fileRef.current) fileRef.current.value = "";
@@ -203,7 +223,7 @@ function ChatPage() {
   function compartirUbicacion() {
     if (!usuario || subiendo) return;
     if (typeof navigator === "undefined" || !navigator.geolocation) {
-      toast.error("Tu dispositivo no permite compartir ubicación");
+      toast.error(t("chat.sinGeo"));
       return;
     }
     setSubiendo(true);
@@ -214,17 +234,17 @@ function ChatPage() {
         const { error } = await supabase.from("mensajes").insert({
           reserva_id: reservaId,
           remitente_id: usuario.id,
-          contenido: "📍 Mi ubicación",
+          contenido: t("chat.miUbicacion"),
           lat,
           lng,
         });
         setSubiendo(false);
-        if (error) toast.error("No se pudo compartir la ubicación");
+        if (error) toast.error(t("chat.errUbicacion"));
         else qc.invalidateQueries({ queryKey: ["mensajes", reservaId] });
       },
       () => {
         setSubiendo(false);
-        toast.error("No pudimos obtener tu ubicación. Revisa el permiso del navegador.");
+        toast.error(t("chat.errGeo"));
       },
       { enableHighAccuracy: true, timeout: 12_000, maximumAge: 30_000 },
     );
@@ -233,7 +253,7 @@ function ChatPage() {
   // Group messages by date
   const grouped: Array<{ date: string; items: Mensaje[] }> = [];
   for (const m of mensajes) {
-    const key = formatFechaSep(m.created_at);
+    const key = formatFechaSep(m.created_at, locale, t("chat.hoy"), t("chat.ayer"));
     const last = grouped[grouped.length - 1];
     if (last && last.date === key) last.items.push(m);
     else grouped.push({ date: key, items: [m] });
@@ -254,8 +274,8 @@ function ChatPage() {
             )}
           </div>
           <div className="min-w-0 flex-1">
-            <div className="font-semibold truncate">{otro?.nombre ?? "Chat"}</div>
-            <div className="text-[11px] text-white/80">en línea</div>
+            <div className="font-semibold truncate">{otro?.nombre ?? t("chat.titulo")}</div>
+            <div className="text-[11px] text-white/80">{t("chat.enLinea")}</div>
           </div>
         </div>
       </header>
@@ -263,7 +283,7 @@ function ChatPage() {
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 py-4 mx-auto w-full max-w-2xl">
         {mensajes.length === 0 ? (
           <div className="text-center text-xs text-muted-foreground mt-10">
-            Aún no hay mensajes. ¡Saluda para coordinar tu servicio!
+            {t("chat.vacio")}
           </div>
         ) : (
           grouped.map((g) => (
@@ -295,15 +315,15 @@ function ChatPage() {
                         >
                           <MapPin className="size-4 shrink-0" />
                           <span>
-                            <span className="block font-medium">Ubicación compartida</span>
-                            <span className={`block text-[11px] no-underline ${mine ? "text-white/80" : "text-muted-foreground"}`}>Abrir en Google Maps</span>
+                            <span className="block font-medium">{t("chat.ubicacionCompartida")}</span>
+                            <span className={`block text-[11px] no-underline ${mine ? "text-white/80" : "text-muted-foreground"}`}>{t("chat.abrirMaps")}</span>
                           </span>
                         </a>
                       ) : (
                         <div className="text-sm whitespace-pre-wrap break-words">{m.contenido}</div>
                       )}
                       <div className={`text-[10px] mt-0.5 text-right ${mine ? "text-white/80" : "text-muted-foreground"}`}>
-                        {formatHora(m.created_at)}
+                        {formatHora(m.created_at, locale)}
                       </div>
                     </div>
                   </div>
@@ -316,16 +336,16 @@ function ChatPage() {
 
       <div className="sticky bottom-0 bg-[oklch(0.96_0.02_140)] border-t border-border/60 px-3 py-2 mx-auto w-full max-w-2xl">
         {reserva && (
-          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2" aria-label="Respuestas rápidas">
+          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2" aria-label={t("chat.respuestasRapidas")}>
             {quick.map((q) => (
               <button
                 key={q}
                 type="button"
-                onClick={() => send(q)}
+                onClick={() => send(t(q))}
                 disabled={sending}
                 className="shrink-0 px-3 py-1.5 rounded-full bg-white border border-border text-xs font-medium text-foreground hover:bg-emerald-50 disabled:opacity-50"
               >
-                {q}
+                {t(q)}
               </button>
             ))}
           </div>
@@ -343,7 +363,7 @@ function ChatPage() {
             onClick={() => fileRef.current?.click()}
             disabled={subiendo}
             className="size-11 rounded-full bg-white border border-border text-emerald-700 flex items-center justify-center disabled:opacity-50"
-            aria-label="Enviar foto"
+            aria-label={t("chat.enviarFoto")}
           >
             {subiendo ? <Loader2 className="size-5 animate-spin" /> : <Camera className="size-5" />}
           </button>
@@ -352,7 +372,7 @@ function ChatPage() {
             onClick={compartirUbicacion}
             disabled={subiendo}
             className="size-11 rounded-full bg-white border border-border text-emerald-700 flex items-center justify-center disabled:opacity-50"
-            aria-label="Compartir mi ubicación"
+            aria-label={t("chat.compartirUbicacion")}
           >
             <MapPin className="size-5" />
           </button>
@@ -364,14 +384,14 @@ function ChatPage() {
             }}
             rows={1}
             maxLength={2000}
-            placeholder="Mensaje"
+            placeholder={t("chat.mensaje")}
             className="flex-1 max-h-32 px-4 py-2.5 rounded-3xl bg-white border border-border outline-none focus:border-foreground/30 text-sm resize-none"
           />
           <button
             onClick={() => send()}
             disabled={!text.trim() || sending}
             className="size-11 rounded-full bg-emerald-600 text-white flex items-center justify-center disabled:opacity-50"
-            aria-label="Enviar"
+            aria-label={t("chat.enviar")}
           >
             <Send className="size-5" />
           </button>

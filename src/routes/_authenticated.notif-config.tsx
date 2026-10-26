@@ -12,6 +12,7 @@ import {
   type NotifConfig,
   type NotifKey,
 } from "@/hooks/use-notif-config";
+import { useT } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/notif-config")({
   head: () => ({ meta: [
@@ -25,6 +26,7 @@ export const Route = createFileRoute("/_authenticated/notif-config")({
 });
 
 function NotifConfigPage() {
+  const { t } = useT();
   const router = useRouter();
   const { usuario } = useAuth();
   const update = useUpdateNotifConfig();
@@ -60,18 +62,18 @@ function NotifConfigPage() {
         <button onClick={() => router.history.back()} className="p-2 -ml-2 rounded-full hover:bg-[#F5F5F0]">
           <ArrowLeft className="size-5" />
         </button>
-        <h1 className="mt-3 title-2">Notificaciones</h1>
+        <h1 className="mt-3 title-2">{t("notif.titulo")}</h1>
         <p className="mt-1 text-sm text-[#6B7280]">
-          Elige cómo y cuándo quieres recibir avisos.
+          {t("notif.configSub")}
         </p>
       </header>
 
       <section className="px-5 mt-4">
         <div className="p-4 rounded-2xl bg-[#111827] text-white flex items-center justify-between gap-4">
           <div>
-            <div className="font-semibold">Activar todas las notificaciones</div>
+            <div className="font-semibold">{t("notif.activarTodas")}</div>
             <div className="text-xs text-white/70 mt-0.5">
-              Maestro: silencia o reactiva todos los avisos.
+              {t("notif.maestro")}
             </div>
           </div>
           <Toggle checked={config.master} onChange={(v) => setKey("master", v)} variant="dark" />
@@ -85,15 +87,15 @@ function NotifConfigPage() {
           {keys.map((k) => (
             <div key={k} className="flex items-center justify-between gap-4 px-4 py-3.5">
               <div className="min-w-0">
-                <div className="text-sm font-semibold text-[#111827]">{NOTIF_LABELS[k].title}</div>
-                <div className="text-xs text-[#6B7280] mt-0.5">{NOTIF_LABELS[k].sub}</div>
+                <div className="text-sm font-semibold text-[#111827]">{t(NOTIF_LABELS[k].title)}</div>
+                <div className="text-xs text-[#6B7280] mt-0.5">{t(NOTIF_LABELS[k].sub)}</div>
               </div>
               <Toggle checked={config[k]} onChange={(v) => setKey(k, v)} />
             </div>
           ))}
         </div>
         {update.isPending && (
-          <p className="mt-3 text-xs text-[#6B7280]">Guardando…</p>
+          <p className="mt-3 text-xs text-[#6B7280]">{t("notif.guardando")}</p>
         )}
       </section>
     </AppShell>
@@ -101,6 +103,7 @@ function NotifConfigPage() {
 }
 
 function PushCard() {
+  const { t } = useT();
   const [estado, setEstado] = useState<EstadoPush>("unsupported");
   const [pidiendo, setPidiendo] = useState(false);
 
@@ -114,34 +117,34 @@ function PushCard() {
     const res = await pedirPermisoPush();
     setPidiendo(false);
     setEstado(res);
-    if (res === "granted") toast.success("Notificaciones activadas en este dispositivo");
-    else if (res === "denied") toast.error("El navegador bloqueó las notificaciones");
+    if (res === "granted") toast.success(t("notif.pushActivadas"));
+    else if (res === "denied") toast.error(t("notif.pushBloqueadas"));
   }
 
   let cuerpo: ReactNode;
   if (!PUSH_APP_ID) {
-    cuerpo = <p className="text-sm text-[#6B7280]">Push aún no configurado por Homie. Mientras tanto recibirás los avisos dentro de la app.</p>;
+    cuerpo = <p className="text-sm text-[#6B7280]">{t("notif.pushNoConfig")}</p>;
   } else if (estado === "unsupported") {
-    cuerpo = <p className="text-sm text-[#6B7280]">Este navegador no admite notificaciones push. En iPhone, agrega Homie a la pantalla de inicio (Compartir → Agregar a inicio) y vuelve aquí.</p>;
+    cuerpo = <p className="text-sm text-[#6B7280]">{t("notif.pushNoSoportado")}</p>;
   } else if (estado === "granted") {
     cuerpo = (
       <p className="text-sm text-[#00754F] font-medium flex items-center gap-1.5">
-        <BellRing className="size-4" /> Activadas en este dispositivo.
+        <BellRing className="size-4" /> {t("notif.pushActivas")}
       </p>
     );
   } else if (estado === "denied") {
     cuerpo = (
       <div className="text-sm text-[#6B7280] space-y-1">
-        <p className="font-medium text-[#B45309]">Bloqueadas por el navegador.</p>
-        <p>Para activarlas: toca el candado o el ícono junto a la dirección del sitio → Permisos → Notificaciones → Permitir. En el teléfono, revisa Ajustes → Notificaciones → tu navegador.</p>
+        <p className="font-medium text-[#B45309]">{t("notif.pushDenegadas")}</p>
+        <p>{t("notif.pushDenegadasComo")}</p>
       </div>
     );
   } else {
     cuerpo = (
       <div className="space-y-3">
-        <p className="text-sm text-[#6B7280]">Recibe avisos al instante cuando confirmen tu reserva, el profesional esté en camino o te escriban por el chat.</p>
+        <p className="text-sm text-[#6B7280]">{t("notif.pushPromo")}</p>
         <button onClick={activar} disabled={pidiendo} className="btn-primary btn-sm inline-flex items-center gap-2">
-          {pidiendo ? <Loader2 className="size-4 animate-spin" /> : <BellRing className="size-4" />} Activar notificaciones
+          {pidiendo ? <Loader2 className="size-4 animate-spin" /> : <BellRing className="size-4" />} {t("notif.activarPush")}
         </button>
       </div>
     );
@@ -150,7 +153,7 @@ function PushCard() {
   return (
     <section className="px-5 mt-4">
       <div className="rounded-2xl bg-white border border-[#E5E7EB] p-4">
-        <div className="text-sm font-semibold text-[#111827] mb-2">Notificaciones push en este dispositivo</div>
+        <div className="text-sm font-semibold text-[#111827] mb-2">{t("notif.pushTitulo")}</div>
         {cuerpo}
       </div>
     </section>

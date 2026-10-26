@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { distanciaKm } from "@/lib/geocode";
 import { getCategory } from "@/data/services";
 import { mensajeError } from "@/lib/errores";
+import { useT } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/ya-prestador")({
   head: () => ({ meta: [
@@ -49,6 +50,7 @@ function useNow(intervalMs = 1000) {
 }
 
 function YaPrestadorPage() {
+  const { t } = useT();
   const { usuario } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -110,14 +112,14 @@ function YaPrestadorPage() {
     },
     onSuccess: () => {
       import("@/lib/nativo").then((m) => m.vibrar("exito")).catch(() => {});
-      toast.success("¡Urgencia aceptada! El cliente debe pagar para confirmar. Revisa tu panel.");
+      toast.success(t("yapro.aceptada"));
       qc.invalidateQueries({ queryKey: ["urgencias-abiertas"] });
       qc.invalidateQueries({ queryKey: ["urgencias-asignadas"] });
       qc.invalidateQueries({ queryKey: ["provider-bookings"] });
       navigate({ to: "/panel" });
     },
     onError: (e: Error) => {
-      toast.error(mensajeError(e, "No se pudo aceptar la urgencia."));
+      toast.error(mensajeError(e, t("yapro.errAceptar"), t));
       qc.invalidateQueries({ queryKey: ["urgencias-abiertas"] });
     },
   });
@@ -126,9 +128,9 @@ function YaPrestadorPage() {
     return (
       <AppShell>
         <div className="px-5 pt-16 text-center">
-          <h1 className="text-xl font-bold">Solo profesionales</h1>
-          <p className="mt-2 text-sm text-muted-foreground">¿Tienes una urgencia? Pídela desde Homie Ya.</p>
-          <Link to="/ya" className="btn-primary inline-flex mt-4 px-5 py-3 rounded-2xl text-sm font-semibold">Ir a Homie Ya</Link>
+          <h1 className="text-xl font-bold">{t("yapro.soloPros")}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{t("yapro.soloProsSub")}</p>
+          <Link to="/ya" className="btn-primary inline-flex mt-4 px-5 py-3 rounded-2xl text-sm font-semibold">{t("yapro.irYa")}</Link>
         </div>
       </AppShell>
     );
@@ -145,9 +147,9 @@ function YaPrestadorPage() {
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FF3B6B] text-xs font-bold">
           <Zap className="size-3.5 fill-white" /> Homie Ya
         </div>
-        <h1 className="mt-3 title-2">Urgencias en tu rubro</h1>
+        <h1 className="mt-3 title-2">{t("yapro.titulo")}</h1>
         <p className="mt-1 text-sm text-white/70">
-          {cat ? `${cat.name} · ` : ""}El primero en aceptar se la queda. Se actualiza cada 5 segundos.
+          {cat ? `${cat.name} · ` : ""}{t("yapro.sub")}
         </p>
       </header>
 
@@ -157,7 +159,7 @@ function YaPrestadorPage() {
         {p && !p.verificado && (
           <div className="p-4 rounded-2xl bg-[#FAC77540] text-[#854F0B] text-sm flex gap-3">
             <AlertTriangle className="size-5 shrink-0" />
-            <div>Solo profesionales verificados pueden aceptar urgencias. <Link to="/verificar-identidad" className="underline font-semibold">Verificar mi perfil</Link></div>
+            <div>{t("yapro.soloVerificados")} <Link to="/verificar-identidad" className="underline font-semibold">{t("yapro.verificarPerfil")}</Link></div>
           </div>
         )}
 
@@ -165,22 +167,22 @@ function YaPrestadorPage() {
           <div className="p-4 rounded-2xl bg-[#FF3B6B]/10 border border-[#FF3B6B] text-sm flex gap-3">
             <AlertTriangle className="size-5 shrink-0 text-[#FF3B6B]" />
             <div className="text-[#111827]">
-              <b>Activa “Disponible ahora” en tu panel</b> para recibir urgencias. Mientras estés en rojo no verás las solicitudes de tu rubro.
-              <Link to="/panel" className="block mt-1 underline font-semibold text-[#FF3B6B]">Ir al panel</Link>
+              <b>{t("yapro.activaDisponible")}</b> {t("yapro.activaDisponibleSub")}
+              <Link to="/panel" className="block mt-1 underline font-semibold text-[#FF3B6B]">{t("yapro.irPanel")}</Link>
             </div>
           </div>
         )}
 
         <section>
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-2">
-            Abiertas ahora
+            {t("yapro.abiertas")}
             <span className="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-[#FF3B6B] text-white text-[10px] font-bold">{abiertas.length}</span>
             {abiertasQ.isFetching && <Loader2 className="size-3 animate-spin" />}
           </h2>
 
           {p && abiertas.length === 0 && !abiertasQ.isLoading && (
             <div className="p-6 rounded-2xl bg-white border border-border text-center text-sm text-muted-foreground">
-              No hay urgencias abiertas en tu rubro en este momento. Te avisaremos con una notificación.
+              {t("yapro.sinAbiertas")}
             </div>
           )}
 
@@ -201,7 +203,7 @@ function YaPrestadorPage() {
                       </div>
                     </div>
                     <div className="text-right shrink-0">
-                      <div className="text-[10px] uppercase text-muted-foreground inline-flex items-center gap-1"><Clock className="size-3" /> Vence</div>
+                      <div className="text-[10px] uppercase text-muted-foreground inline-flex items-center gap-1"><Clock className="size-3" /> {t("yapro.vence")}</div>
                       <div className={`font-bold tabular-nums ${restante < 5 * 60000 ? "text-[#FF3B6B]" : "text-[#111827]"}`}>
                         {String(mm).padStart(2, "0")}:{String(ss).padStart(2, "0")}
                       </div>
@@ -214,12 +216,12 @@ function YaPrestadorPage() {
                       </span>
                     )}
                     <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[#F5F5F0] text-[#374151]">
-                      Hace {Math.max(1, Math.round((now - new Date(u.created_at).getTime()) / 60000))} min
+                      {t("yapro.hace", { n: Math.max(1, Math.round((now - new Date(u.created_at).getTime()) / 60000)) })}
                     </span>
                   </div>
 
                   <div className="mt-3">
-                    <div className="text-xs font-semibold text-[#111827] mb-1.5">Aceptar · llego en</div>
+                    <div className="text-xs font-semibold text-[#111827] mb-1.5">{t("yapro.aceptarLlego")}</div>
                     <div className="grid grid-cols-4 gap-2">
                       {ETAS.map((eta) => (
                         <button
@@ -241,7 +243,7 @@ function YaPrestadorPage() {
 
         {asignadas.length > 0 && (
           <section>
-            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">Tus urgencias aceptadas</h2>
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">{t("yapro.aceptadas")}</h2>
             <div className="space-y-2">
               {asignadas.map((u) => (
                 <Link
@@ -260,7 +262,7 @@ function YaPrestadorPage() {
                         <Phone className="size-3" /> {u.telefono}
                       </div>
                     )}
-                    <div className="text-[11px] text-[#854F0B] mt-0.5">Esperando el pago del cliente. Ver reserva en el panel.</div>
+                    <div className="text-[11px] text-[#854F0B] mt-0.5">{t("yapro.esperandoPago")}</div>
                   </div>
                   <ChevronRight className="size-4 text-muted-foreground shrink-0" />
                 </Link>

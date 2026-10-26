@@ -7,6 +7,7 @@ import { HomieLogo } from "@/components/Logo";
 import { groups, categoriesOfGroup } from "@/data/services";
 import { mensajeError } from "@/lib/errores";
 import { useTemaGuardado } from "@/hooks/use-tema";
+import { useT } from "@/i18n";
 
 export const Route = createFileRoute("/registro")({
   validateSearch: (s: Record<string, unknown>): { tipo?: "prestador"; ref?: string } => ({
@@ -25,6 +26,7 @@ export const Route = createFileRoute("/registro")({
 
 function RegistroPage() {
   useTemaGuardado();
+  const { t } = useT();
   const navigate = useNavigate();
   const [nombre, setNombre] = useState("");
   const [email, setEmail] = useState("");
@@ -47,11 +49,11 @@ function RegistroPage() {
     e.preventDefault();
     setErr(null);
     if (password !== confirmPw) {
-      setErr("Las contraseñas no coinciden");
+      setErr(t("registro.errPasswords"));
       return;
     }
     if (tipo === "prestador" && !categoriaId) {
-      setErr("Selecciona la categoría principal");
+      setErr(t("registro.errCategoria"));
       return;
     }
     setSubmitting(true);
@@ -74,7 +76,7 @@ function RegistroPage() {
     });
     setSubmitting(false);
     if (error) {
-      setErr(mensajeError(error, "No pudimos crear tu cuenta."));
+      setErr(mensajeError(error, t("registro.errCrear"), t));
       return;
     }
     if (!data.session) {
@@ -91,7 +93,7 @@ function RegistroPage() {
     const res = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: window.location.origin,
     });
-    if (res.error) setErr(mensajeError(res.error, "No pudimos continuar con Google."));
+    if (res.error) setErr(mensajeError(res.error, t("registro.errGoogle"), t));
   }
 
   if (pendienteEmail) {
@@ -102,19 +104,18 @@ function RegistroPage() {
           <div className="mx-auto size-16 rounded-full bg-[#00C28820] flex items-center justify-center">
             <MailCheck className="size-8 text-[#00754F]" />
           </div>
-          <h1 className="mt-5 title-2 text-[#111827]">Confirma tu correo</h1>
+          <h1 className="mt-5 title-2 text-[#111827]">{t("registro.confirmaCorreo")}</h1>
           <p className="mt-2 text-sm text-[#6B7280]">
-            Te enviamos un enlace a <b className="text-[#111827]">{email}</b>. Ábrelo para activar tu cuenta.
+            {t("registro.enviamosEnlace", { email: "\u0000" }).split("\u0000").map((parte, i) => i === 0 ? <span key={i}>{parte}<b className="text-[#111827]">{email}</b></span> : <span key={i}>{parte}</span>)}
           </p>
           {tipo === "prestador" && (
             <div className="mt-5 p-4 rounded-2xl bg-[#F5F5F0] text-left text-sm text-[#374151]">
-              <b className="text-[#111827]">Siguiente paso:</b> al entrar completarás tu perfil profesional
-              (servicios con precios, horario y verificación con certificado). Solo entonces aparecerás en Homie.
+              <b className="text-[#111827]">{t("registro.siguientePaso")}</b> {t("registro.siguientePasoTexto")}
             </div>
           )}
-          <p className="mt-4 text-xs text-[#9CA3AF]">¿No llega? Revisa spam o promociones.</p>
+          <p className="mt-4 text-xs text-[#9CA3AF]">{t("registro.noLlega")}</p>
           <Link to="/login" className="mt-6 inline-flex h-12 items-center justify-center px-6 rounded-2xl bg-[#111827] text-white font-semibold text-sm">
-            Ya confirmé, ingresar
+            {t("registro.yaConfirme")}
           </Link>
         </div>
       </div>
@@ -128,17 +129,17 @@ function RegistroPage() {
           <HomieLogo size={44} inverted={false} />
         </div>
         <h1 className="title-2 text-center text-[#111827]">
-          Crear cuenta
+          {t("registro.titulo")}
         </h1>
         <p className="text-sm text-gray-500 text-center mt-1">
-          Únete a Homie en menos de un minuto
+          {t("registro.sub")}
         </p>
 
         {/* Tipo de cuenta */}
         <div className="mt-6 grid grid-cols-2 gap-3">
           {[
-            { key: "cliente", label: "Busco servicios", icon: Home },
-            { key: "prestador", label: "Ofrezco servicios", icon: Briefcase },
+            { key: "cliente", label: t("registro.buscoServicios"), icon: Home },
+            { key: "prestador", label: t("registro.ofrezcoServicios"), icon: Briefcase },
           ].map(({ key, label, icon: Icon }) => {
             const active = tipo === key;
             return (
@@ -170,7 +171,7 @@ function RegistroPage() {
         <form onSubmit={onSubmit} className="mt-4 space-y-3">
           <input
             required
-            placeholder="Nombre completo"
+            placeholder={t("registro.nombre")}
             value={nombre}
             onChange={(e) => setNombre(e.target.value)}
             className={fieldClass}
@@ -178,7 +179,7 @@ function RegistroPage() {
           <input
             type="email"
             required
-            placeholder="Email"
+            placeholder={t("registro.email")}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className={fieldClass}
@@ -188,7 +189,7 @@ function RegistroPage() {
               type={showPw ? "text" : "password"}
               required
               minLength={6}
-              placeholder="Contraseña (mín. 6 caracteres)"
+              placeholder={t("registro.passwordMin")}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className={`${fieldClass} pr-12`}
@@ -197,7 +198,7 @@ function RegistroPage() {
               type="button"
               onClick={() => setShowPw((v) => !v)}
               className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-gray-500 hover:text-[#111827]"
-              aria-label={showPw ? "Ocultar contraseña" : "Mostrar contraseña"}
+              aria-label={showPw ? t("login.ocultarPassword") : t("login.mostrarPassword")}
             >
               {showPw ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
             </button>
@@ -206,7 +207,7 @@ function RegistroPage() {
             type={showPw ? "text" : "password"}
             required
             minLength={6}
-            placeholder="Confirmar contraseña"
+            placeholder={t("registro.confirmarPassword")}
             value={confirmPw}
             onChange={(e) => setConfirmPw(e.target.value)}
             className={fieldClass}
@@ -214,14 +215,14 @@ function RegistroPage() {
 
           <div>
             <input
-              placeholder="Código de invitación (opcional)"
+              placeholder={t("registro.codigoInvitacion")}
               value={refCode}
               onChange={(e) => setRefCode(e.target.value.toUpperCase().replace(/\s/g, "").slice(0, 12))}
               autoCapitalize="characters" autoCorrect="off" spellCheck={false}
               className={`${fieldClass} font-mono tracking-widest uppercase`}
             />
             {refCode && (
-              <p className="mt-1 px-1 text-xs text-[#00754F]">Recibirás $3.000 de regalo para tu primera reserva.</p>
+              <p className="mt-1 px-1 text-xs text-[#00754F]">{t("registro.regaloRef")}</p>
             )}
           </div>
 
@@ -230,7 +231,7 @@ function RegistroPage() {
             <div className="space-y-3 pt-1">
               <div>
                 <label className="block text-xs font-semibold text-gray-500 mb-1.5 px-1">
-                  Categoría principal
+                  {t("registro.categoriaPrincipal")}
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   {groups.flatMap((g) => [
@@ -265,20 +266,20 @@ function RegistroPage() {
               </div>
 
               <div className="rounded-2xl border border-[#E5E7EB] bg-[#F5F5F0] p-4">
-                <div className="text-sm font-bold text-[#111827]">Después de crear tu cuenta completarás tu perfil profesional</div>
-                <p className="text-xs text-[#6B7280] mt-1">Toma unos 10 minutos. Puedes guardar y seguir después.</p>
+                <div className="text-sm font-bold text-[#111827]">{t("registro.despuesTitulo")}</div>
+                <p className="text-xs text-[#6B7280] mt-1">{t("registro.despuesSub")}</p>
                 <ol className="mt-3 space-y-2.5">
                   {[
-                    ["Tus datos", "Foto, teléfono y WhatsApp, comuna y dirección base."],
-                    ["Tu profesión", "Título, años de experiencia y presentación."],
-                    ["Tus servicios", "Cada servicio con precio desde y hasta, descripción y fotos."],
-                    ["Tu horario", "Días y horas en que atiendes, y si estás disponible ahora."],
-                    ["Verificación", "Cédula, selfie y certificado del rubro. Sin esto no apareces públicamente."],
-                  ].map(([t, d], i) => (
-                    <li key={t} className="flex gap-3">
+                    [t("registro.paso1"), t("registro.paso1d")],
+                    [t("registro.paso2"), t("registro.paso2d")],
+                    [t("registro.paso3"), t("registro.paso3d")],
+                    [t("registro.paso4"), t("registro.paso4d")],
+                    [t("registro.paso5"), t("registro.paso5d")],
+                  ].map(([tt, d], i) => (
+                    <li key={tt} className="flex gap-3">
                       <span className="size-6 rounded-full bg-[#111827] text-white text-[11px] font-bold flex items-center justify-center shrink-0">{i + 1}</span>
                       <span className="min-w-0">
-                        <span className="block text-sm font-semibold text-[#111827] leading-tight">{t}</span>
+                        <span className="block text-sm font-semibold text-[#111827] leading-tight">{tt}</span>
                         <span className="block text-xs text-[#6B7280]">{d}</span>
                       </span>
                     </li>
@@ -294,13 +295,13 @@ function RegistroPage() {
             disabled={submitting}
             className="w-full h-12 rounded-2xl bg-[#EF9F27] text-[#111827] font-bold disabled:opacity-60"
           >
-            {submitting ? "Creando cuenta..." : "Crear cuenta"}
+            {submitting ? t("registro.creando") : t("registro.crear")}
           </button>
         </form>
 
         <div className="my-6 flex items-center gap-3 text-xs text-gray-500">
           <span className="flex-1 h-px bg-[#E5E7EB]" />
-          o continúa con
+          {t("login.oContinua")}
           <span className="flex-1 h-px bg-[#E5E7EB]" />
         </div>
 
@@ -314,13 +315,13 @@ function RegistroPage() {
             <path fill="#FBBC05" d="M5.84 14.1A6.7 6.7 0 0 1 5.49 12c0-.73.13-1.44.35-2.1V7.07H2.18A11 11 0 0 0 1 12c0 1.78.43 3.46 1.18 4.93l3.66-2.83z"/>
             <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.83C6.71 7.31 9.14 5.38 12 5.38z"/>
           </svg>
-          Continuar con Google
+          {t("login.google")}
         </button>
 
         <p className="mt-6 text-center text-sm text-gray-500">
-          ¿Ya tienes cuenta?{" "}
+          {t("registro.yaTienes")}{" "}
           <Link to="/login" className="font-semibold text-[#EF9F27]">
-            Ingresa
+            {t("registro.ingresa")}
           </Link>
         </p>
       </div>

@@ -2,9 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { Accessibility, Square, Volume2, X } from "lucide-react";
 import { useAccesibilidad } from "@/hooks/use-accesibilidad";
 import { SelectorTema } from "./SelectorTema";
+import { SelectorIdioma } from "./SelectorIdioma";
+import { useT } from "@/i18n";
 
 export function AccesibilidadBoton() {
   const [open, setOpen] = useState(false);
+  const { t } = useT();
   const { modoFacil, lecturaVoz, setModoFacil, setLecturaVoz, hablar, detener, vozSoportada } = useAccesibilidad();
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -39,7 +42,7 @@ export function AccesibilidadBoton() {
       {open && (
         <button
           type="button"
-          aria-label="Cerrar opciones de accesibilidad"
+          aria-label={t("a11y.cerrarOpciones")}
           className="fixed inset-0 z-40 bg-black/30"
           onClick={() => setOpen(false)}
         />
@@ -55,12 +58,12 @@ export function AccesibilidadBoton() {
         >
           <div className="flex items-start justify-between gap-3">
             <h2 id="accesibilidad-titulo" className="font-bold text-base text-[#111827]">
-              Accesibilidad
+              {t("a11y.titulo")}
             </h2>
             <button
               type="button"
               onClick={() => { setOpen(false); triggerRef.current?.focus(); }}
-              aria-label="Cerrar"
+              aria-label={t("comun.cerrar")}
               className="size-9 rounded-full flex items-center justify-center hover:bg-muted"
             >
               <X className="size-5" />
@@ -69,19 +72,23 @@ export function AccesibilidadBoton() {
 
           <div className="mt-3 space-y-2">
             <div className="p-3 rounded-2xl border border-border bg-white">
-              <span className="block font-semibold text-sm text-[#111827]">Apariencia</span>
-              <span className="block text-xs text-muted-foreground">Sistema, claro u oscuro</span>
+              <span className="block font-semibold text-sm text-[#111827]">{t("a11y.apariencia")}</span>
+              <span className="block text-xs text-muted-foreground">{t("a11y.aparienciaSub")}</span>
               <SelectorTema className="mt-2" />
             </div>
+            <div className="p-3 rounded-2xl border border-border bg-white">
+              <span className="block font-semibold text-sm text-[#111827]">{t("idioma.titulo")}</span>
+              <SelectorIdioma className="mt-2" />
+            </div>
             <ToggleRow
-              label="Modo fácil"
-              hint="Letras grandes, más contraste"
+              label={t("a11y.modoFacil")}
+              hint={t("a11y.modoFacilSub")}
               checked={modoFacil}
               onChange={setModoFacil}
             />
             <ToggleRow
-              label="Leer en voz alta"
-              hint={vozSoportada ? "Escucha el contenido de la pantalla" : "No disponible en este navegador"}
+              label={t("a11y.leer")}
+              hint={vozSoportada ? t("a11y.leerSub") : t("a11y.leerNo")}
               checked={lecturaVoz}
               disabled={!vozSoportada}
               onChange={setLecturaVoz}
@@ -95,21 +102,20 @@ export function AccesibilidadBoton() {
                 onClick={leerPantalla}
                 className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-[#EF9F27] text-[#111827] font-semibold text-sm"
               >
-                <Volume2 className="size-4" /> Leer esta pantalla
+                <Volume2 className="size-4" /> {t("a11y.leerPantalla")}
               </button>
               <button
                 type="button"
                 onClick={detener}
                 className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-white border border-border font-semibold text-sm"
               >
-                <Square className="size-4" /> Detener
+                <Square className="size-4" /> {t("a11y.detener")}
               </button>
             </div>
           )}
 
           <p className="mt-3 text-xs text-muted-foreground leading-relaxed">
-            Pensado para adultos mayores y personas con discapacidad visual o auditiva. Todo el contenido también
-            está disponible en texto.
+            {t("a11y.nota")}
           </p>
         </div>
       )}
@@ -118,7 +124,7 @@ export function AccesibilidadBoton() {
         ref={triggerRef}
         type="button"
         onClick={() => setOpen((v) => !v)}
-        aria-label="Opciones de accesibilidad"
+        aria-label={t("a11y.abrir")}
         aria-expanded={open}
         aria-haspopup="dialog"
         className="fixed right-4 z-50 size-14 bottom-[calc(6rem+env(safe-area-inset-bottom,0px))] rounded-full bg-[#111827] text-white border-2 border-[#EF9F27] shadow-lg flex items-center justify-center hover:bg-[#1F2937]"

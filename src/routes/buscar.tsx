@@ -12,7 +12,8 @@ import { MapaPrestadores } from "@/components/MapaPrestadores";
 import { HomieYaBanner } from "@/components/HomieYaBanner";
 import { ProviderAvatar } from "@/components/Avatar";
 import { Slider } from "@/components/ui/slider";
-import { categories, groups, categoriesOfGroup, formatCLP, esPro, rankingScore, ratingBayesiano, premiumDestaca, type CategoryId } from "@/data/services";
+import { categories, groups, categoriesOfGroup, formatCLP, esPro, rankingScore, ratingBayesiano, premiumDestaca, nombreGrupo, nombreCategoria, type CategoryId } from "@/data/services";
+import { useT } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { distanciaKm, type GeoPoint } from "@/lib/geocode";
 
@@ -199,15 +200,16 @@ function useSearchProviders(params: { q: string; cat: string; min: number; max: 
 function Buscar() {
   const { q, cat, min, max, rating, now, sort } = Route.useSearch();
   const navigate = useNavigate({ from: "/buscar" });
+  const { t, idioma } = useT();
   const [showFilters, setShowFilters] = useState(false);
 
   const [localQ, setLocalQ] = useState(q);
   useEffect(() => { setLocalQ(q); }, [q]);
   useEffect(() => {
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       if (localQ !== q) navigate({ search: (prev: z.infer<typeof searchSchema>) => ({ ...prev, q: localQ }) });
     }, 250);
-    return () => clearTimeout(t);
+    return () => clearTimeout(timer);
   }, [localQ, q, navigate]);
 
   const origen = useGeolocation();
@@ -238,21 +240,21 @@ function Buscar() {
       <PullRefresh queryKey={["search"]} />
       {/* Sticky header con fondo #111827 */}
       <div className="sticky top-0 z-30 bg-[#111827] text-white px-5 pt-6 pb-4 -mt-px">
-        <h1 className="title-2 text-white mb-3">Buscar</h1>
+        <h1 className="title-2 text-white mb-3">{t("buscar.titulo")}</h1>
         <div className="relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-[#EF9F27]" />
           <input
             autoFocus
             value={localQ}
             onChange={(e) => setLocalQ(e.target.value)}
-            placeholder="Servicio o nombre del prestador..."
+            placeholder={t("buscar.placeholder")}
             className="w-full h-12 pl-12 pr-12 rounded-2xl bg-white text-[#111827] placeholder:text-[#9CA3AF] outline-none"
           />
           {localQ && (
             <button
               onClick={() => setLocalQ("")}
               className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full hover:bg-muted"
-              aria-label="Limpiar"
+              aria-label={t("comun.limpiar")}
             >
               <X className="size-4 text-[#9CA3AF]" />
             </button>
@@ -272,7 +274,7 @@ function Buscar() {
               showFilters || activeCount > 0 ? "bg-[#111827] text-white border-[#111827]" : "bg-white border-border"
             }`}
           >
-            <SlidersHorizontal className="size-3.5" /> Filtros
+            <SlidersHorizontal className="size-3.5" /> {t("buscar.filtros")}
             {activeCount > 0 && (
               <span className="ml-1 inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-[#EF9F27] text-[#111827] text-[10px] font-bold">
                 {activeCount}
@@ -285,11 +287,11 @@ function Buscar() {
               now ? "bg-[#EF9F27] text-[#111827] border-[#EF9F27]" : "bg-white border-border"
             }`}
           >
-            <Zap className="size-3.5" /> Disponible ahora
+            <Zap className="size-3.5" /> {t("buscar.disponibleAhora")}
           </button>
           {activeCount > 0 && (
             <button onClick={clearAll} className="shrink-0 px-3 py-2 text-sm text-muted-foreground underline">
-              Limpiar
+              {t("comun.limpiar")}
             </button>
           )}
         </div>
@@ -298,17 +300,17 @@ function Buscar() {
           <div className="mt-3 p-4 rounded-2xl bg-white border border-border space-y-5">
             {/* Categorías como chips con su color */}
             <div>
-              <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Categoría</label>
+              <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">{t("buscar.categoria")}</label>
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => navigate({ search: (p: z.infer<typeof searchSchema>) => ({ ...p, cat: "" }) })}
                   className={`px-3 py-1.5 rounded-full text-xs border ${
                     !cat ? "bg-[#111827] text-white border-[#111827]" : "bg-white border-border"
                   }`}
-                >Todas</button>
+                >{t("buscar.todas")}</button>
                 {groups.map((g) => (
                   <span key={g.id} className="contents">
-                    <span className="basis-full text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mt-1">{g.name}</span>
+                    <span className="basis-full text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mt-1">{nombreGrupo(g.id, idioma)}</span>
                 {categoriesOfGroup(g.id).map((c) => {
                       const active = cat === c.id;
                       return (
@@ -321,7 +323,7 @@ function Buscar() {
                             color: active ? "#fff" : c.bg,
                             borderColor: c.bg,
                           }}
-                        >{c.name}</button>
+                        >{nombreCategoria(c.id, idioma)}</button>
                       );
                     })}
                   </span>
@@ -332,7 +334,7 @@ function Buscar() {
             {/* Slider doble de precio */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide">Precio por hora</label>
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t("buscar.precioHora")}</label>
                 <span className="text-xs text-[#111827] font-semibold">
                   {formatCLP(range[0])} – {range[1] >= PRICE_MAX ? `${formatCLP(PRICE_MAX)}+` : formatCLP(range[1])}
                 </span>
@@ -355,7 +357,7 @@ function Buscar() {
 
             {/* Estrellas seleccionables */}
             <div>
-              <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Calificación mínima</label>
+              <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">{t("buscar.calificacionMin")}</label>
               <div className="flex gap-1">
                 {[1, 2, 3, 4, 5].map((n) => {
                   const active = rating >= n;
@@ -364,13 +366,13 @@ function Buscar() {
                       key={n}
                       onClick={() => navigate({ search: (p: z.infer<typeof searchSchema>) => ({ ...p, rating: p.rating === n ? 0 : n }) })}
                       className="p-1"
-                      aria-label={`${n} estrellas mínimo`}
+                      aria-label={t("buscar.estrellasMin", { n })}
                     >
                       <Star className={`size-7 transition ${active ? "fill-[#EF9F27] text-[#EF9F27]" : "text-[#E5E7EB]"}`} />
                     </button>
                   );
                 })}
-                {rating > 0 && <span className="ml-2 text-xs text-muted-foreground self-center">{rating}+ estrellas</span>}
+                {rating > 0 && <span className="ml-2 text-xs text-muted-foreground self-center">{t("buscar.masEstrellas", { n: rating })}</span>}
               </div>
             </div>
           </div>
@@ -379,27 +381,27 @@ function Buscar() {
         {/* Resultados + Ordenar */}
         <div className="mt-5 flex items-center justify-between">
           <p className="text-xs text-muted-foreground">
-            {isLoading ? "Buscando..." : `${results.length} resultado${results.length === 1 ? "" : "s"}`}
+            {isLoading ? t("buscar.buscando") : results.length === 1 ? t("buscar.resultado1") : t("buscar.resultados", { n: results.length })}
           </p>
           <div className="flex items-center gap-2">
           <div className="inline-flex rounded-lg border border-border overflow-hidden text-xs">
-            <button onClick={() => setVista("lista")} className={`px-2.5 py-1.5 ${vista === "lista" ? "bg-[#111827] text-white" : "bg-white"}`}>Lista</button>
-            <button onClick={() => setVista("mapa")} className={`px-2.5 py-1.5 inline-flex items-center gap-1 ${vista === "mapa" ? "bg-[#111827] text-white" : "bg-white"}`}><MapIcon className="size-3.5" /> Mapa</button>
+            <button onClick={() => setVista("lista")} className={`px-2.5 py-1.5 ${vista === "lista" ? "bg-[#111827] text-white" : "bg-white"}`}>{t("buscar.lista")}</button>
+            <button onClick={() => setVista("mapa")} className={`px-2.5 py-1.5 inline-flex items-center gap-1 ${vista === "mapa" ? "bg-[#111827] text-white" : "bg-white"}`}><MapIcon className="size-3.5" /> {t("buscar.mapa")}</button>
           </div>
           <select
             value={sort}
             onChange={(e) => navigate({ search: (p: z.infer<typeof searchSchema>) => ({ ...p, sort: e.target.value as SortKey }) })}
             className="text-xs bg-transparent border border-border rounded-lg px-2 py-1.5 outline-none focus:border-[#EF9F27]"
           >
-            <option value="relevance">Relevancia</option>
-            <option value="rating">Mejor calificados</option>
-            <option value="price">Precio</option>
-            <option value="distance">Distancia</option>
+            <option value="relevance">{t("buscar.ordenRelevancia")}</option>
+            <option value="rating">{t("buscar.ordenCalificados")}</option>
+            <option value="price">{t("buscar.ordenPrecio")}</option>
+            <option value="distance">{t("buscar.ordenDistancia")}</option>
           </select>
           </div>
         </div>
         <p className="mt-1.5 text-[11px] text-muted-foreground">
-          Orden por reputación: calificaciones, servicios completados y respuesta. Premium destaca solo con buena reputación.
+          {t("buscar.ordenNota")}
         </p>
 
         {vista === "mapa" && !isLoading && (
@@ -412,9 +414,9 @@ function Buscar() {
           ) : results.length === 0 ? (
             <EstadoVacio
               icon={HomeIcon}
-              titulo="No encontramos resultados"
-              descripcion="Prueba con otra palabra clave o ajusta los filtros"
-              accion={activeCount > 0 ? { label: "Limpiar filtros", onClick: clearAll } : undefined}
+              titulo={t("buscar.sinResultados")}
+              descripcion={t("buscar.sinResultadosSub")}
+              accion={activeCount > 0 ? { label: t("buscar.limpiarFiltros"), onClick: clearAll } : undefined}
             />
           ) : (
             <div className="space-y-2">
@@ -434,20 +436,20 @@ function Buscar() {
                         <div className="font-semibold text-sm truncate">{r.name}</div>
                         <span
                           className={`shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${r.disponibleAhora ? "bg-[#00C28820] text-[#00754F]" : "bg-[#FF3B6B1A] text-[#B3123F]"}`}
-                          aria-label={r.disponibleAhora ? "Disponible ahora" : "No disponible"}
+                          aria-label={r.disponibleAhora ? t("buscar.disponibleAhora") : t("buscar.noDisponible")}
                         >
                           <span className={`size-1.5 rounded-full ${r.disponibleAhora ? "bg-[#00C288]" : "bg-[#FF3B6B]"}`} />
-                          {r.disponibleAhora ? "Disponible" : "Ocupado"}
+                          {r.disponibleAhora ? t("buscar.disponible") : t("buscar.ocupado")}
                         </span>
                         {r.pro && (
-                          <span className="shrink-0 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-[#EF9F27] to-[#F5C56B] text-[#111827] text-[10px] font-bold" title="Profesional Homie Premium">Premium</span>
+                          <span className="shrink-0 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-[#EF9F27] to-[#F5C56B] text-[#111827] text-[10px] font-bold" title={t("buscar.premiumTitle")}>Premium</span>
                         )}
                         {r.rating >= 4.8 && r.reviewsCount >= 5 && (
                           <span className="shrink-0 px-1.5 py-0.5 rounded-full bg-[#EF9F27] text-[#111827] text-[10px] font-bold">TOP</span>
                         )}
                       </div>
                       <div className="text-xs text-muted-foreground truncate">
-                        {r.matchedService ?? c?.name}
+                        {r.matchedService ?? (c ? nombreCategoria(c.id, idioma) : "")}
                       </div>
                       <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
                         <span className="inline-flex items-center gap-1">
@@ -460,7 +462,7 @@ function Buscar() {
                       </div>
                     </div>
                     <div className="text-right shrink-0">
-                      <div className="text-[10px] text-muted-foreground uppercase">Desde</div>
+                      <div className="text-[10px] text-muted-foreground uppercase">{t("buscar.desde")}</div>
                       <div className="text-sm font-semibold">{formatCLP(r.pricePerHour)}</div>
                     </div>
                   </Link>

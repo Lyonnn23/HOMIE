@@ -17,6 +17,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { useBookings, useUpdateBookingStatus, type Booking } from "@/store/bookings";
 import { formatCLP } from "@/data/services";
 import { createPaymentPreference, refundReserva } from "@/lib/mercadopago.functions";
+import { useT } from "@/i18n";
+import { claveEstado } from "@/i18n/estados";
 
 
 export const Route = createFileRoute("/_authenticated/reservas")({
@@ -39,6 +41,7 @@ const STATUS_STYLE: Record<string, string> = {
 };
 
 function Reservas() {
+  const { t } = useT();
   const bookings = useBookings();
   const { usuario } = useAuth();
   const fetching = useIsFetching({ queryKey: ["bookings", "cliente"] });
@@ -61,7 +64,7 @@ function Reservas() {
       <PullRefresh queryKey={["bookings", "cliente", usuario?.id]} />
       {hasOngoing && <EmergencyBanner />}
       <header className="px-5 pt-6 pb-4">
-        <h1 className="title-1">Reservas</h1>
+        <h1 className="title-1">{t("reservas.titulo")}</h1>
       </header>
 
       {cargando ? (
@@ -69,15 +72,15 @@ function Reservas() {
       ) : bookings.length === 0 ? (
         <EstadoVacio
           icon={CalendarCheck}
-          titulo="Aún no tienes reservas"
-          descripcion="Explora servicios y reserva en minutos."
-          accion={{ label: "Explorar servicios", to: "/buscar" }}
+          titulo={t("reservas.vacio")}
+          descripcion={t("reservas.vacioDesc")}
+          accion={{ label: t("reservas.explorar"), to: "/buscar" }}
         />
       ) : (
         <div className="px-5 space-y-6">
           {active.length > 0 && (
             <section>
-              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">Activas</h2>
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">{t("reservas.activas")}</h2>
               <div className="space-y-2">
                 {active.map((b) => <BookingCard key={b.id} b={b} timesHired={providerCount.get(b.providerId) ?? 0} />)}
               </div>
@@ -85,7 +88,7 @@ function Reservas() {
           )}
           {past.length > 0 && (
             <section>
-              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">Historial</h2>
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">{t("reservas.historial")}</h2>
               <div className="space-y-2">
                 {past.map((b) => <BookingCard key={b.id} b={b} timesHired={providerCount.get(b.providerId) ?? 0} />)}
               </div>
@@ -98,6 +101,7 @@ function Reservas() {
 }
 
 function CodigoConfirmacion({ reservaId }: { reservaId: string }) {
+  const { t } = useT();
   const q = useQuery({
     queryKey: ["reserva-codigo", reservaId],
     queryFn: async () => {
@@ -112,14 +116,15 @@ function CodigoConfirmacion({ reservaId }: { reservaId: string }) {
     <div className="mt-3 p-3 rounded-xl bg-[#FAC77540] border border-[#EF9F27]/50 flex items-start gap-3">
       <KeyRound className="size-4 mt-0.5 text-[#854F0B] shrink-0" />
       <div className="text-xs text-[#854F0B]">
-        <div className="font-semibold">Código de confirmación: <span className="font-mono text-base tracking-[0.25em] text-[#111827]">{q.data}</span></div>
-        <p className="mt-0.5">Dáselo al profesional solo cuando el trabajo esté terminado.</p>
+        <div className="font-semibold">{t("reservas.codigo")}: <span className="font-mono text-base tracking-[0.25em] text-[#111827]">{q.data}</span></div>
+        <p className="mt-0.5">{t("reservas.codigoSub")}</p>
       </div>
     </div>
   );
 }
 
 function BookingCard({ b, timesHired }: { b: Booking; timesHired: number }) {
+  const { t } = useT();
   const [showReview, setShowReview] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const cancel = useUpdateBookingStatus();
@@ -138,28 +143,28 @@ function BookingCard({ b, timesHired }: { b: Booking; timesHired: number }) {
           if (r.reembolsado > 0) {
             toast.success(
               r.motivo === "tardia"
-                ? `Reserva cancelada. Reembolso del 90% (${formatCLP(r.reembolsado)}) por cancelar con menos de 24 h.`
-                : `Reserva cancelada. Reembolso completo de ${formatCLP(r.reembolsado)} en camino.`,
+                ? t("reservas.canceladaTardia", { monto: formatCLP(r.reembolsado) })
+                : t("reservas.canceladaCompleta", { monto: formatCLP(r.reembolsado) }),
             );
             return;
           }
         } catch (e) {
-          toast.warning(e instanceof Error ? e.message : "Reserva cancelada; el reembolso se procesará manualmente.");
+          toast.warning(e instanceof Error ? e.message : t("reservas.canceladaManual"));
           return;
         }
       }
-      toast.success("Reserva cancelada");
+      toast.success(t("reservas.cancelada"));
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "No se pudo cancelar");
+      toast.error(e instanceof Error ? e.message : t("reservas.errCancelar"));
     }
   }
 
   async function confirmarTerminado() {
     try {
       await cancel.mutateAsync({ id: b.id, estado: "completada" });
-      toast.success("Trabajo confirmado. ¡Gracias!");
+      toast.success(t("reservas.trabajoConfirmado"));
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "No se pudo confirmar");
+      toast.error(e instanceof Error ? e.message : t("reservas.errConfirmar"));
     }
   }
   const createPreference = useServerFn(createPaymentPreference);
@@ -175,7 +180,7 @@ function BookingCard({ b, timesHired }: { b: Booking; timesHired: number }) {
       window.location.href = initPoint;
     } catch (err) {
       console.error(err);
-      toast.error(err instanceof Error ? err.message : "No se pudo iniciar el pago");
+      toast.error(err instanceof Error ? err.message : t("reservas.errPago"));
       setPaying(false);
     }
   }
@@ -185,16 +190,16 @@ function BookingCard({ b, timesHired }: { b: Booking; timesHired: number }) {
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="font-semibold truncate">{b.service}</div>
-          <div className="text-sm text-muted-foreground">con {b.providerName}</div>
+          <div className="text-sm text-muted-foreground">{t("reservas.con", { nombre: b.providerName })}</div>
           {isHabitual && (
             <span className="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#EF9F27]/15 text-[#854F0B] text-[10px] font-bold uppercase tracking-wide">
               <Award className="size-3 text-[#EF9F27]" />
-              Tu profesional habitual
+              {t("reservas.habitual")}
             </span>
           )}
         </div>
         <span className={`shrink-0 px-2.5 py-1 rounded-full text-xs font-medium ${STATUS_STYLE[b.status]}`}>
-          {b.status}
+          {t(claveEstado(b.status))}
         </span>
       </div>
       <div className="flex flex-wrap items-center gap-3 mt-3 text-xs text-muted-foreground">
@@ -210,7 +215,7 @@ function BookingCard({ b, timesHired }: { b: Booking; timesHired: number }) {
               params={{ reservaId: b.id }}
               className="inline-flex items-center gap-1 px-3 py-2 rounded-xl border border-border text-xs font-semibold hover:bg-muted"
             >
-              <MessageCircle className="size-3.5" /> Chat
+              <MessageCircle className="size-3.5" /> {t("reservas.chat")}
             </Link>
           )}
           {(b.status === "confirmada" || b.status === "en camino") && (
@@ -222,7 +227,7 @@ function BookingCard({ b, timesHired }: { b: Booking; timesHired: number }) {
               onClick={pagar}
               className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-[#EF9F27] text-[#111827] text-xs font-bold disabled:opacity-50"
             >
-              {paying ? <Loader2 className="size-3.5 animate-spin" /> : <CreditCard className="size-3.5" />} Pagar
+              {paying ? <Loader2 className="size-3.5 animate-spin" /> : <CreditCard className="size-3.5" />} {t("reservas.pagar")}
             </button>
           )}
           {b.status === "en camino" && (
@@ -231,7 +236,7 @@ function BookingCard({ b, timesHired }: { b: Booking; timesHired: number }) {
               onClick={confirmarTerminado}
               className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-[#00C288] text-white text-xs font-bold disabled:opacity-50"
             >
-              <CheckCircle2 className="size-3.5" /> Confirmar trabajo terminado
+              <CheckCircle2 className="size-3.5" /> {t("reservas.confirmarTerminado")}
             </button>
           )}
           {canCancel && !cancelando && (
@@ -240,7 +245,7 @@ function BookingCard({ b, timesHired }: { b: Booking; timesHired: number }) {
               onClick={() => setCancelando(true)}
               className="px-3 py-2 rounded-xl border border-border text-xs font-semibold hover:bg-muted disabled:opacity-50"
             >
-              Cancelar
+              {t("comun.cancelar")}
             </button>
           )}
           {b.status === "completado" && !b.hasReview && (
@@ -248,11 +253,11 @@ function BookingCard({ b, timesHired }: { b: Booking; timesHired: number }) {
               onClick={() => setShowReview(true)}
               className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-[#EF9F27] text-[#111827] text-xs font-semibold"
             >
-              <Star className="size-3.5" /> Dejar reseña
+              <Star className="size-3.5" /> {t("reservas.dejarResena")}
             </button>
           )}
           {b.status === "completado" && b.hasReview && (
-            <span className="text-xs text-muted-foreground">✓ Reseña enviada</span>
+            <span className="text-xs text-muted-foreground">{t("reservas.resenaEnviada")}</span>
           )}
           {b.status === "completado" && (
             <Link
@@ -260,7 +265,7 @@ function BookingCard({ b, timesHired }: { b: Booking; timesHired: number }) {
               params={{ reservaId: b.id }}
               className="inline-flex items-center gap-1 px-3 py-2 rounded-xl border border-border text-xs font-semibold hover:bg-muted"
             >
-              <FileText className="size-3.5" /> Comprobante
+              <FileText className="size-3.5" /> {t("reservas.comprobante")}
             </Link>
           )}
         </div>
@@ -270,20 +275,20 @@ function BookingCard({ b, timesHired }: { b: Booking; timesHired: number }) {
 
       {canCancel && cancelando && (
         <div className="mt-3 p-3 rounded-xl bg-[#F5F5F0] border border-border">
-          <label className="block text-xs font-semibold text-[#111827]">¿Por qué cancelas? (breve)</label>
+          <label className="block text-xs font-semibold text-[#111827]">{t("reservas.porQueCancelas")}</label>
           <input
             autoFocus value={motivo} onChange={(e) => setMotivo(e.target.value.slice(0, 140))}
-            placeholder="Ej. Cambio de planes, encontré otra solución..."
+            placeholder={t("reservas.motivoPlaceholder")}
             className="mt-1.5 w-full h-10 px-3 rounded-xl bg-white border border-border text-sm outline-none focus:border-foreground/30"
           />
           <div className="mt-2 flex gap-2 justify-end">
             <button onClick={() => { setCancelando(false); setMotivo(""); }} disabled={cancel.isPending}
               className="px-3 py-2 rounded-xl border border-border text-xs font-semibold hover:bg-muted disabled:opacity-50">
-              Volver
+              {t("reservas.volver")}
             </button>
             <button onClick={confirmarCancelacion} disabled={cancel.isPending || motivo.trim().length < 3}
               className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-[#FF3B6B] text-white text-xs font-semibold disabled:opacity-50">
-              {cancel.isPending && <Loader2 className="size-3.5 animate-spin" />} Confirmar cancelación
+              {cancel.isPending && <Loader2 className="size-3.5 animate-spin" />} {t("reservas.confirmarCancelacion")}
             </button>
           </div>
         </div>
@@ -291,7 +296,7 @@ function BookingCard({ b, timesHired }: { b: Booking; timesHired: number }) {
 
       {b.status === "cancelada" && b.motivoCancelacion && (
         <p className="mt-2 text-xs text-muted-foreground">
-          Cancelada{b.canceladaPor === "prestador" ? " por el profesional" : b.canceladaPor === "cliente" ? " por ti" : ""}: "{b.motivoCancelacion}"
+          {b.canceladaPor === "prestador" ? t("reservas.canceladaPorProfesional") : b.canceladaPor === "cliente" ? t("reservas.canceladaPorTi") : t("reservas.canceladaMotivo")} "{b.motivoCancelacion}"
         </p>
       )}
 
@@ -303,7 +308,7 @@ function BookingCard({ b, timesHired }: { b: Booking; timesHired: number }) {
           className="mt-3 w-full h-11 inline-flex items-center justify-center gap-1.5 px-3 rounded-xl bg-[#F5F5F0] border border-[#EF9F27] text-[#111827] text-xs font-bold hover:bg-[#EF9F27]/10"
         >
           <RotateCcw className="size-3.5 text-[#EF9F27]" />
-          Volver a reservar con {b.providerName}
+          {t("reservas.volverReservar", { nombre: b.providerName })}
         </Link>
       )}
 
@@ -313,13 +318,13 @@ function BookingCard({ b, timesHired }: { b: Booking; timesHired: number }) {
             onClick={() => setShowReport(true)}
             className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-[#FF3B6B] text-[#FF3B6B] text-xs font-semibold hover:bg-[#FF3B6B]/5"
           >
-            <Shield className="size-3.5" /> Reportar problema
+            <Shield className="size-3.5" /> {t("reservas.reportarProblema")}
           </button>
           <Link
             to="/reclamos"
             className="inline-flex items-center justify-center gap-1 px-3 py-2 rounded-xl border border-border text-xs font-semibold text-[#111827] hover:bg-muted"
           >
-            <Scale className="size-3.5 text-[#EF9F27]" /> Reclamo
+            <Scale className="size-3.5 text-[#EF9F27]" /> {t("reservas.reclamo")}
           </Link>
         </div>
       )}

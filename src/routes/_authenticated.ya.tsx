@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { geocodificar, type GeoPoint } from "@/lib/geocode";
 import { getCategory, type CategoryId } from "@/data/services";
 import { mensajeError } from "@/lib/errores";
+import { useT } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/ya")({
   validateSearch: (s: Record<string, unknown>): { id?: string } => (typeof s.id === "string" && s.id ? { id: s.id } : {}),
@@ -80,6 +81,7 @@ function useNow(intervalMs = 1000) {
 }
 
 function YaPage() {
+  const { t } = useT();
   const { usuario } = useAuth();
   const { id } = Route.useSearch();
   const navigate = useNavigate();
@@ -109,9 +111,9 @@ function YaPage() {
     return (
       <AppShell>
         <div className="px-5 pt-16 text-center">
-          <h1 className="text-xl font-bold">Homie Ya para profesionales</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Las urgencias de tu rubro aparecen en tu bandeja.</p>
-          <Link to="/ya-prestador" className="btn-primary inline-flex mt-4 px-5 py-3 rounded-2xl text-sm font-semibold">Ver urgencias</Link>
+          <h1 className="text-xl font-bold">{t("ya.paraPros")}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{t("ya.paraProsSub")}</p>
+          <Link to="/ya-prestador" className="btn-primary inline-flex mt-4 px-5 py-3 rounded-2xl text-sm font-semibold">{t("ya.verUrgencias")}</Link>
         </div>
       </AppShell>
     );
@@ -135,6 +137,7 @@ function YaPage() {
 /* ------------------------------------------------------------------ */
 
 function Pedir() {
+  const { t } = useT();
   const { usuario } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -159,7 +162,7 @@ function Pedir() {
 
   const crear = useMutation({
     mutationFn: async () => {
-      if (!tipo || !usuario) throw new Error("Faltan datos");
+      if (!tipo || !usuario) throw new Error(t("ya.faltanDatos"));
       let lat = pos?.lat ?? null;
       let lng = pos?.lng ?? null;
       if (lat == null || lng == null) {
@@ -195,10 +198,10 @@ function Pedir() {
     },
     onSuccess: (newId) => {
       qc.invalidateQueries({ queryKey: ["urgencia-activa"] });
-      toast.success("Buscando un profesional disponible...");
+      toast.success(t("ya.buscandoToast"));
       navigate({ to: "/ya", search: { id: newId } });
     },
-    onError: (e: Error) => toast.error(mensajeError(e, "No pudimos crear la urgencia.")),
+    onError: (e: Error) => toast.error(mensajeError(e, t("ya.errCrear"), t)),
   });
 
   return (
@@ -207,27 +210,27 @@ function Pedir() {
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FF3B6B] text-xs font-bold">
           <Zap className="size-3.5 fill-white" /> Homie Ya
         </div>
-        <h1 className="mt-3 title-2">¿Qué necesitas ahora?</h1>
+        <h1 className="mt-3 title-2">{t("ya.queNecesitas")}</h1>
         <p className="mt-1 text-sm text-white/70">
-          Avisamos a los profesionales disponibles de tu zona. El primero que acepta va en camino.
+          {t("ya.avisamos")}
         </p>
       </header>
 
       {!tipo ? (
         <div className="px-5 mt-5 grid grid-cols-2 gap-3 pb-8">
-          {TIPOS.map((t) => {
-            const Icon = t.icon;
+          {TIPOS.map((tp) => {
+            const Icon = tp.icon;
             return (
               <button
-                key={t.id}
-                onClick={() => setTipo(t)}
+                key={tp.id}
+                onClick={() => setTipo(tp)}
                 className="text-left p-4 rounded-2xl bg-white border-2 border-border hover:border-[#FF3B6B] transition active:scale-[0.98]"
               >
-                <span className="flex size-12 items-center justify-center rounded-xl" style={{ background: t.bg }}>
+                <span className="flex size-12 items-center justify-center rounded-xl" style={{ background: tp.bg }}>
                   <Icon className="size-6 text-white" />
                 </span>
-                <div className="mt-3 font-bold text-[#111827] leading-tight">{t.label}</div>
-                <div className="mt-1 text-[11px] text-muted-foreground leading-snug">{t.hint}</div>
+                <div className="mt-3 font-bold text-[#111827] leading-tight">{t(`ya.tipo.${tp.id}`)}</div>
+                <div className="mt-1 text-[11px] text-muted-foreground leading-snug">{t(`ya.hint.${tp.id}`)}</div>
               </button>
             );
           })}
@@ -235,7 +238,7 @@ function Pedir() {
       ) : (
         <div className="px-5 mt-5 space-y-4 pb-10">
           <button onClick={() => setTipo(null)} className="inline-flex items-center gap-1 text-sm text-muted-foreground">
-            <ArrowLeft className="size-4" /> Cambiar tipo
+            <ArrowLeft className="size-4" /> {t("ya.cambiarTipo")}
           </button>
 
           <div className="flex items-center gap-3 p-3 rounded-2xl bg-white border border-border">
@@ -243,31 +246,31 @@ function Pedir() {
               <tipo.icon className="size-5 text-white" />
             </span>
             <div>
-              <div className="font-bold text-sm">{tipo.label}</div>
+              <div className="font-bold text-sm">{t(`ya.tipo.${tipo.id}`)}</div>
               <div className="text-xs text-muted-foreground">{getCategory(tipo.categoria)?.name}</div>
             </div>
           </div>
 
           <label className="block">
-            <span className="text-sm font-semibold">¿Qué pasa? <span className="text-muted-foreground font-normal">(corto)</span></span>
+            <span className="text-sm font-semibold">{t("ya.quePasa")} <span className="text-muted-foreground font-normal">{t("ya.corto")}</span></span>
             <textarea
               value={descripcion}
               onChange={(e) => setDescripcion(e.target.value)}
               rows={2}
               maxLength={300}
-              placeholder={tipo.hint}
+              placeholder={t(`ya.hint.${tipo.id}`)}
               className={`${inputCls} mt-1.5 resize-none`}
             />
           </label>
 
           <label className="block">
-            <span className="text-sm font-semibold">Dirección</span>
+            <span className="text-sm font-semibold">{t("ya.direccion")}</span>
             <div className="relative mt-1.5">
               <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-[#9CA3AF]" />
               <input
                 value={direccion}
                 onChange={(e) => setDireccion(e.target.value)}
-                placeholder="Calle, número, comuna"
+                placeholder={t("ya.direccionPlaceholder")}
                 className={`${inputCls} pl-10`}
               />
             </div>
@@ -282,11 +285,11 @@ function Pedir() {
             }`}
           >
             {geoState === "loading" ? <Loader2 className="size-3.5 animate-spin" /> : <LocateFixed className="size-3.5" />}
-            {geoState === "ok" ? "Ubicación actual lista" : geoState === "err" ? "No pudimos obtener tu ubicación (usaremos la dirección)" : "Usar mi ubicación actual"}
+            {geoState === "ok" ? t("ya.ubicacionLista") : geoState === "err" ? t("ya.ubicacionErr") : t("ya.usarUbicacion")}
           </button>
 
           <label className="block">
-            <span className="text-sm font-semibold">Teléfono de contacto</span>
+            <span className="text-sm font-semibold">{t("ya.telefono")}</span>
             <div className="relative mt-1.5">
               <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-[#9CA3AF]" />
               <input
@@ -300,7 +303,7 @@ function Pedir() {
           </label>
 
           <div className="p-3 rounded-xl bg-[#F5F5F0] text-xs text-[#374151]">
-            El profesional que acepte te mostrará su precio y hora estimada. Solo sale a tu domicilio cuando pagas y confirmas la reserva.
+            {t("ya.aviso")}
           </div>
 
           <button
@@ -309,7 +312,7 @@ function Pedir() {
             className="w-full h-14 rounded-2xl bg-[#FF3B6B] text-white text-base font-bold flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-[#FF3B6B]/30"
           >
             {crear.isPending ? <Loader2 className="size-5 animate-spin" /> : <Zap className="size-5 fill-white" />}
-            Pedir ahora
+            {t("ya.pedirAhora")}
           </button>
         </div>
       )}
@@ -322,6 +325,7 @@ function Pedir() {
 /* ------------------------------------------------------------------ */
 
 function Tracking({ id }: { id: string }) {
+  const { t } = useT();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const now = useNow();
@@ -379,8 +383,8 @@ function Tracking({ id }: { id: string }) {
     return (
       <AppShell>
         <div className="px-5 pt-16 text-center">
-          <h1 className="text-xl font-bold">Urgencia no encontrada</h1>
-          <Link to="/ya" className="btn-primary inline-flex mt-4 px-5 py-3 rounded-2xl text-sm font-semibold">Pedir otra</Link>
+          <h1 className="text-xl font-bold">{t("ya.noEncontrada")}</h1>
+          <Link to="/ya" className="btn-primary inline-flex mt-4 px-5 py-3 rounded-2xl text-sm font-semibold">{t("ya.pedirOtra")}</Link>
         </div>
       </AppShell>
     );
@@ -396,10 +400,10 @@ function Tracking({ id }: { id: string }) {
           <Zap className="size-3.5 fill-white" /> Homie Ya
         </div>
         <h1 className="mt-3 title-2">
-          {u.estado === "buscando" && !vencida && "Buscando un profesional..."}
-          {u.estado === "asignada" && "¡Un profesional aceptó!"}
-          {(u.estado === "expirada" || vencida) && "Nadie disponible ahora mismo"}
-          {u.estado === "cancelada" && "Urgencia cancelada"}
+          {u.estado === "buscando" && !vencida && t("ya.buscando")}
+          {u.estado === "asignada" && t("ya.acepto")}
+          {(u.estado === "expirada" || vencida) && t("ya.nadie")}
+          {u.estado === "cancelada" && t("ya.cancelada")}
         </h1>
         <p className="mt-1 text-sm text-white/70">{u.descripcion}</p>
         <p className="mt-1 text-xs text-white/50 inline-flex items-center gap-1"><MapPin className="size-3" /> {u.direccion}</p>
@@ -411,21 +415,21 @@ function Tracking({ id }: { id: string }) {
             <Radar />
             <div className="text-center">
               <div className="text-xs uppercase tracking-wide text-muted-foreground inline-flex items-center gap-1">
-                <Clock className="size-3.5" /> Tiempo restante
+                <Clock className="size-3.5" /> {t("ya.tiempoRestante")}
               </div>
               <div className="text-4xl font-bold tabular-nums text-[#111827] mt-1">
                 {String(mm).padStart(2, "0")}:{String(ss).padStart(2, "0")}
               </div>
               <p className="mt-2 text-sm text-muted-foreground">
-                Avisamos a los {tipoCat?.name.toLowerCase() ?? "profesionales"} disponibles cerca de ti. Te notificamos apenas uno acepte.
+                {t("ya.avisamosCerca", { rubro: tipoCat?.name.toLowerCase() ?? t("ya.profesionales") })}
               </p>
             </div>
             <button
-              onClick={() => { if (confirm("¿Cancelar la urgencia?")) cambiarEstado.mutate("cancelada"); }}
+              onClick={() => { if (confirm(t("ya.confirmarCancelar"))) cambiarEstado.mutate("cancelada"); }}
               disabled={cambiarEstado.isPending}
               className="w-full h-12 rounded-2xl bg-white border border-border text-sm font-semibold inline-flex items-center justify-center gap-2 text-[#FF3B6B]"
             >
-              <XCircle className="size-4" /> Cancelar
+              <XCircle className="size-4" /> {t("comun.cancelar")}
             </button>
           </>
         )}
@@ -434,22 +438,22 @@ function Tracking({ id }: { id: string }) {
           <>
             <div className="p-5 rounded-2xl bg-white border-2 border-[#00C288]">
               <div className="flex items-center gap-3">
-                <ProviderAvatar url={u.prestadores?.foto_url} name={u.prestadores?.nombre ?? "Profesional"} size={56} />
+                <ProviderAvatar url={u.prestadores?.foto_url} name={u.prestadores?.nombre ?? t("ya.profesional")} size={56} />
                 <div className="min-w-0 flex-1">
-                  <div className="font-bold text-[#111827] truncate">{u.prestadores?.nombre ?? "Profesional"}</div>
+                  <div className="font-bold text-[#111827] truncate">{u.prestadores?.nombre ?? t("ya.profesional")}</div>
                   <div className="text-xs text-muted-foreground inline-flex items-center gap-1">
                     <Star className="size-3.5 fill-[#EF9F27] text-[#EF9F27]" />
-                    {Number(u.prestadores?.calificacion_promedio ?? 0).toFixed(1)} · {u.prestadores?.resenas_count ?? 0} reseñas
+                    {Number(u.prestadores?.calificacion_promedio ?? 0).toFixed(1)} · {u.prestadores?.resenas_count ?? 0} {t("ya.resenas")}
                   </div>
                 </div>
                 <div className="text-right shrink-0">
-                  <div className="text-[10px] uppercase text-muted-foreground">Llega en</div>
+                  <div className="text-[10px] uppercase text-muted-foreground">{t("ya.llegaEn")}</div>
                   <div className="text-2xl font-bold text-[#00754F]">~{u.eta_min ?? 30}<span className="text-sm"> min</span></div>
                 </div>
               </div>
               {u.prestador_id && (
                 <Link to="/prestador/$id" params={{ id: u.prestador_id }} className="mt-3 inline-block text-xs underline text-muted-foreground">
-                  Ver perfil
+                  {t("ya.verPerfil")}
                 </Link>
               )}
             </div>
@@ -458,10 +462,10 @@ function Tracking({ id }: { id: string }) {
               onClick={() => navigate({ to: "/reservas" })}
               className="w-full h-14 rounded-2xl bg-[#EF9F27] text-[#111827] text-base font-bold flex items-center justify-center gap-2 shadow-lg shadow-[#EF9F27]/30"
             >
-              <CreditCard className="size-5" /> Pagar para confirmar
+              <CreditCard className="size-5" /> {t("ya.pagarConfirmar")}
             </button>
             <p className="text-xs text-center text-muted-foreground px-4">
-              El profesional solo sale a tu domicilio después del pago. Encontrarás la reserva con el botón <b>Pagar</b> en tus reservas.
+              {t("ya.pagarAviso", { pagar: "\u0000" }).split("\u0000").map((parte, i) => i === 0 ? <span key={i}>{parte}<b>{t("reservas.pagar")}</b></span> : <span key={i}>{parte}</span>)}
             </p>
           </>
         )}
@@ -470,7 +474,7 @@ function Tracking({ id }: { id: string }) {
           <div className="space-y-3">
             {u.estado !== "cancelada" && (
               <p className="text-sm text-muted-foreground">
-                Ningún profesional disponible aceptó en 30 minutos. Prueba estas alternativas:
+                {t("ya.nadieAcepto")}
               </p>
             )}
             <Link
@@ -480,28 +484,28 @@ function Tracking({ id }: { id: string }) {
             >
               <Search className="size-5 text-[#EF9F27]" />
               <div className="flex-1">
-                <div className="font-semibold text-sm">Ver {tipoCat?.name.toLowerCase() ?? "profesionales"} disponibles ahora</div>
-                <div className="text-xs text-muted-foreground">Contacta y reserva directamente</div>
+                <div className="font-semibold text-sm">{t("ya.verDisponibles", { rubro: tipoCat?.name.toLowerCase() ?? t("ya.profesionales") })}</div>
+                <div className="text-xs text-muted-foreground">{t("ya.contactaReserva")}</div>
               </div>
             </Link>
             <Link to="/solicitar" className="flex items-center gap-3 p-4 rounded-2xl bg-white border border-border hover:border-[#111827]">
               <FileText className="size-5 text-[#EF9F27]" />
               <div className="flex-1">
-                <div className="font-semibold text-sm">Pedir cotizaciones</div>
-                <div className="text-xs text-muted-foreground">Varios profesionales te responden</div>
+                <div className="font-semibold text-sm">{t("ya.pedirCotizaciones")}</div>
+                <div className="text-xs text-muted-foreground">{t("ya.variosResponden")}</div>
               </div>
             </Link>
             {esGas && (
               <Link to="/gas" className="flex items-center gap-3 p-4 rounded-2xl bg-white border border-border hover:border-[#111827]">
                 <Flame className="size-5 text-[#FF6B00]" />
                 <div className="flex-1">
-                  <div className="font-semibold text-sm">Distribuidoras de gas cerca de ti</div>
-                  <div className="text-xs text-muted-foreground">Abiertas ahora, llama directo</div>
+                  <div className="font-semibold text-sm">{t("ya.gasCerca")}</div>
+                  <div className="text-xs text-muted-foreground">{t("ya.gasAbiertas")}</div>
                 </div>
               </Link>
             )}
             <Link to="/ya" className="btn-primary flex items-center justify-center h-12 rounded-2xl text-sm font-semibold">
-              Pedir de nuevo
+              {t("ya.pedirDeNuevo")}
             </Link>
           </div>
         )}

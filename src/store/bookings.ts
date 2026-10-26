@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { evento } from "@/lib/analitica";
 import { useAuth } from "@/hooks/use-auth";
 
 export interface Booking {
@@ -215,7 +216,8 @@ export function useAddBooking() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data, b) => {
+      evento("reserva_creada", { reserva_id: data.id, servicio_id: b.serviceId, total: b.price, modalidad: b.modalidad ?? null, con_cupon: !!b.cuponCodigo?.trim() });
       qc.invalidateQueries({ queryKey: ["bookings"] });
     },
   });

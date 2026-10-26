@@ -1,36 +1,23 @@
 import { useEffect, useRef, useState } from "react";
 import { Home, Users, CalendarCheck, ShieldCheck, Briefcase } from "lucide-react";
 import { HomieIcon, HomieWordmark } from "./Logo";
+import { useT } from "@/i18n";
 
 type Phase = "splash" | "slides" | "account" | "done";
 
 const SPLASH_KEY = "homie_splash_shown";
 const ONB_KEY = "homie_onboarding_done";
 
+/** title/subtitle son claves i18n ("onboarding.*"); el título trae "\n" para el salto de línea. */
 const SLIDES = [
-  {
-    Icon: Home,
-    title: ["Tu hogar,", "en buenas manos"],
-    subtitle: "Encuentra profesionales de confianza para cualquier servicio a domicilio",
-  },
-  {
-    Icon: Users,
-    title: ["Elige a quien", "más te conviene"],
-    subtitle: "Perfil, calificación, precio y disponibilidad antes de contratar",
-  },
-  {
-    Icon: CalendarCheck,
-    title: ["Reserva", "en segundos"],
-    subtitle: "Elige el día, la hora y tu dirección. El profesional llega a donde estás",
-  },
-  {
-    Icon: ShieldCheck,
-    title: ["Pago seguro,", "sin sorpresas"],
-    subtitle: "Paga dentro de la app y califica al profesional al terminar",
-  },
+  { Icon: Home, title: "onboarding.s1t", subtitle: "onboarding.s1s" },
+  { Icon: Users, title: "onboarding.s2t", subtitle: "onboarding.s2s" },
+  { Icon: CalendarCheck, title: "onboarding.s3t", subtitle: "onboarding.s3s" },
+  { Icon: ShieldCheck, title: "onboarding.s4t", subtitle: "onboarding.s4s" },
 ];
 
 export default function OnboardingGate({ children }: { children: React.ReactNode }) {
+  const { t } = useT();
   const [phase, setPhase] = useState<Phase | null>(null);
   const [splashOut, setSplashOut] = useState(false);
   const [slide, setSlide] = useState(0);
@@ -84,7 +71,7 @@ export default function OnboardingGate({ children }: { children: React.ReactNode
             <span style={{ color: "#FFFFFF" }}>Hom</span>
             <span style={{ color: "#EF9F27" }}>ie</span>
           </div>
-          <p className="text-sm" style={{ color: "#6B7280" }}>Tu hogar, en buenas manos</p>
+          <p className="text-sm" style={{ color: "#6B7280" }}>{t("onboarding.tagline")}</p>
         </div>
       </div>
     );
@@ -109,8 +96,8 @@ export default function OnboardingGate({ children }: { children: React.ReactNode
             <HomieWordmark inverted className="text-xl" />
           </div>
           <div className="text-center">
-            <h1 className="text-[22px] font-bold text-white">¿Cómo usarás Homie?</h1>
-            <p className="mt-2 text-sm" style={{ color: "#9CA3AF" }}>Elige el tipo de cuenta para empezar</p>
+            <h1 className="text-[22px] font-bold text-white">{t("onboarding.comoUsaras")}</h1>
+            <p className="mt-2 text-sm" style={{ color: "#9CA3AF" }}>{t("onboarding.eligeTipo")}</p>
           </div>
 
           <div className="w-full space-y-3">
@@ -118,15 +105,15 @@ export default function OnboardingGate({ children }: { children: React.ReactNode
               active={tipo === "cliente"}
               onClick={() => setTipo("cliente")}
               icon={<Home size={28} color="#EF9F27" />}
-              title="Busco servicios"
-              subtitle="Quiero contratar"
+              title={t("onboarding.buscoServicios")}
+              subtitle={t("onboarding.quieroContratar")}
             />
             <TypeCard
               active={tipo === "prestador"}
               onClick={() => setTipo("prestador")}
               icon={<Briefcase size={28} color="#EF9F27" />}
-              title="Ofrezco servicios"
-              subtitle="Quiero ofrecer mi trabajo"
+              title={t("onboarding.ofrezcoServicios")}
+              subtitle={t("onboarding.quieroOfrecer")}
             />
           </div>
         </div>
@@ -142,7 +129,7 @@ export default function OnboardingGate({ children }: { children: React.ReactNode
             borderRadius: 14,
           }}
         >
-          Comenzar
+          {t("onboarding.comenzar")}
         </button>
       </div>
     );
@@ -176,7 +163,7 @@ export default function OnboardingGate({ children }: { children: React.ReactNode
       {/* Skip */}
       <div className="flex justify-end px-6 pt-5">
         <button onClick={skip} className="text-sm text-[#6B7280] px-2 py-1 rounded-md">
-          Saltar
+          {t("onboarding.saltar")}
         </button>
       </div>
 
@@ -203,10 +190,10 @@ export default function OnboardingGate({ children }: { children: React.ReactNode
                 <s.Icon size={72} color="#EF9F27" strokeWidth={1.8} />
               </div>
               <h2 className="text-[22px] font-bold text-center whitespace-pre-line text-[#111827]">
-                {s.title.join("\n")}
+                {t(s.title)}
               </h2>
               <p className="mt-3 text-[15px] text-center px-2 text-[#6B7280]">
-                {s.subtitle}
+                {t(s.subtitle)}
               </p>
             </div>
           ))}
@@ -219,7 +206,7 @@ export default function OnboardingGate({ children }: { children: React.ReactNode
           <button
             key={i}
             onClick={() => setSlide(i)}
-            aria-label={`Ir al slide ${i + 1}`}
+            aria-label={t("onboarding.irSlide", { n: i + 1 })}
             className={`transition-all ${i === slide ? "bg-[#EF9F27]" : "bg-[#E5E7EB]"}`}
             style={{
               width: i === slide ? 20 : 8,
@@ -237,7 +224,7 @@ export default function OnboardingGate({ children }: { children: React.ReactNode
           className={`w-full font-bold transition-colors ${isLast ? "bg-[#EF9F27] text-[#111827]" : "bg-foreground text-background"}`}
           style={{ height: 56, borderRadius: 14 }}
         >
-          {isLast ? "Empezar →" : "Siguiente"}
+          {isLast ? t("onboarding.empezar") : t("onboarding.siguiente")}
         </button>
       </div>
     </div>

@@ -8,9 +8,25 @@ import { PerfilSkeleton } from "@/components/Skeletons";
 import { ProviderAvatar } from "@/components/Avatar";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import {
-  getCategory, useProvider, formatCLP, DIAS, esPro, MODALIDAD_LABEL, UNIDAD_LABEL, duracionLabel, garantiaLabel,
+  getCategory, useProvider, formatCLP, DIAS, esPro, nombreCategoria,
   type ProviderReview, type ProviderService,
 } from "@/data/services";
+import { useT } from "@/i18n";
+import { TextoNegrita } from "@/components/TextoNegrita";
+
+type T = (clave: string, vars?: Record<string, string | number>) => string;
+/** Duración estimada traducida (espejo de duracionLabel en services.ts). */
+function duracionTxt(min: number | null | undefined, t: T): string {
+  if (min === null || min === undefined) return t("duracion.variosDias");
+  if (min === 240) return t("duracion.medioDia");
+  if (min === 480) return t("duracion.diaCompleto");
+  if (min < 60) return t("duracion.min", { n: min });
+  const h = Math.floor(min / 60), m = min % 60;
+  return m ? t("duracion.hm", { h, m }) : t("duracion.h", { n: h });
+}
+function garantiaTxt(dias: number, t: T): string {
+  return dias === 365 ? t("garantia.anio") : t("garantia.dias", { n: dias });
+}
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useReplyReview } from "@/store/bookings";
@@ -33,6 +49,7 @@ function ProviderPage() {
   const { id } = Route.useParams();
   const { service } = Route.useSearch();
   const router = useRouter();
+  const { t, idioma } = useT();
   const { usuario, loading: authLoading } = useAuth();
   const { data: p, isLoading } = useProvider(id);
 
@@ -63,9 +80,9 @@ function ProviderPage() {
       <AppShell>
         <EstadoVacio
           icon={UserX}
-          titulo="No encontramos este profesional"
-          descripcion="Puede que ya no esté disponible en Homie."
-          accion={{ label: "Buscar otros profesionales", to: "/buscar" }}
+          titulo={t("prestador.noEncontrado")}
+          descripcion={t("prestador.noEncontradoSub")}
+          accion={{ label: t("prestador.buscarOtros"), to: "/buscar" }}
         />
       </AppShell>
     );
@@ -79,6 +96,7 @@ function ProviderPage() {
     ? service
     : p.services[0]?.name;
   const diasActivos = DIAS.filter((d) => p.horario[d.key]?.activo);
+  const catNombre = nombreCategoria(cat.id, idioma);
 
   return (
     <AppShell>
@@ -97,14 +115,14 @@ function ProviderPage() {
         <button
           onClick={() => router.history.back()}
           className="absolute top-5 left-5 p-2 rounded-full bg-white/90 backdrop-blur hover:bg-white shadow-sm"
-          aria-label="Volver"
+          aria-label={t("comun.volver")}
         >
           <ArrowLeft className="size-5 text-[#111827]" />
         </button>
         <div className="absolute top-5 right-5 flex items-center gap-2">
           {isOwner && (
             <Link to="/panel" className="px-3 py-2 rounded-full bg-white/90 text-xs font-semibold text-[#111827] shadow-sm">
-              Editar perfil
+              {t("prestador.editarPerfil")}
             </Link>
           )}
           <FavoriteButton prestadorId={p.id} size="lg" />
@@ -114,7 +132,7 @@ function ProviderPage() {
             <ProviderAvatar url={p.avatarUrl} name={p.name} size={96} />
             <span
               className={`absolute bottom-1 right-1 size-5 rounded-full ring-2 ring-white ${p.disponibleAhora ? "bg-[#00C288]" : "bg-[#FF3B6B]"}`}
-              title={p.disponibleAhora ? "Disponible ahora" : "No disponible"}
+              title={p.disponibleAhora ? t("prestador.disponibleAhora") : t("prestador.noDisponible")}
             />
           </div>
         </div>
@@ -126,14 +144,14 @@ function ProviderPage() {
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-2xl font-bold text-[#111827] leading-tight">{p.name}</h1>
               {pro && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-[#EF9F27] to-[#F5C56B] text-[#111827] text-[11px] font-bold" title="Profesional Homie Premium">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-[#EF9F27] to-[#F5C56B] text-[#111827] text-[11px] font-bold" title={t("buscar.premiumTitle")}>
                   <Crown className="size-3" /> Premium
                 </span>
               )}
             </div>
-            <div className="text-sm font-medium mt-0.5" style={{ color }}>{p.tituloProfesional || cat.name}</div>
+            <div className="text-sm font-medium mt-0.5" style={{ color }}>{p.tituloProfesional || catNombre}</div>
             <div className="text-xs text-[#6B7280] mt-0.5">
-              {cat.name}{p.comuna ? ` · ${p.comuna}` : ""}{p.anosExperiencia ? ` · ${p.anosExperiencia} años de experiencia` : ""}
+              {catNombre}{p.comuna ? ` · ${p.comuna}` : ""}{p.anosExperiencia ? ` · ${t("prestador.anosExp", { n: p.anosExperiencia })}` : ""}
             </div>
           </div>
           <div className="shrink-0 flex flex-col items-end gap-1">
@@ -141,7 +159,7 @@ function ProviderPage() {
               className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold text-white ${p.disponibleAhora ? "bg-[#00C288]" : "bg-[#FF3B6B]"}`}
             >
               <span className="size-1.5 rounded-full bg-white" />
-              {p.disponibleAhora ? "Disponible" : "No disponible"}
+              {p.disponibleAhora ? t("prestador.disponible") : t("prestador.noDisponible")}
             </span>
             {p.availability && !/^(disponible ahora|no disponible|disponible)$/i.test(p.availability.trim()) && (
               <span className="inline-flex items-center gap-1 text-[11px] text-[#6B7280]">
@@ -159,18 +177,18 @@ function ProviderPage() {
               <Star key={i} className={`size-4 ${i < Math.round(p.rating) ? "fill-[#EF9F27] text-[#EF9F27]" : "text-[#E5E7EB]"}`} />
             ))}
           </div>
-          <span className="pb-1 text-xs text-[#6B7280]">({p.reviewsCount} reseñas)</span>
+          <span className="pb-1 text-xs text-[#6B7280]">({t("prestador.resenasCount", { n: p.reviewsCount })})</span>
         </div>
 
         {/* CONFIANZA */}
         <div className="mt-4 grid grid-cols-3 gap-2">
-          <TrustChip ok={p.verificadoIdentidad || p.verificado} label="Identidad" sub="Cédula + selfie" />
-          <TrustChip ok={p.antecedentesOk || p.verificado} label="Antecedentes" sub="Registro Civil" />
-          <TrustChip ok={p.verificado} label="Certificado" sub="Estudios del rubro" />
+          <TrustChip ok={p.verificadoIdentidad || p.verificado} label={t("prestador.identidad")} sub={t("prestador.identidadSub")} pendiente={t("prestador.pendiente")} />
+          <TrustChip ok={p.antecedentesOk || p.verificado} label={t("prestador.antecedentes")} sub={t("prestador.antecedentesSub")} pendiente={t("prestador.pendiente")} />
+          <TrustChip ok={p.verificado} label={t("prestador.certificado")} sub={t("prestador.certificadoSub")} pendiente={t("prestador.pendiente")} />
         </div>
 
         <section className="mt-6">
-          <h2 className="section-title">Sobre mí</h2>
+          <h2 className="section-title">{t("prestador.sobreMi")}</h2>
           <p className="mt-2 text-sm leading-relaxed text-[#111827]/80 whitespace-pre-line">{p.bio}</p>
           {p.especialidades.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-1.5">
@@ -190,17 +208,17 @@ function ProviderPage() {
             </div>
           )}
           <div className="mt-3 p-3 rounded-2xl bg-[#F5F5F0] grid grid-cols-2 sm:grid-cols-4 gap-2">
-            <DatoPractico icon={Car} ok={p.tieneVehiculo} label="Vehículo propio" />
-            <DatoPractico icon={Wrench} ok={p.herramientasPropias} label="Herramientas propias" />
-            <DatoPractico icon={Receipt} ok={p.emiteBoleta} label="Emite boleta" />
+            <DatoPractico icon={Car} ok={p.tieneVehiculo} label={t("prestador.vehiculo")} />
+            <DatoPractico icon={Wrench} ok={p.herramientasPropias} label={t("prestador.herramientas")} />
+            <DatoPractico icon={Receipt} ok={p.emiteBoleta} label={t("prestador.boleta")} />
             <div className="flex items-start gap-1.5 col-span-2 sm:col-span-1 min-w-0">
               <MapPin className="size-4 shrink-0 mt-0.5" style={{ color }} />
               <div className="min-w-0">
-                <div className="text-[11px] font-semibold text-[#111827]">Cobertura</div>
+                <div className="text-[11px] font-semibold text-[#111827]">{t("prestador.cobertura")}</div>
                 <div className="text-[11px] text-[#6B7280] leading-snug">
                   {p.comunasCobertura.length > 0
                     ? p.comunasCobertura.join(", ")
-                    : `Radio ${p.radioKm} km${p.comuna ? ` desde ${p.comuna}` : ""}`}
+                    : p.comuna ? t("prestador.radioDesde", { km: p.radioKm, comuna: p.comuna }) : t("prestador.radio", { km: p.radioKm })}
                 </div>
               </div>
             </div>
@@ -210,12 +228,11 @@ function ProviderPage() {
         {/* SERVICIOS Y PRECIOS */}
         <section className="mt-6">
           <div className="flex items-center justify-between">
-            <h2 className="section-title">Servicios y precios</h2>
-            <span className="text-[11px] text-[#6B7280]">Rango garantizado</span>
+            <h2 className="section-title">{t("prestador.servicios")}</h2>
+            <span className="text-[11px] text-[#6B7280]">{t("prestador.rangoGarantizado")}</span>
           </div>
           <p className="mt-1 text-xs text-[#6B7280]">
-            Pagas el precio <b>desde</b> al reservar. Si el trabajo requiere más, el profesional te lo informa antes y
-            <b> nunca puede superar el precio hasta</b>.
+            <TextoNegrita texto={t("prestador.rangoNota")} />
           </p>
           <div className="mt-3 space-y-2">
             {p.services.map((s) => (
@@ -226,7 +243,7 @@ function ProviderPage() {
 
         {/* HORARIO */}
         <section className="mt-6">
-          <h2 className="section-title">Horario de atención</h2>
+          <h2 className="section-title">{t("prestador.horario")}</h2>
           <div className="mt-3 p-4 rounded-2xl bg-[#F5F5F0]">
             <div className="flex gap-1.5">
               {DIAS.map((d) => {
@@ -234,20 +251,20 @@ function ProviderPage() {
                 return (
                   <span
                     key={d.key}
-                    title={d.label}
+                    title={t(`dia.${d.key}`)}
                     className={`flex-1 h-9 rounded-xl flex items-center justify-center text-xs font-bold ${on ? "text-white" : "bg-white text-[#9CA3AF] border border-[#E5E7EB]"}`}
                     style={on ? { backgroundColor: color } : undefined}
                   >
-                    {d.corto}
+                    {t(`diaCorto.${d.key}`)}
                   </span>
                 );
               })}
             </div>
             <ul className="mt-3 space-y-1 text-xs text-[#374151]">
-              {diasActivos.length === 0 && <li className="text-[#9CA3AF]">Sin horario definido.</li>}
+              {diasActivos.length === 0 && <li className="text-[#9CA3AF]">{t("prestador.sinHorario")}</li>}
               {diasActivos.map((d) => (
                 <li key={d.key} className="flex justify-between">
-                  <span>{d.label}</span>
+                  <span>{t(`dia.${d.key}`)}</span>
                   <span className="font-medium">{p.horario[d.key].desde} – {p.horario[d.key].hasta}</span>
                 </li>
               ))}
@@ -257,7 +274,7 @@ function ProviderPage() {
 
         {p.gallery.length > 0 && (
           <section className="mt-6">
-            <h2 className="section-title">Galería de trabajos</h2>
+            <h2 className="section-title">{t("prestador.galeria")}</h2>
             <div className="mt-3 grid grid-cols-2 gap-2">
               {p.gallery.map((src: string, i: number) => (
                 <div key={i} className="aspect-square rounded-2xl overflow-hidden bg-muted">
@@ -269,11 +286,11 @@ function ProviderPage() {
         )}
 
         <section className="mt-6">
-          <h2 className="section-title">Reseñas</h2>
+          <h2 className="section-title">{t("prestador.resenas")}</h2>
           <ReviewsSummary reviews={p.reviews} rating={p.rating} count={p.reviewsCount} />
           <div className="mt-4 space-y-2">
             {p.reviews.length === 0 && (
-              <p className="text-sm text-[#9CA3AF]">Aún no hay reseñas.</p>
+              <p className="text-sm text-[#9CA3AF]">{t("prestador.sinResenas")}</p>
             )}
             {p.reviews.map((r) => (
               <ReviewCard key={r.id} r={r} prestadorUsuarioId={p.usuarioId} />
@@ -286,7 +303,7 @@ function ProviderPage() {
         <div className="fixed inset-x-0 z-30 border-t border-[#E5E7EB] bg-white/95 backdrop-blur bottom-[calc(56px+env(safe-area-inset-bottom,0px))]">
           <div className="mx-auto max-w-2xl px-5 py-3 flex items-center gap-3">
             <div className="flex-1">
-              <div className="text-xs text-[#9CA3AF]">Estimado</div>
+              <div className="text-xs text-[#9CA3AF]">{t("prestador.estimado")}</div>
               <div className="text-lg font-bold text-[#111827]">
                 {formatCLP(p.pricePerHour)}
                 {p.priceTo > p.pricePerHour && <span className="text-sm font-medium text-[#6B7280]"> – {formatCLP(p.priceTo)}</span>}
@@ -298,12 +315,12 @@ function ProviderPage() {
               search={{ service: selectedService }}
               className={`h-12 inline-flex items-center px-6 rounded-2xl font-semibold text-sm ${p.disponibleAhora ? "bg-foreground text-background" : "bg-[#6B7280] text-white"}`}
             >
-              {p.disponibleAhora ? "Contratar" : "Agendar"}
+              {p.disponibleAhora ? t("prestador.contratar") : t("prestador.agendar")}
             </Link>
           </div>
           <div className="mx-auto max-w-2xl px-5 -mt-1 pb-2 text-right">
             <Link to="/solicitar" className="text-xs font-semibold text-[#6B7280] underline underline-offset-2 hover:text-[#111827]">
-              Pedir cotización
+              {t("prestador.pedirCotizacion")}
             </Link>
           </div>
         </div>
@@ -324,6 +341,7 @@ function DatoPractico({ icon: Icon, ok, label }: { icon: typeof Car; ok: boolean
 function ServiceCard({
   s, providerId, color, icon: Icon,
 }: { s: ProviderService; providerId: string; color: string; icon: typeof Car }) {
+  const { t } = useT();
   const [open, setOpen] = useState(false);
   const tieneDetalle = !!(s.incluye || s.noIncluye);
   return (
@@ -352,20 +370,20 @@ function ServiceCard({
           <div className="mt-1.5 flex flex-wrap gap-1">
             {s.modalidades.map((m) => (
               <span key={m} className="px-1.5 py-0.5 rounded-full bg-[#F5F5F0] border border-[#E5E7EB] text-[10px] font-medium text-[#374151]">
-                {MODALIDAD_LABEL[m] ?? m}
+                {["domicilio", "online", "local"].includes(m) ? t(`modalidad.${m}`) : m}
               </span>
             ))}
             <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-[#F5F5F0] border border-[#E5E7EB] text-[10px] font-medium text-[#374151]">
-              <Timer className="size-3" /> {duracionLabel(s.duracionMin)}
+              <Timer className="size-3" /> {duracionTxt(s.duracionMin, t)}
             </span>
             {s.garantiaDias > 0 && (
               <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-[#00C28820] text-[#00754F] text-[10px] font-semibold">
-                <ShieldCheck className="size-3" /> {garantiaLabel(s.garantiaDias)}
+                <ShieldCheck className="size-3" /> {garantiaTxt(s.garantiaDias, t)}
               </span>
             )}
             {s.materialesIncluidos && (
               <span className="px-1.5 py-0.5 rounded-full bg-[#F5F5F0] border border-[#E5E7EB] text-[10px] font-medium text-[#374151]">
-                Materiales incluidos
+                {t("prestador.materialesIncl")}
               </span>
             )}
           </div>
@@ -374,7 +392,7 @@ function ServiceCard({
             {s.priceTo > s.price && (
               <span className="text-xs text-[#6B7280]">– {formatCLP(s.priceTo)}</span>
             )}
-            <span className="text-[11px] text-[#6B7280]">{UNIDAD_LABEL[s.unidad]}</span>
+            <span className="text-[11px] text-[#6B7280]">{t(`unidad.${s.unidad}`)}</span>
           </div>
         </div>
       </Link>
@@ -386,25 +404,25 @@ function ServiceCard({
             aria-expanded={open}
             className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-[#374151]"
           >
-            <span>Qué incluye / No incluye</span>
+            <span>{t("prestador.queIncluye")}</span>
             <ChevronDown className={`size-4 text-[#9CA3AF] transition ${open ? "rotate-180" : ""}`} />
           </button>
           {open && (
             <div className="px-3 pb-3 space-y-2">
               {s.incluye && (
                 <div>
-                  <div className="text-[10px] font-semibold uppercase tracking-wide text-[#00754F]">Incluye</div>
+                  <div className="text-[10px] font-semibold uppercase tracking-wide text-[#00754F]">{t("prestador.incluye")}</div>
                   <p className="text-xs text-[#111827]/80 whitespace-pre-line mt-0.5">{s.incluye}</p>
                 </div>
               )}
               {s.noIncluye && (
                 <div>
-                  <div className="text-[10px] font-semibold uppercase tracking-wide text-[#FF3B6B]">No incluye</div>
+                  <div className="text-[10px] font-semibold uppercase tracking-wide text-[#FF3B6B]">{t("prestador.noIncluye")}</div>
                   <p className="text-xs text-[#111827]/80 whitespace-pre-line mt-0.5">{s.noIncluye}</p>
                 </div>
               )}
               {!s.materialesIncluidos && (
-                <p className="text-[11px] text-[#6B7280]">Los materiales se pagan aparte, siempre dentro del precio hasta.</p>
+                <p className="text-[11px] text-[#6B7280]">{t("prestador.materialesAparte")}</p>
               )}
             </div>
           )}
@@ -414,19 +432,20 @@ function ServiceCard({
   );
 }
 
-function TrustChip({ ok, label, sub }: { ok: boolean; label: string; sub: string }) {
+function TrustChip({ ok, label, sub, pendiente }: { ok: boolean; label: string; sub: string; pendiente: string }) {
   return (
     <div className={`p-2.5 rounded-2xl border ${ok ? "bg-[#00C28812] border-[#00C28840]" : "bg-white border-[#E5E7EB]"}`}>
       <div className="flex items-center gap-1">
         {ok ? <ShieldCheck className="size-4 text-[#00754F]" /> : <Clock className="size-4 text-[#9CA3AF]" />}
         <span className={`text-xs font-semibold ${ok ? "text-[#00754F]" : "text-[#6B7280]"}`}>{label}</span>
       </div>
-      <div className="text-[10px] text-[#6B7280] mt-0.5">{ok ? sub : "Pendiente"}</div>
+      <div className="text-[10px] text-[#6B7280] mt-0.5">{ok ? sub : pendiente}</div>
     </div>
   );
 }
 
 function ReviewsSummary({ reviews, rating, count }: { reviews: ProviderReview[]; rating: number; count: number }) {
+  const { t } = useT();
   const total = Math.max(reviews.length, 1);
   const dist = [5, 4, 3, 2, 1].map((s) => ({
     stars: s,
@@ -441,7 +460,7 @@ function ReviewsSummary({ reviews, rating, count }: { reviews: ProviderReview[];
             <Star key={i} className={`size-3.5 ${i < Math.round(rating) ? "fill-[#EF9F27] text-[#EF9F27]" : "text-[#E5E7EB]"}`} />
           ))}
         </div>
-        <div className="text-[11px] text-[#6B7280] mt-1">{count} reseñas</div>
+        <div className="text-[11px] text-[#6B7280] mt-1">{t("prestador.resenasCount", { n: count })}</div>
       </div>
       <div className="space-y-1">
         {dist.map((d) => (
@@ -461,7 +480,9 @@ function ReviewsSummary({ reviews, rating, count }: { reviews: ProviderReview[];
 
 function ReviewCard({ r, prestadorUsuarioId }: { r: ProviderReview; prestadorUsuarioId: string | null }) {
   const { usuario } = useAuth();
+  const { t } = useT();
   const isOwner = !!usuario && !!prestadorUsuarioId && usuario.id === prestadorUsuarioId;
+  const semanas = Math.max(1, Math.floor((Date.now() - new Date(r.createdAt).getTime()) / (1000 * 60 * 60 * 24 * 7)));
 
   const initial = (r.author || "?").trim().charAt(0).toUpperCase();
   const [replying, setReplying] = useState(false);
@@ -486,11 +507,11 @@ function ReviewCard({ r, prestadorUsuarioId }: { r: ProviderReview; prestadorUsu
               <span className="text-sm font-semibold text-[#111827] truncate">{r.author}</span>
               {r.verificada && (
                 <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#00C28820] text-[#00754F] text-[10px] font-semibold">
-                  <BadgeCheck className="size-3" /> Verificada
+                  <BadgeCheck className="size-3" /> {t("prestador.verificada")}
                 </span>
               )}
             </div>
-            <span className="text-xs text-[#9CA3AF] shrink-0">{r.date}</span>
+            <span className="text-xs text-[#9CA3AF] shrink-0">{t("prestador.semAtras", { n: semanas })}</span>
           </div>
           <div className="flex items-center gap-0.5 mt-1">
             {Array.from({ length: 5 }).map((_, j) => (
@@ -499,12 +520,12 @@ function ReviewCard({ r, prestadorUsuarioId }: { r: ProviderReview; prestadorUsu
           </div>
           {r.text && <p className="text-sm mt-2 text-[#111827]/80">{r.text}</p>}
           {r.fotoUrl && (
-            <img src={r.fotoUrl} alt="Foto del trabajo" loading="lazy" className="mt-3 w-full max-w-xs h-40 object-cover rounded-xl" />
+            <img src={r.fotoUrl} alt={t("prestador.fotoTrabajo")} loading="lazy" className="mt-3 w-full max-w-xs h-40 object-cover rounded-xl" />
           )}
 
           {r.respuesta && (
             <div className="mt-3 p-3 rounded-xl bg-[#F5F5F0] border-l-2 border-[#EF9F27]">
-              <div className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wide">Respuesta del prestador</div>
+              <div className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wide">{t("prestador.respuestaPrestador")}</div>
               <p className="text-sm mt-1 text-[#111827]/85">{r.respuesta}</p>
             </div>
           )}
@@ -514,7 +535,7 @@ function ReviewCard({ r, prestadorUsuarioId }: { r: ProviderReview; prestadorUsu
               onClick={() => setReplying(true)}
               className="mt-3 text-xs font-semibold text-[#EF9F27]"
             >
-              Responder
+              {t("prestador.responder")}
             </button>
           )}
           {isOwner && replying && (
@@ -523,19 +544,19 @@ function ReviewCard({ r, prestadorUsuarioId }: { r: ProviderReview; prestadorUsu
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 rows={2}
-                placeholder="Escribe tu respuesta..."
+                placeholder={t("prestador.respuestaPlaceholder")}
                 className="w-full px-3 py-2 rounded-xl bg-[#F5F5F0] border border-[#E5E7EB] outline-none focus:border-[#EF9F27] resize-none text-sm"
               />
               <div className="flex gap-2 justify-end">
                 <button onClick={() => setReplying(false)} className="px-3 py-1.5 text-xs font-semibold text-[#6B7280]">
-                  Cancelar
+                  {t("comun.cancelar")}
                 </button>
                 <button
                   disabled={reply.isPending || !text.trim()}
                   onClick={submit}
                   className="px-3 py-1.5 rounded-lg bg-[#EF9F27] text-[#111827] text-xs font-bold disabled:opacity-50"
                 >
-                  {reply.isPending ? "Enviando..." : "Publicar respuesta"}
+                  {reply.isPending ? t("prestador.enviando") : t("prestador.publicarRespuesta")}
                 </button>
               </div>
             </div>

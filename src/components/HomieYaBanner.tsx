@@ -1,11 +1,13 @@
 import { Link } from "@tanstack/react-router";
 import { Zap, ChevronRight } from "lucide-react";
+import { useT } from "@/i18n";
 
 /**
  * Banner "Homie Ya": urgencias estilo Uber. Lleva a /ya.
  * Coral sobre pizarra oscura para que destaque sobre cualquier fondo.
  */
 export function HomieYaBanner({ className = "" }: { className?: string }) {
+  const { t } = useT();
   return (
     <Link
       to="/ya"
@@ -16,9 +18,9 @@ export function HomieYaBanner({ className = "" }: { className?: string }) {
         <Zap className="relative size-5 fill-white text-white" />
       </span>
       <div className="min-w-0 flex-1">
-        <div className="text-xs font-bold uppercase tracking-wide text-[#FF3B6B]">¿Es urgente?</div>
-        <div className="truncate text-sm font-bold">Homie Ya — un profesional disponible acepta en minutos</div>
-        <div className="text-[11px] text-white/60">Cerrajero, fuga de agua, luz, gas, auto, enfermera, vet, limpieza</div>
+        <div className="text-xs font-bold uppercase tracking-wide text-[#FF3B6B]">{t("yaBanner.urgente")}</div>
+        <div className="truncate text-sm font-bold">{t("yaBanner.titulo")}</div>
+        <div className="text-[11px] text-white/60">{t("yaBanner.sub")}</div>
       </div>
       <ChevronRight className="size-5 shrink-0 text-white/60 transition group-hover:translate-x-0.5" />
     </Link>

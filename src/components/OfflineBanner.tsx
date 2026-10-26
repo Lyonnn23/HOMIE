@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { WifiOff, RefreshCw } from "lucide-react";
 import { escucharRed } from "@/lib/nativo";
+import { useT } from "@/i18n";
 
 /**
  * Banner fijo superior que aparece cuando no hay conexión.
@@ -9,6 +10,7 @@ import { escucharRed } from "@/lib/nativo";
  */
 export default function OfflineBanner() {
   const queryClient = useQueryClient();
+  const { t } = useT();
   const [conectado, setConectado] = useState(true);
   const [reintentando, setReintentando] = useState(false);
 
@@ -42,7 +44,7 @@ export default function OfflineBanner() {
     >
       <span className="inline-flex items-center gap-2">
         <WifiOff className="size-4 shrink-0 text-[#EF9F27]" aria-hidden />
-        <span>Sin conexión. Reintentando…</span>
+        <span>{t("offline.texto")}</span>
       </span>
       <button
         type="button"
@@ -51,7 +53,7 @@ export default function OfflineBanner() {
         className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold hover:bg-white/20 disabled:opacity-60"
       >
         <RefreshCw className={`size-3.5 ${reintentando ? "animate-spin" : ""}`} aria-hidden />
-        Reintentar
+        {t("offline.reintentar")}
       </button>
     </div>
   );

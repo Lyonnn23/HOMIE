@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ChevronDown, LifeBuoy, Mail, Scale } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { useT } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/ayuda")({
   head: () => ({ meta: [
@@ -13,31 +14,21 @@ export const Route = createFileRoute("/_authenticated/ayuda")({
   component: AyudaPage,
 });
 
+/** Claves i18n ayuda.qN / ayuda.aN */
 const FAQS = [
-  {
-    q: "¿Cómo reservo un servicio?",
-    a: "Busca el servicio que necesitas, elige un prestador, selecciona fecha, hora y dirección, y confirma. El prestador aceptará tu reserva y te avisaremos al instante.",
-  },
-  {
-    q: "¿Cómo funcionan los pagos?",
-    a: "Pagas el precio del servicio de forma segura dentro de la app, sin recargos: pagas exactamente el precio del profesional. La comisión de Homie se descuenta del pago al profesional (gratis sus primeros 3 meses; después 15%, o 12% con Premium).",
-  },
-  {
-    q: "¿Puedo cancelar una reserva?",
-    a: "Sí, puedes cancelar desde \"Mis reservas\" mientras el servicio no haya comenzado. Si ya fue confirmada, te recomendamos avisar al prestador por el chat.",
-  },
-  {
-    q: "¿Qué pasa si tengo un problema con un prestador?",
-    a: "Puedes reportarlo directamente desde la reserva con el botón de reporte, o enviar un reclamo en \"Reclamos y sugerencias\". Homie actúa como mediador entre cliente y profesional, revisa cada caso y toma medidas, incluyendo la suspensión de prestadores.",
-  },
+  { q: "ayuda.q1", a: "ayuda.a1" },
+  { q: "ayuda.q2", a: "ayuda.a2" },
+  { q: "ayuda.q3", a: "ayuda.a3" },
+  { q: "ayuda.q4", a: "ayuda.a4" },
 ];
 
 function AyudaPage() {
+  const { t } = useT();
   return (
     <AppShell>
       <header className="px-5 pt-6 pb-4">
-        <h1 className="title-1">Ayuda y soporte</h1>
-        <p className="mt-1 text-sm text-[#6B7280]">Respuestas rápidas a las dudas más comunes.</p>
+        <h1 className="title-1">{t("ayuda.titulo")}</h1>
+        <p className="mt-1 text-sm text-[#6B7280]">{t("ayuda.sub")}</p>
       </header>
 
       <section className="px-5 mb-3">
@@ -49,8 +40,8 @@ function AyudaPage() {
             <LifeBuoy className="size-6" />
           </span>
           <span className="flex-1 min-w-0">
-            <span className="block font-bold">Hablar con soporte</span>
-            <span className="block text-sm text-white/70 mt-0.5">Chat con el equipo de Homie. Respondemos en menos de 24 h (lun–sáb).</span>
+            <span className="block font-bold">{t("ayuda.hablarSoporte")}</span>
+            <span className="block text-sm text-white/70 mt-0.5">{t("ayuda.hablarSoporteSub")}</span>
           </span>
           <ChevronDown className="size-5 text-white/60 -rotate-90 shrink-0" />
         </Link>
@@ -65,9 +56,9 @@ function AyudaPage() {
             <Scale className="size-6" />
           </span>
           <span className="flex-1 min-w-0">
-            <span className="block font-bold text-[#111827]">Reclamos y sugerencias</span>
+            <span className="block font-bold text-[#111827]">{t("ayuda.reclamos")}</span>
             <span className="block text-sm text-[#6B7280] mt-0.5">
-              ¿Tuviste un problema con un servicio? Homie media entre tú y el profesional.
+              {t("ayuda.reclamosSub")}
             </span>
           </span>
           <ChevronDown className="size-5 text-[#9CA3AF] -rotate-90 shrink-0" />
@@ -76,16 +67,16 @@ function AyudaPage() {
 
       <section className="px-5">
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">
-          Preguntas frecuentes
+          {t("ayuda.faq")}
         </h2>
         <div className="rounded-2xl bg-white border border-[#E5E7EB] divide-y divide-[#E5E7EB] overflow-hidden">
           {FAQS.map((f) => (
             <details key={f.q} className="group">
               <summary className="flex items-center gap-3 px-4 py-3.5 cursor-pointer list-none text-sm font-medium">
-                <span className="flex-1">{f.q}</span>
+                <span className="flex-1">{t(f.q)}</span>
                 <ChevronDown className="size-4 text-[#9CA3AF] transition-transform group-open:rotate-180" />
               </summary>
-              <p className="px-4 pb-4 text-sm text-[#6B7280]">{f.a}</p>
+              <p className="px-4 pb-4 text-sm text-[#6B7280]">{t(f.a)}</p>
             </details>
           ))}
         </div>
@@ -93,11 +84,11 @@ function AyudaPage() {
 
       <section className="px-5 mt-6 pb-10">
         <div className="p-5 rounded-2xl bg-[#111827] text-white">
-          <h2 className="font-semibold">¿Necesitas más ayuda?</h2>
-          <p className="mt-1 text-sm text-white/70">Escríbenos desde la app o por correo y te responderemos lo antes posible.</p>
+          <h2 className="font-semibold">{t("ayuda.masAyuda")}</h2>
+          <p className="mt-1 text-sm text-white/70">{t("ayuda.masAyudaSub")}</p>
           <div className="mt-4 flex flex-wrap gap-2">
             <Link to="/soporte" className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-[#EF9F27] text-[#111827] font-semibold text-sm">
-              <LifeBuoy className="size-4" /> Hablar con soporte
+              <LifeBuoy className="size-4" /> {t("ayuda.hablarSoporte")}
             </Link>
             <a
               href="mailto:soporte@homie.cl?subject=Necesito%20ayuda%20con%20Homie"

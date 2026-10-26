@@ -50,6 +50,7 @@ import { Route as AuthenticatedAdminConfigRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAdminCuponesRouteImport } from './routes/_authenticated.admin.cupones'
 import { Route as AuthenticatedAdminLiquidacionesRouteImport } from './routes/_authenticated.admin.liquidaciones'
 import { Route as AuthenticatedAdminMetricasRouteImport } from './routes/_authenticated.admin.metricas'
+import { Route as AuthenticatedAdminModeracionRouteImport } from './routes/_authenticated.admin.moderacion'
 import { Route as AuthenticatedAdminPrestadoresRouteImport } from './routes/_authenticated.admin.prestadores'
 import { Route as AuthenticatedAdminReclamosRouteImport } from './routes/_authenticated.admin.reclamos'
 import { Route as AuthenticatedAdminReportesRouteImport } from './routes/_authenticated.admin.reportes'
@@ -277,6 +278,12 @@ const AuthenticatedAdminMetricasRoute =
     path: '/admin/metricas',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedAdminModeracionRoute =
+  AuthenticatedAdminModeracionRouteImport.update({
+    id: '/admin/moderacion',
+    path: '/admin/moderacion',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedAdminPrestadoresRoute =
   AuthenticatedAdminPrestadoresRouteImport.update({
     id: '/admin/prestadores',
@@ -378,6 +385,7 @@ export interface FileRoutesByFullPath {
   '/admin/cupones': typeof AuthenticatedAdminCuponesRoute
   '/admin/liquidaciones': typeof AuthenticatedAdminLiquidacionesRoute
   '/admin/metricas': typeof AuthenticatedAdminMetricasRoute
+  '/admin/moderacion': typeof AuthenticatedAdminModeracionRoute
   '/admin/prestadores': typeof AuthenticatedAdminPrestadoresRoute
   '/admin/reclamos': typeof AuthenticatedAdminReclamosRoute
   '/admin/reportes': typeof AuthenticatedAdminReportesRoute
@@ -430,6 +438,7 @@ export interface FileRoutesByTo {
   '/admin/cupones': typeof AuthenticatedAdminCuponesRoute
   '/admin/liquidaciones': typeof AuthenticatedAdminLiquidacionesRoute
   '/admin/metricas': typeof AuthenticatedAdminMetricasRoute
+  '/admin/moderacion': typeof AuthenticatedAdminModeracionRoute
   '/admin/prestadores': typeof AuthenticatedAdminPrestadoresRoute
   '/admin/reclamos': typeof AuthenticatedAdminReclamosRoute
   '/admin/reportes': typeof AuthenticatedAdminReportesRoute
@@ -484,6 +493,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/cupones': typeof AuthenticatedAdminCuponesRoute
   '/_authenticated/admin/liquidaciones': typeof AuthenticatedAdminLiquidacionesRoute
   '/_authenticated/admin/metricas': typeof AuthenticatedAdminMetricasRoute
+  '/_authenticated/admin/moderacion': typeof AuthenticatedAdminModeracionRoute
   '/_authenticated/admin/prestadores': typeof AuthenticatedAdminPrestadoresRoute
   '/_authenticated/admin/reclamos': typeof AuthenticatedAdminReclamosRoute
   '/_authenticated/admin/reportes': typeof AuthenticatedAdminReportesRoute
@@ -538,6 +548,7 @@ export interface FileRouteTypes {
     | '/admin/cupones'
     | '/admin/liquidaciones'
     | '/admin/metricas'
+    | '/admin/moderacion'
     | '/admin/prestadores'
     | '/admin/reclamos'
     | '/admin/reportes'
@@ -590,6 +601,7 @@ export interface FileRouteTypes {
     | '/admin/cupones'
     | '/admin/liquidaciones'
     | '/admin/metricas'
+    | '/admin/moderacion'
     | '/admin/prestadores'
     | '/admin/reclamos'
     | '/admin/reportes'
@@ -643,6 +655,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/cupones'
     | '/_authenticated/admin/liquidaciones'
     | '/_authenticated/admin/metricas'
+    | '/_authenticated/admin/moderacion'
     | '/_authenticated/admin/prestadores'
     | '/_authenticated/admin/reclamos'
     | '/_authenticated/admin/reportes'
@@ -965,6 +978,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminMetricasRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin/moderacion': {
+      id: '/_authenticated/admin/moderacion'
+      path: '/admin/moderacion'
+      fullPath: '/admin/moderacion'
+      preLoaderRoute: typeof AuthenticatedAdminModeracionRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/admin/prestadores': {
       id: '/_authenticated/admin/prestadores'
       path: '/admin/prestadores'
@@ -1077,6 +1097,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedAdminCuponesRoute: typeof AuthenticatedAdminCuponesRoute
   AuthenticatedAdminLiquidacionesRoute: typeof AuthenticatedAdminLiquidacionesRoute
   AuthenticatedAdminMetricasRoute: typeof AuthenticatedAdminMetricasRoute
+  AuthenticatedAdminModeracionRoute: typeof AuthenticatedAdminModeracionRoute
   AuthenticatedAdminPrestadoresRoute: typeof AuthenticatedAdminPrestadoresRoute
   AuthenticatedAdminReclamosRoute: typeof AuthenticatedAdminReclamosRoute
   AuthenticatedAdminReportesRoute: typeof AuthenticatedAdminReportesRoute
@@ -1113,6 +1134,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminCuponesRoute: AuthenticatedAdminCuponesRoute,
   AuthenticatedAdminLiquidacionesRoute: AuthenticatedAdminLiquidacionesRoute,
   AuthenticatedAdminMetricasRoute: AuthenticatedAdminMetricasRoute,
+  AuthenticatedAdminModeracionRoute: AuthenticatedAdminModeracionRoute,
   AuthenticatedAdminPrestadoresRoute: AuthenticatedAdminPrestadoresRoute,
   AuthenticatedAdminReclamosRoute: AuthenticatedAdminReclamosRoute,
   AuthenticatedAdminReportesRoute: AuthenticatedAdminReportesRoute,
