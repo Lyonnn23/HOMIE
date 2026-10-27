@@ -1644,5 +1644,15 @@ const d: Record<string, string> = {
   "onboarding.disponible": "Disponib",
   "onboarding.noDisponible": "Pa disponib",
   "onboarding.editar": "Modifye",
+  "camara.titulo": "Pran foto",
+  "camara.capturar": "Kaptire",
+  "camara.repetir": "Refè",
+  "camara.usar": "Itilize foto sa a",
+  "camara.cambiar": "Chanje kamera",
+  "camara.noSoportada": "Navigatè sa a pa ka itilize kamera a.",
+  "camara.permisoDenegado": "Ou pa bay pèmisyon pou kamera a. Aktive li nan paramèt navigatè a oswa telefòn nan.",
+  "camara.sinCamara": "Nou pa jwenn kamera sou aparèy sa a.",
+  "camara.error": "Nou pa t ka ouvri kamera a.",
+  "camara.usaGaleria": "Ou ka telechaje foto a nan galri ou ak lòt bouton an.",
 };
 export default d;

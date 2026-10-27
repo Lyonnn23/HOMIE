@@ -1,5 +1,6 @@
 import { comprimirImagen } from "@/lib/imagen";
 import { requisitosDe } from "@/data/requisitos";
+import { Camara } from "@/components/Camara";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -251,13 +252,33 @@ function StepFoto({
 }) {
   const { t } = useT();
   const ref = useRef<HTMLInputElement>(null);
-  const camRef = useRef<HTMLInputElement>(null);
+  const [camaraAbierta, setCamaraAbierta] = useState(false);
   function handle(f: File | undefined) {
     if (!f) return;
     onPick({ file: f, preview: URL.createObjectURL(f) });
   }
+  async function abrirCamara() {
+    // En la app nativa, la cámara del sistema; en web, la cámara dentro de la app.
+    try {
+      const { esNativo, tomarFoto } = await import("@/lib/nativo");
+      if (esNativo()) {
+        const f = await tomarFoto();
+        if (f) { handle(f); return; }
+      }
+    } catch { /* seguimos con la cámara web */ }
+    setCamaraAbierta(true);
+  }
   return (
     <div>
+      {camaraAbierta && (
+        <Camara
+          modo={circular ? "user" : "environment"}
+          circular={circular}
+          titulo={title}
+          onCerrar={() => setCamaraAbierta(false)}
+          onFoto={(f) => { setCamaraAbierta(false); handle(f); }}
+        />
+      )}
       <h2 className="text-xl font-bold text-[#111827]">{title}</h2>
       <p className="mt-1 text-sm text-[#6B7280]">{help}</p>
 
@@ -273,13 +294,12 @@ function StepFoto({
       </div>
 
       <div className="mt-5 grid grid-cols-2 gap-3">
-        <button onClick={() => camRef.current?.click()} className="h-12 rounded-2xl bg-[#111827] text-white text-sm font-semibold flex items-center justify-center gap-2">
+        <button type="button" onClick={abrirCamara} className="h-12 rounded-2xl bg-[#111827] text-white text-sm font-semibold flex items-center justify-center gap-2">
           <Camera className="size-4" /> {t("verificar.tomarFoto")}
         </button>
-        <button onClick={() => ref.current?.click()} className="h-12 rounded-2xl bg-white border border-[#E5E7EB] text-[#111827] text-sm font-semibold flex items-center justify-center gap-2">
+        <button type="button" onClick={() => ref.current?.click()} className="h-12 rounded-2xl bg-white border border-[#E5E7EB] text-[#111827] text-sm font-semibold flex items-center justify-center gap-2">
           <Upload className="size-4" /> {t("verificar.galeria")}
         </button>
-        <input ref={camRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => handle(e.target.files?.[0])} />
         <input ref={ref} type="file" accept="image/*" className="hidden" onChange={(e) => handle(e.target.files?.[0])} />
       </div>
     </div>

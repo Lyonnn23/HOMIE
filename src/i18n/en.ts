@@ -1644,5 +1644,15 @@ const d: Record<string, string> = {
   "onboarding.disponible": "Available",
   "onboarding.noDisponible": "Not available",
   "onboarding.editar": "Edit",
+  "camara.titulo": "Take photo",
+  "camara.capturar": "Capture",
+  "camara.repetir": "Retake",
+  "camara.usar": "Use this photo",
+  "camara.cambiar": "Switch camera",
+  "camara.noSoportada": "This browser can't use the camera.",
+  "camara.permisoDenegado": "Camera permission was denied. Enable it in your browser or phone settings.",
+  "camara.sinCamara": "No camera found on this device.",
+  "camara.error": "We couldn't open the camera.",
+  "camara.usaGaleria": "You can upload the photo from your gallery with the other button.",
 };
 export default d;

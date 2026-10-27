@@ -13,6 +13,7 @@ import {
   duracionLabel, garantiaLabel, type UnidadCobro,
 } from "@/data/services";
 import { COMUNAS_SUGERIDAS } from "@/data/comunas";
+import { Camara } from "@/components/Camara";
 import { HorarioEditor, defaultHorario, validarHorario, type Horario } from "@/components/HorarioEditor";
 import { geocodificar } from "@/lib/geocode";
 import { comprimirImagen } from "@/lib/imagen";
@@ -973,8 +974,17 @@ function ChipsInput({
 function FotoPerfilPicker({ preview, onPick }: { preview: string | null; onPick: (f: File) => void }) {
   const { t } = useT();
   const ref = useRef<HTMLInputElement>(null);
+  const [cam, setCam] = useState(false);
+  async function abrirCamara() {
+    try {
+      const { esNativo, tomarFoto } = await import("@/lib/nativo");
+      if (esNativo()) { const f = await tomarFoto(); if (f) { onPick(f); return; } }
+    } catch { /* cámara web */ }
+    setCam(true);
+  }
   return (
     <div className="p-4 rounded-2xl bg-muted/40 border border-border flex items-center gap-4">
+      {cam && <Camara modo="user" circular titulo={t("onboarding.fotoPerfil")} onCerrar={() => setCam(false)} onFoto={(f) => { setCam(false); onPick(f); }} />}
       <button
         type="button"
         onClick={() => ref.current?.click()}
@@ -989,13 +999,22 @@ function FotoPerfilPicker({ preview, onPick }: { preview: string | null; onPick:
       <div className="flex-1 min-w-0">
         <div className="font-semibold text-sm">{t("onboarding.fotoPerfil")}</div>
         <p className="text-xs text-muted-foreground mt-0.5">{t("onboarding.fotoPerfilSub")}</p>
-        <button
-          type="button"
-          onClick={() => ref.current?.click()}
-          className="mt-2 inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#111827] text-white text-xs font-semibold"
-        >
-          <ImagePlus className="size-3.5" /> {preview ? t("onboarding.cambiarFoto") : t("onboarding.subirFoto")}
-        </button>
+        <div className="mt-2 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={abrirCamara}
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#111827] text-white text-xs font-semibold"
+          >
+            <Camera className="size-3.5" /> {t("camara.titulo")}
+          </button>
+          <button
+            type="button"
+            onClick={() => ref.current?.click()}
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white border border-border text-xs font-semibold"
+          >
+            <ImagePlus className="size-3.5" /> {preview ? t("onboarding.cambiarFoto") : t("onboarding.subirFoto")}
+          </button>
+        </div>
       </div>
       <input
         ref={ref} type="file" accept="image/*" className="hidden"
