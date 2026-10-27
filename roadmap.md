@@ -1,6 +1,7 @@
 # Migraciones solicitadas
 
-- [ ] Corregir la vista previa contra el esquema aplicado, sin activar migraciones pendientes ni cambiar comisiones o permisos.
+- [x] Corregir la vista previa contra el esquema aplicado: compilación correcta, 16 pruebas aprobadas e inicio, idioma y administración comprobados con sesión activa; sin activar migraciones pendientes ni cambiar comisiones o permisos.
+- [ ] Habilitar edición de cobros e historial administrativo de moderación: requieren sus migraciones pendientes; las pantallas informan su indisponibilidad y mantienen el control de acceso.
 - [ ] Aplicar las cinco plantillas de autenticación existentes y sus asuntos en español: requiere configurar un dominio de envío propio antes de activar los correos personalizados.
 - [x] Aplicar y verificar 20261022020000_homie_crecimiento.sql: permisos y límites comprobados, cupón HOMIE20 creado, recordatorios cada 15 minutos, chat privado; 45 pruebas pasan y lectura de invitaciones, cupones, métricas y soporte comprobada con sesión activa.
 - [ ] Activar y comprobar notificaciones al dispositivo: faltan el identificador de la aplicación y la clave de OneSignal.

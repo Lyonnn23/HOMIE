@@ -11,4 +11,5 @@
 - Keep growth rewards and client ratings writable only by validated database routines; bind ratings to both booking participants, serialize coupon claims, and require a paid completion for referral rewards to prevent forged benefits.
 - Keep chat photos private and bind upload and download access to the booking participants; support clients may update only the read flag to prevent impersonating staff.
 - Compile against the applied database schema; keep undeployed admin features explicitly unavailable instead of inventing types or applying unrelated migrations, so fixes do not silently change business rules.
+- Use the shared AdminUnavailable screen for admin pages awaiting schema deployment; it checks the caller's protected role row and never queries missing relations, so unavailability cannot bypass authorization.
 - Keep text moderation rules in a pure shared module and preserve blocking without persistent event history until its schema is deployed, so moderation remains testable and does not depend on an absent table.
