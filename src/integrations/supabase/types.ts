@@ -655,18 +655,6 @@ export type Database = {
           },
         ]
       }
-      config_publica: {
-        Row: { clave: string; valor: number; descripcion: string | null }
-        Insert: { clave: string; valor: number; descripcion?: string | null }
-        Update: { clave?: string; valor?: number; descripcion?: string | null }
-        Relationships: []
-      }
-      moderacion_eventos: {
-        Row: { id: string; usuario_id: string | null; origen: string; texto: string | null; motivo: string; puntaje: number | null; created_at: string }
-        Insert: { id?: string; usuario_id?: string | null; origen: string; texto?: string | null; motivo: string; puntaje?: number | null; created_at?: string }
-        Update: { id?: string; usuario_id?: string | null; origen?: string; texto?: string | null; motivo?: string; puntaje?: number | null; created_at?: string }
-        Relationships: []
-      }
       prestador_servicios: {
         Row: {
           descripcion: string | null
@@ -749,8 +737,6 @@ export type Database = {
       }
       prestadores: {
         Row: {
-          verificado_at: string | null
-          comision_gratis_hasta: string | null
           anos_experiencia: number | null
           antecedentes_ok: boolean
           banner_url: string | null
@@ -795,8 +781,6 @@ export type Database = {
           vistas: number
         }
         Insert: {
-          verificado_at?: string | null
-          comision_gratis_hasta?: string | null
           anos_experiencia?: number | null
           antecedentes_ok?: boolean
           banner_url?: string | null
@@ -841,8 +825,6 @@ export type Database = {
           vistas?: number
         }
         Update: {
-          verificado_at?: string | null
-          comision_gratis_hasta?: string | null
           anos_experiencia?: number | null
           antecedentes_ok?: boolean
           banner_url?: string | null
@@ -1576,8 +1558,6 @@ export type Database = {
       }
       usuarios: {
         Row: {
-          bono_referido_pro_pagado: boolean
-          idioma: string
           bono_referido_pagado: boolean
           calificacion_cliente: number | null
           calificaciones_cliente_count: number
@@ -1594,8 +1574,6 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
-          bono_referido_pro_pagado?: boolean
-          idioma?: string
           bono_referido_pagado?: boolean
           calificacion_cliente?: number | null
           calificaciones_cliente_count?: number
@@ -1612,8 +1590,6 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
-          bono_referido_pro_pagado?: boolean
-          idioma?: string
           bono_referido_pagado?: boolean
           calificacion_cliente?: number | null
           calificaciones_cliente_count?: number
@@ -1680,10 +1656,6 @@ export type Database = {
       }
     }
     Views: {
-      moderacion_resumen: {
-        Row: { usuario_id: string; nombre: string; email: string | null; tipo: string; eventos: number; ultimo: string; motivos: string[] }
-        Relationships: []
-      }
       guia_precios: {
         Row: {
           categoria_id: string | null
@@ -1726,8 +1698,6 @@ export type Database = {
       }
     }
     Functions: {
-      cfg: { Args: { _clave: string; _default: number }; Returns: number }
-      puntaje_ranking: { Args: { _prestador_id: string }; Returns: number }
       aceptar_cotizacion: {
         Args: {
           _cotizacion_id: string

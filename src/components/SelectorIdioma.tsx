@@ -2,13 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { IDIOMAS, useT, type Idioma } from "@/i18n";
 import { Bandera } from "./Bandera";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/use-auth";
 
 /** Selector de idioma con banderas. `compacto` muestra solo la bandera (header). */
 export function SelectorIdioma({ compacto = false, className = "" }: { compacto?: boolean; className?: string }) {
   const { idioma, setIdioma, t } = useT();
-  const { usuario } = useAuth();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -20,11 +17,12 @@ export function SelectorIdioma({ compacto = false, className = "" }: { compacto?
     return () => { document.removeEventListener("mousedown", onDoc); document.removeEventListener("keydown", onKey); };
   }, [open]);
 
-  async function elegir(i: Idioma) {
+  function elegir(i: Idioma) {
+    // I18nProvider persists the choice locally; usuarios.idioma is not deployed.
     setIdioma(i); setOpen(false);
-    if (usuario?.id) { try { await supabase.from("usuarios").update({ idioma: i }).eq("id", usuario.id); } catch { /* noop */ } }
   }
-  const actual = IDIOMAS.find((x) => x.id === idioma)!;
+  const actual = IDIOMAS.find((x) => x.id === idioma);
+  if (!actual) return null;
 
   if (!compacto) {
     return (
