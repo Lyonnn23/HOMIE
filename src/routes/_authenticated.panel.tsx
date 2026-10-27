@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import {
   CalendarCheck, MapPin, Check, X, Truck, CheckCircle2, Star, DollarSign, MessageCircle,
   LayoutDashboard, ListTodo, History, UserCog, Loader2, ChevronDown, ImagePlus, Clock, Palette, ExternalLink, MessageSquareQuote, ChevronRight, Zap,
-  Crown, FileText, Images, Trash2, Gift,
+  Crown, FileText, Images, Trash2,
 } from "lucide-react";
 import { HorarioEditor, parseHorario, validarHorario, type Horario } from "@/components/HorarioEditor";
 import { AppShell } from "@/components/AppShell";
@@ -508,11 +508,13 @@ function usePrestadorRow() {
     queryKey: ["prestador-row", usuario?.id],
     enabled: !!usuario?.id && usuario?.tipo === "prestador",
     queryFn: async () => {
-      const { data } = await supabase
+      if (!usuario?.id) return null;
+      const { data, error } = await supabase
         .from("prestadores")
-        .select("id, bio, direccion, precio_desde, disponible_ahora, categoria_id, calificacion_promedio, resenas_count, verificado, horario, banner_url, color_perfil, titulo_profesional, anos_experiencia, comuna, pro_hasta, pro_trial_usado, comision_gratis_hasta, gallery_urls, especialidades, comunas_cobertura, radio_km, idiomas, tiene_vehiculo, herramientas_propias, emite_boleta")
-        .eq("usuario_id", usuario!.id)
+        .select("id, bio, direccion, precio_desde, disponible_ahora, categoria_id, calificacion_promedio, resenas_count, verificado, horario, banner_url, color_perfil, titulo_profesional, anos_experiencia, comuna, pro_hasta, pro_trial_usado, gallery_urls, especialidades, comunas_cobertura, radio_km, idiomas, tiene_vehiculo, herramientas_propias, emite_boleta")
+        .eq("usuario_id", usuario.id)
         .maybeSingle();
+      if (error) throw error;
       return data;
     },
   });
@@ -572,41 +574,23 @@ function fechaCL(iso: string, locale = "es-CL") {
   return new Date(iso).toLocaleDateString(locale, { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
-/** Banner de cobros: periodo gratis, tarifa vigente y Homie Premium. */
+/** Banner de cobros: tarifa vigente y Homie Premium según el esquema aplicado. */
 function ProBanner() {
   const { t, idioma } = useT();
   const locale = localeDe(idioma);
   const row = usePrestadorRow();
   if (!row) return null;
   const premium = esPro(row.pro_hasta);
-  const gratisHasta = row.comision_gratis_hasta ? new Date(row.comision_gratis_hasta) : null;
-  const enGratis = !!gratisHasta && gratisHasta.getTime() > Date.now();
-  const diasGratis = gratisHasta ? Math.max(0, Math.ceil((gratisHasta.getTime() - Date.now()) / 86_400_000)) : 0;
-  const tasaActual = enGratis ? 0 : premium ? 12 : 15;
+  const tasaActual = premium ? 12 : 15;
 
   return (
     <div className="space-y-2">
-      {enGratis ? (
-        <div className="p-4 rounded-2xl bg-[#00C288]/10 border border-[#00C288] text-[#111827]">
-          <div className="flex items-center gap-3">
-            <span className="inline-flex size-10 rounded-xl bg-[#00C288] items-center justify-center shrink-0">
-              <Gift className="size-5 text-white" />
-            </span>
-            <div className="flex-1 min-w-0">
-              <div className="font-semibold text-sm">{t("panel.periodoGratis", { fecha: fechaCL(gratisHasta!.toISOString(), locale) })}</div>
-              <div className="text-xs text-[#00754F]">{diasGratis === 1 ? t("panel.teQuedanDia") : t("panel.teQuedanDias", { n: diasGratis })}</div>
-            </div>
-          </div>
-          <p className="mt-2 text-xs text-muted-foreground">{t("panel.despues15")}</p>
-        </div>
-      ) : (
-        <div className="p-4 rounded-2xl bg-white border border-border">
-          <div className="font-semibold text-sm">{t("panel.comisionVigente", { pct: tasaActual })}</div>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {premium ? t("panel.tarifaPremium") : t("panel.tarifaNormal")}
-          </p>
-        </div>
-      )}
+      <div className="p-4 rounded-2xl bg-white border border-border">
+        <div className="font-semibold text-sm">{t("panel.comisionVigente", { pct: tasaActual })}</div>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {premium ? t("panel.tarifaPremium") : t("panel.tarifaNormal")}
+        </p>
+      </div>
 
       {premium ? (
         <div className="p-4 rounded-2xl bg-[#111827] text-white flex items-center gap-3">
@@ -614,7 +598,7 @@ function ProBanner() {
             <Crown className="size-5 text-[#111827]" />
           </span>
           <div className="flex-1 min-w-0">
-            <div className="font-semibold text-sm">{t("panel.premiumHasta", { fecha: fechaCL(row.pro_hasta!, locale) })}</div>
+            <div className="font-semibold text-sm">{t("panel.premiumHasta", { fecha: row.pro_hasta ? fechaCL(row.pro_hasta, locale) : "—" })}</div>
             <div className="text-xs text-white/70">{t("panel.premiumSub")}</div>
           </div>
           <Link to="/estadisticas" className="shrink-0 px-3 py-2 rounded-xl bg-white text-[#111827] text-xs font-bold">

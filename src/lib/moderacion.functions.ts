@@ -6,12 +6,13 @@
  * 2) Opcional: si existe ANTHROPIC_API_KEY, clasificación con Claude (claude-haiku-4-5).
  *    Ante cualquier error de la API se permite el texto (fail open) y se registra en consola.
  *
- * Cada bloqueo queda registrado en `moderacion_eventos` (vía service role) para que el
- * admin vea patrones y suspenda reincidentes en /admin/moderacion.
+ * El historial persistente requiere la migración de moderacion_eventos todavía pendiente.
+ * Los bloqueos siguen activos sin almacenar textos personales en los logs.
  */
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { contieneContacto, contieneOfensivo } from "@/lib/moderacion-reglas";
 
 export type OrigenModeracion = "chat" | "resena" | "respuesta" | "solicitud" | "cotizacion";
 
@@ -27,14 +28,6 @@ const inputSchema = z.object({
   reservaId: z.string().uuid().optional(),
 });
 
-/** Copia de supabase/migrations/20261021010000 (`palabras_bloqueadas`). Mantener sincronizada. */
-export const PALABRAS_BLOQUEADAS = [
-  "ctm", "conchetumare", "conchatumadre", "culiao", "culiá", "culia", "culiado", "weon", "weón", "hueon", "huevón",
-  "maricon", "maricón", "puta", "puto", "mierda", "imbecil", "imbécil", "estupido", "estúpido", "idiota",
-  "pendejo", "cabron", "cabrón", "chucha", "reculiao", "aweonao", "aweonado", "saco de", "hijo de puta",
-  "negro de mierda", "flaite", "perra", "zorra", "cornudo", "retrasado", "mongolico", "mongólico",
-];
-
 const MENSAJES: Record<string, string> = {
   ofensivo: "Tu mensaje contiene lenguaje ofensivo. Por favor, escríbelo con respeto.",
   contacto_sin_pago: "Por tu seguridad, los datos de contacto se comparten cuando la reserva está pagada. El pago queda protegido por Homie.",
@@ -47,32 +40,7 @@ const MENSAJES: Record<string, string> = {
   ia_amenaza: "Tu mensaje contiene amenazas o intimidación. Homie no permite este tipo de contenido.",
 };
 
-function sinAcentos(t: string): string {
-  return t.replace(/[áéíóúÁÉÍÓÚüÜ]/g, (c) => "aeiouAEIOUuU"["áéíóúÁÉÍÓÚüÜ".indexOf(c)] ?? c);
-}
-
-function escapeRegex(s: string): string {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-const REGEX_OFENSIVO = new RegExp(
-  "(^|[^\\p{L}\\p{N}_])(" + PALABRAS_BLOQUEADAS.map((p) => escapeRegex(sinAcentos(p))).join("|") + ")(?=$|[^\\p{L}\\p{N}_])",
-  "iu",
-);
-
-/** Igual a `public.contiene_contacto` en la base de datos. */
-const REGEX_CONTACTO =
-  /(\+?56\s?9\s?\d{4}\s?\d{4}|\b9\s?\d{4}\s?\d{4}\b|\b\d{8,9}\b|[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}|wa\.me|whatsapp|instagram\.com|@[a-z0-9_.]{4,}|transferencia (por )?fuera|fuera de (la )?app|sin la app|te lo dejo m[aá]s barato por fuera|por fuera)/i;
-
 const REGEX_URL = /(https?:\/\/|www\.|[a-z0-9-]+\.(com|cl|net|org|io|app|me)(\/|\b))/i;
-
-export function contieneOfensivo(texto: string): boolean {
-  return REGEX_OFENSIVO.test(sinAcentos(texto));
-}
-
-export function contieneContacto(texto: string): boolean {
-  return REGEX_CONTACTO.test(texto);
-}
 
 interface ClasificacionIA {
   ofensivo?: boolean;
@@ -81,8 +49,7 @@ interface ClasificacionIA {
   amenaza?: boolean;
 }
 
-async function clasificarConIA(texto: string, origen: OrigenModeracion): Promise<ClasificacionIA | null> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+async function clasificarConIA(texto: string, origen: OrigenModeracion, apiKey: string | undefined): Promise<ClasificacionIA | null> {
   if (!apiKey) return null;
   const contexto: Record<OrigenModeracion, string> = {
     chat: "un mensaje de chat entre un cliente y un profesional de servicios para el hogar",
@@ -153,17 +120,8 @@ export const moderarTexto = createServerFn({ method: "POST" })
     const usuarioId = usuario?.id ?? null;
 
     async function bloquear(motivo: string): Promise<ResultadoModeracion> {
-      try {
-        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        await supabaseAdmin.from("moderacion_eventos").insert({
-          usuario_id: usuarioId,
-          origen: data.origen,
-          texto: texto.slice(0, 500),
-          motivo,
-        });
-      } catch (e) {
-        console.error("[moderacion] no se pudo registrar el evento", e);
-      }
+      // Keep blocking without attempting writes to a not-yet-deployed relation.
+      console.warn("[moderacion] texto bloqueado", { origen: data.origen, motivo });
       return { ok: false, motivo, mensaje: MENSAJES[motivo] ?? "Tu mensaje no cumple las normas de Homie." };
     }
 
@@ -202,7 +160,7 @@ export const moderarTexto = createServerFn({ method: "POST" })
     }
 
     // (d) IA opcional
-    const ia = await clasificarConIA(texto, data.origen);
+    const ia = await clasificarConIA(texto, data.origen, process.env['ANTHROPIC_API_KEY']);
     if (ia) {
       if (ia.amenaza) return bloquear("ia_amenaza");
       if (ia.ofensivo) return bloquear("ia_ofensivo");
