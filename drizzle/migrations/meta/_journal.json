@@ -92,6 +92,13 @@
       "when": 1792718204925,
       "tag": "0012_homie_crecimiento_permisos_efectivos",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1793153056611,
+      "tag": "0013_homie_gratis_3_meses_y_premium",
+      "breakpoints": true
     }
   ]
 }
