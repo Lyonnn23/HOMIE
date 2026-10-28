@@ -13,5 +13,5 @@
 - Compile application queries against the deployed schema; do not invent generated types or apply pending migrations to hide errors, because deployment and source can advance independently.
 - Admin screens whose schema is pending use the shared role-checked unavailable state, because missing configuration or history must not loosen access or change active rates.
 - Keep moderation rules in a browser-safe shared module; missing event history must not disable blocking, and optional classifier secrets are read only inside the server handler.
-- Keep billing configuration in the deployed public settings table with administrator-only writes; show effective provider rates through the database routine so editable settings and free periods stay consistent.
+- Keep billing configuration in the deployed public settings table with administrator-only writes; show effective provider rates through the database routine and feed editable ranking thresholds into the shared pure ranking helper so settings and free periods stay consistent.
 - Validate Premium benefits before verification triggers and keep trial claims serialized; preserve coupon ownership locks and agreed quote prices when changing the billing model.
