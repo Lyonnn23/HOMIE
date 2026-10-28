@@ -99,6 +99,13 @@
       "when": 1793153056611,
       "tag": "0013_homie_gratis_3_meses_y_premium",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1793153153529,
+      "tag": "0014_homie_premium_permisos_y_cupones",
+      "breakpoints": true
     }
   ]
 }
