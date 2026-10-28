@@ -2,10 +2,16 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { IDIOMAS, useT, type Idioma } from "@/i18n";
 import { Bandera } from "./Bandera";
+import { useAuth } from "@/hooks/use-auth";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 /** Selector de idioma con banderas. `compacto` muestra solo la bandera (header). */
 export function SelectorIdioma({ compacto = false, className = "" }: { compacto?: boolean; className?: string }) {
   const { idioma, setIdioma, t } = useT();
+  const { usuario } = useAuth();
+  const guardado = useRef<Promise<void>>(Promise.resolve());
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -18,8 +24,14 @@ export function SelectorIdioma({ compacto = false, className = "" }: { compacto?
   }, [open]);
 
   function elegir(i: Idioma) {
-    // The existing provider persists locally; usuarios.idioma is not deployed.
     setIdioma(i); setOpen(false);
+    if (!usuario?.id) return;
+    const usuarioId = usuario.id;
+    // Serialize rapid selections so the last choice is the persisted preference.
+    guardado.current = guardado.current.catch(() => {}).then(async () => {
+      const { data, error } = await supabase.from("usuarios").update({ idioma: i }).eq("id", usuarioId).select("id");
+      if (error || !data?.length) toast.error("No se pudo guardar el idioma en tu cuenta.");
+    });
   }
   const actual = IDIOMAS.find((x) => x.id === idioma);
   if (!actual) return null;
@@ -30,11 +42,11 @@ export function SelectorIdioma({ compacto = false, className = "" }: { compacto?
         {IDIOMAS.map((i) => {
           const on = i.id === idioma;
           return (
-            <button key={i.id} type="button" role="radio" aria-checked={on} onClick={() => elegir(i.id)}
-              className={`flex items-center gap-2 p-3 rounded-2xl border text-left text-sm transition ${on ? "border-[#EF9F27] bg-[#EF9F27]/10 font-semibold" : "border-[#E5E7EB] bg-white"}`}>
+            <Button key={i.id} variant="outline" type="button" role="radio" aria-checked={on} onClick={() => elegir(i.id)}
+              className={`h-auto justify-start gap-2 p-3 text-left text-sm whitespace-normal ${on ? "border-ring bg-accent font-semibold" : "border-border bg-background"}`}>
               <Bandera idioma={i.id} size={24} />
               <span className="min-w-0"><span className="block leading-tight">{i.nativo}</span></span>
-            </button>
+            </Button>
           );
         })}
       </div>
@@ -43,20 +55,20 @@ export function SelectorIdioma({ compacto = false, className = "" }: { compacto?
 
   return (
     <div ref={ref} className={`relative ${className}`}>
-      <button type="button" onClick={() => setOpen((v) => !v)} aria-haspopup="listbox" aria-expanded={open}
+      <Button variant="ghost" type="button" onClick={() => setOpen((v) => !v)} aria-haspopup="listbox" aria-expanded={open}
         aria-label={`${t("idioma.titulo")}: ${actual.nativo}`}
-        className="inline-flex items-center gap-1 h-9 px-2 rounded-full bg-white/10 hover:bg-white/20 text-white">
+        className="gap-1 h-9 px-2 text-inherit">
         <Bandera idioma={idioma} size={20} />
         <ChevronDown className="size-3.5 opacity-80" />
-      </button>
+      </Button>
       {open && (
-        <ul role="listbox" className="absolute right-0 mt-2 w-48 rounded-2xl bg-white border border-[#E5E7EB] shadow-lg overflow-hidden z-50 text-[#111827]">
+        <ul role="listbox" className="absolute right-0 mt-2 w-48 rounded-md bg-popover border border-border shadow-lg overflow-hidden z-50 text-popover-foreground">
           {IDIOMAS.map((i) => (
             <li key={i.id} role="option" aria-selected={i.id === idioma}>
-              <button type="button" onClick={() => elegir(i.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm text-left hover:bg-[#F5F5F0] ${i.id === idioma ? "font-semibold" : ""}`}>
+              <Button variant="ghost" type="button" onClick={() => elegir(i.id)}
+                className={`w-full h-auto justify-start gap-3 px-3 py-2.5 text-sm text-left ${i.id === idioma ? "font-semibold" : ""}`}>
                 <Bandera idioma={i.id} size={22} /> {i.nativo}
-              </button>
+              </Button>
             </li>
           ))}
         </ul>

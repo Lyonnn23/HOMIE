@@ -1,10 +1,12 @@
 # Migraciones solicitadas
 
+- [x] Aplicar y verificar 20261026020000_homie_referidos_pro_moderacion.sql: original aplicado byte por byte, bonos serializados y protegidos, permisos explícitos y teléfonos corregidos; 60 pruebas aprobadas, idioma recuperado desde la cuenta e intento bloqueado leído en historial con sesión administradora, sin solicitudes de prueba publicadas ni errores de ejecución.
+- [ ] Comprobar premio de 30 días para ambos profesionales con una verificación real: no hay profesionales verificados disponibles; hito, duración, extensión y protección comprobados mediante lectura del esquema.
 - [x] Aplicar y verificar 20261026010000_homie_gratis_3_meses_y_premium.sql: archivo aplicado sin cambios, permisos reforzados, cupones protegidos, 50 pruebas aprobadas y guardado/lectura de configuración comprobados con cuenta administradora.
 - [x] Habilitar edición administrativa de cobros y mostrar tarifa efectiva/periodo gratis desde el esquema aplicado; calculadora y umbrales de ranking leen la configuración editable.
 - [ ] Comprobar activación automática de los 90 días gratis y Premium desde una verificación real: no hay profesionales verificados disponibles; reglas y permisos comprobados mediante pruebas de lectura.
 - [x] Recuperar las correcciones de vista previa del respaldo sin retirar las nuevas funciones de cámara: compilación correcta, 16 pruebas aprobadas e inicio, idioma persistente y administración comprobados con sesión activa.
-- [ ] Habilitar historial administrativo de moderación: requiere su migración pendiente; mientras tanto mantener estado de indisponibilidad con acceso administrativo.
+- [x] Habilitar historial administrativo de moderación con acceso exclusivo administrativo: eventos recientes, resumen y filtro por usuario comprobados en pantalla grande y pequeña; tres intentos controlados de prueba conservados en el historial.
 - [ ] Aplicar las cinco plantillas de autenticación y sus asuntos en español: requiere configurar un dominio de envío propio.
 - [x] Aplicar y verificar 20261022020000_homie_crecimiento.sql: permisos y límites comprobados, cupón HOMIE20 creado, recordatorios cada 15 minutos, chat privado; 45 pruebas pasan y lectura de invitaciones, cupones, métricas y soporte comprobada con sesión activa.
 - [ ] Activar y comprobar notificaciones al dispositivo: faltan el identificador de la aplicación y la clave de OneSignal.

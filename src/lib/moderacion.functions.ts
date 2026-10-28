@@ -6,7 +6,7 @@
  * 2) Opcional: si existe ANTHROPIC_API_KEY, clasificación con Claude (claude-haiku-4-5).
  *    Ante cualquier error de la API se permite el texto (fail open) y se registra en consola.
  *
- * Los bloqueos se conservan aunque el historial de moderación aún no esté desplegado.
+ * Los intentos rechazados se guardan por separado para que el bloqueo no revierta el historial.
  */
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
@@ -112,16 +112,41 @@ export const moderarTexto = createServerFn({ method: "POST" })
     const texto = data.texto.trim();
     if (!texto) return { ok: true };
 
-    const { data: usuario } = await context.supabase
+    const { data: usuario, error: usuarioError } = await context.supabase
       .from("usuarios")
       .select("id")
       .eq("user_id", context.userId)
       .maybeSingle();
-    const usuarioId = usuario?.id ?? null;
+    if (usuarioError || !usuario) throw new Error("No se pudo comprobar tu cuenta.");
+    const usuarioId = usuario.id;
+
+    // Verify booking access with caller RLS before any privileged logging.
+    let chatPagado = false;
+    if (data.origen === "chat") {
+      if (!data.reservaId) throw new Error("Falta la reserva del chat.");
+      const { data: reserva, error } = await context.supabase.from("reservas")
+        .select("id, cliente_id, prestador_usuario_id").eq("id", data.reservaId).maybeSingle();
+      if (error || !reserva || (reserva.cliente_id !== usuarioId && reserva.prestador_usuario_id !== usuarioId)) {
+        throw new Error("No tienes acceso a este chat.");
+      }
+      const { data: pago, error: pagoError } = await context.supabase.from("pagos")
+        .select("id").eq("reserva_id", reserva.id).eq("estado", "pagado").limit(1).maybeSingle();
+      if (pagoError) throw new Error("No se pudo comprobar el pago.");
+      chatPagado = Boolean(pago);
+    }
 
     async function bloquear(motivo: string): Promise<ResultadoModeracion> {
-      // Event history is not deployed; never log private message text.
-      console.warn("[moderacion] texto bloqueado", { origen: data.origen, motivo });
+      // Only this validated server decision may create an event for the caller.
+      // Never accept a supplied user ID, motive or moderation score.
+      try {
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const { error } = await supabaseAdmin.from("moderacion_eventos").insert({
+          usuario_id: usuarioId, origen: data.origen, texto: texto.slice(0, 500), motivo,
+        });
+        if (error) console.warn("[moderacion] historial no guardado", { code: error.code });
+      } catch {
+        console.warn("[moderacion] historial no disponible");
+      }
       return { ok: false, motivo, mensaje: MENSAJES[motivo] ?? "Tu mensaje no cumple las normas de Homie." };
     }
 
@@ -129,16 +154,7 @@ export const moderarTexto = createServerFn({ method: "POST" })
     if (contieneOfensivo(texto)) return bloquear("ofensivo");
 
     // (b) Datos de contacto en chat sin pago
-    if (data.origen === "chat" && data.reservaId && contieneContacto(texto)) {
-      const { data: pago } = await context.supabase
-        .from("pagos")
-        .select("id")
-        .eq("reserva_id", data.reservaId)
-        .eq("estado", "pagado")
-        .limit(1)
-        .maybeSingle();
-      if (!pago) return bloquear("contacto_sin_pago");
-    }
+    if (data.origen === "chat" && !chatPagado && contieneContacto(texto)) return bloquear("contacto_sin_pago");
 
     // (c) Spam / reseña falsa
     if (data.origen === "resena") {
@@ -165,11 +181,7 @@ export const moderarTexto = createServerFn({ method: "POST" })
       if (ia.amenaza) return bloquear("ia_amenaza");
       if (ia.ofensivo) return bloquear("ia_ofensivo");
       if (ia.contacto && data.origen !== "chat") return bloquear("ia_contacto");
-      if (ia.contacto && data.origen === "chat" && data.reservaId) {
-        const { data: pago } = await context.supabase
-          .from("pagos").select("id").eq("reserva_id", data.reservaId).eq("estado", "pagado").limit(1).maybeSingle();
-        if (!pago) return bloquear("ia_contacto");
-      }
+      if (ia.contacto && data.origen === "chat" && !chatPagado) return bloquear("ia_contacto");
       if (ia.spam) return bloquear("ia_spam");
     }
 
