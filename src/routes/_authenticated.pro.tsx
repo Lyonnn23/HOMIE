@@ -15,6 +15,7 @@ import { createProPreference } from "@/lib/mercadopago.functions";
 import { evento } from "@/lib/analitica";
 import { useT } from "@/i18n";
 import { localeDe } from "@/i18n/estados";
+import { useCobrosConfig, valorCobro } from "@/lib/cobros-config";
 
 export const Route = createFileRoute("/_authenticated/pro")({
   validateSearch: z.object({ pago: z.enum(["exito", "pendiente", "error"]).optional() }),
@@ -30,8 +31,6 @@ export const Route = createFileRoute("/_authenticated/pro")({
 
 type PlanId = "mensual" | "anual";
 
-const TASA_NORMAL = 0.15;
-const TASA_PREMIUM = 0.12;
 const DIAS_TRIAL = 90;
 
 function fechaCL(iso: string, locale = "es-CL") {
@@ -47,7 +46,7 @@ function usePrestadorPro() {
       if (!usuario?.id) return null;
       const { data, error } = await supabase
         .from("prestadores")
-        .select("id, verificado, pro_hasta, pro_trial_usado, nombre")
+        .select("id, verificado, pro_hasta, pro_trial_usado, nombre, comision_gratis_hasta")
         .eq("usuario_id", usuario.id)
         .maybeSingle();
       if (error) throw error;
@@ -72,10 +71,11 @@ function useSuscripciones(prestadorId: string | undefined) {
     queryKey: ["suscripciones-pro", prestadorId],
     enabled: !!prestadorId,
     queryFn: async () => {
+      if (!prestadorId) return [];
       const { data, error } = await supabase
         .from("suscripciones_pro")
         .select("id, plan_id, monto, estado, periodo_desde, periodo_hasta, created_at")
-        .eq("prestador_id", prestadorId!)
+        .eq("prestador_id", prestadorId)
         .order("created_at", { ascending: false })
         .limit(30);
       if (error) throw error;
@@ -308,7 +308,7 @@ function ProPage() {
                     <li key={s.id} className="flex items-center gap-3 px-4 py-3 text-sm">
                       <div className="flex-1 min-w-0">
                         <div className="font-medium">
-                          {s.estado === "prueba" ? t("premium.gratisDias", { n: DIAS_TRIAL }) : s.plan_id === "anual" ? t("premium.anualNombre") : t("premium.mensualNombre")}
+                          {s.estado === "prueba" ? t("premium.gratisDias", { n: s.periodo_desde && s.periodo_hasta ? Math.round((new Date(s.periodo_hasta).getTime() - new Date(s.periodo_desde).getTime()) / 86400000) : DIAS_TRIAL }) : s.plan_id === "anual" ? t("premium.anualNombre") : t("premium.mensualNombre")}
                         </div>
                         <div className="text-xs text-muted-foreground">
                           {s.periodo_desde && s.periodo_hasta
@@ -375,15 +375,18 @@ function PlanCard({
 
 function Calculadora({ precioMensual, precioAnual }: { precioMensual: number; precioAnual: number }) {
   const { t } = useT();
+  const configQ = useCobrosConfig();
+  const tasaNormal = valorCobro(configQ.data, "comision_normal", 0.15);
+  const tasaPremium = valorCobro(configQ.data, "comision_premium", 0.12);
   const [facturacion, setFacturacion] = useState(600000);
   const r = useMemo(() => {
-    const ahorroMes = Math.round(facturacion * (TASA_NORMAL - TASA_PREMIUM));
+    const ahorroMes = Math.round(facturacion * (tasaNormal - tasaPremium));
     return {
       ahorroMes,
       netoMensual: ahorroMes - precioMensual,
       netoAnual: ahorroMes * 12 - precioAnual,
     };
-  }, [facturacion, precioMensual, precioAnual]);
+  }, [facturacion, precioMensual, precioAnual, tasaNormal, tasaPremium]);
 
   return (
     <section>

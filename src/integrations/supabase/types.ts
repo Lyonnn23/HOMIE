@@ -127,6 +127,24 @@ export type Database = {
         }
         Relationships: []
       }
+      config_publica: {
+        Row: {
+          clave: string
+          descripcion: string | null
+          valor: number
+        }
+        Insert: {
+          clave: string
+          descripcion?: string | null
+          valor: number
+        }
+        Update: {
+          clave?: string
+          descripcion?: string | null
+          valor?: number
+        }
+        Relationships: []
+      }
       cotizaciones: {
         Row: {
           created_at: string
@@ -745,6 +763,7 @@ export type Database = {
           categoria_id: string
           ciudad: string
           color_perfil: string | null
+          comision_gratis_hasta: string | null
           compartir_ubicacion: boolean
           comuna: string | null
           comunas_cobertura: string[]
@@ -777,6 +796,7 @@ export type Database = {
           ubicacion_actualizada_at: string | null
           usuario_id: string
           verificado: boolean
+          verificado_at: string | null
           verificado_identidad: boolean
           vistas: number
         }
@@ -789,6 +809,7 @@ export type Database = {
           categoria_id: string
           ciudad?: string
           color_perfil?: string | null
+          comision_gratis_hasta?: string | null
           compartir_ubicacion?: boolean
           comuna?: string | null
           comunas_cobertura?: string[]
@@ -821,6 +842,7 @@ export type Database = {
           ubicacion_actualizada_at?: string | null
           usuario_id: string
           verificado?: boolean
+          verificado_at?: string | null
           verificado_identidad?: boolean
           vistas?: number
         }
@@ -833,6 +855,7 @@ export type Database = {
           categoria_id?: string
           ciudad?: string
           color_perfil?: string | null
+          comision_gratis_hasta?: string | null
           compartir_ubicacion?: boolean
           comuna?: string | null
           comunas_cobertura?: string[]
@@ -865,6 +888,7 @@ export type Database = {
           ubicacion_actualizada_at?: string | null
           usuario_id?: string
           verificado?: boolean
+          verificado_at?: string | null
           verificado_identidad?: boolean
           vistas?: number
         }
@@ -1764,6 +1788,7 @@ export type Database = {
         }[]
       }
       asignar_admin_por_email: { Args: { _email: string }; Returns: undefined }
+      cfg: { Args: { _clave: string; _default: number }; Returns: number }
       completar_con_codigo: {
         Args: { _codigo: string; _reserva_id: string }
         Returns: boolean
@@ -1801,6 +1826,7 @@ export type Database = {
         Args: { _object_path: string }
         Returns: boolean
       }
+      puntaje_ranking: { Args: { _prestador_id: string }; Returns: number }
       registrar_liquidacion: {
         Args: {
           _medio: string

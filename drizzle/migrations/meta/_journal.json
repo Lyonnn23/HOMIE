@@ -92,6 +92,27 @@
       "when": 1792718204925,
       "tag": "0012_homie_crecimiento_permisos_efectivos",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1793153056611,
+      "tag": "0013_homie_gratis_3_meses_y_premium",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1793153153529,
+      "tag": "0014_homie_premium_permisos_y_cupones",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1793153282207,
+      "tag": "0015_homie_config_publica_minimo_acceso",
+      "breakpoints": true
     }
   ]
 }

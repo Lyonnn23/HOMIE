@@ -511,7 +511,7 @@ function usePrestadorRow() {
       if (!usuario?.id) return null;
       const { data, error } = await supabase
         .from("prestadores")
-        .select("id, bio, direccion, precio_desde, disponible_ahora, categoria_id, calificacion_promedio, resenas_count, verificado, horario, banner_url, color_perfil, titulo_profesional, anos_experiencia, comuna, pro_hasta, pro_trial_usado, gallery_urls, especialidades, comunas_cobertura, radio_km, idiomas, tiene_vehiculo, herramientas_propias, emite_boleta")
+        .select("id, bio, direccion, precio_desde, disponible_ahora, categoria_id, calificacion_promedio, resenas_count, verificado, horario, banner_url, color_perfil, titulo_profesional, anos_experiencia, comuna, pro_hasta, pro_trial_usado, comision_gratis_hasta, gallery_urls, especialidades, comunas_cobertura, radio_km, idiomas, tiene_vehiculo, herramientas_propias, emite_boleta")
         .eq("usuario_id", usuario.id)
         .maybeSingle();
       if (error) throw error;
@@ -579,16 +579,28 @@ function ProBanner() {
   const { t, idioma } = useT();
   const locale = localeDe(idioma);
   const row = usePrestadorRow();
+  const comisionQ = useQuery({
+    queryKey: ["prestador-comision", row?.id],
+    enabled: !!row?.id,
+    queryFn: async () => {
+      if (!row?.id) return null;
+      const { data, error } = await supabase.rpc("tasa_comision", { _prestador_id: row.id });
+      if (error) throw error;
+      return Number(data) * 100;
+    },
+  });
   if (!row) return null;
   const premium = esPro(row.pro_hasta);
-  const tasaActual = premium ? 12 : 15;
+  const gratisHasta = row.comision_gratis_hasta ? new Date(row.comision_gratis_hasta) : null;
+  const enGratis = !!gratisHasta && gratisHasta.getTime() > Date.now();
+  const tasaActual = comisionQ.data;
 
   return (
     <div className="space-y-2">
       <div className="p-4 rounded-2xl bg-white border border-border">
-        <div className="font-semibold text-sm">{t("panel.comisionVigente", { pct: tasaActual })}</div>
+        <div className="font-semibold text-sm">{tasaActual == null ? "—" : t("panel.comisionVigente", { pct: tasaActual })}</div>
         <p className="mt-1 text-xs text-muted-foreground">
-          {premium ? t("panel.tarifaPremium") : t("panel.tarifaNormal")}
+          {enGratis && gratisHasta ? t("panel.periodoGratis", { fecha: fechaCL(gratisHasta.toISOString(), locale) }) : premium ? t("panel.tarifaPremium") : t("panel.tarifaNormal")}
         </p>
       </div>
 
