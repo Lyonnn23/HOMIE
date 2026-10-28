@@ -8,6 +8,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Idioma } from "@/i18n";
+import { destacaPremium, type UmbralesPremium } from "@/lib/premium-ranking";
 
 export type CategoryId =
   | "beauty" | "home" | "tech-fix" | "health" | "pets" | "moving" | "tech" | "events"
@@ -299,8 +300,8 @@ export function ratingBayesiano(rating: number, reviewsCount: number): number {
 }
 
 /** Premium solo destaca con buena reputación. */
-export function premiumDestaca(r: { premium: boolean; rating: number; reviewsCount: number }): boolean {
-  return r.premium && r.rating >= RANKING_MIN_RATING_PREMIUM && r.reviewsCount >= RANKING_MIN_RESENAS_PREMIUM;
+export function premiumDestaca(r: { premium: boolean; rating: number; reviewsCount: number }, umbrales?: UmbralesPremium): boolean {
+  return destacaPremium(r, umbrales);
 }
 
 /**
@@ -309,13 +310,13 @@ export function premiumDestaca(r: { premium: boolean; rating: number; reviewsCou
  */
 export function rankingScore(r: {
   rating: number; reviewsCount: number; disponibleAhora: boolean; availability?: string | null; premium: boolean;
-}): number {
+}, umbrales?: UmbralesPremium): number {
   let v = ratingBayesiano(r.rating, r.reviewsCount) * 20; // 0..100
   if (r.disponibleAhora) v += 8;
   const disp = r.availability ?? "";
   if (disp.includes("15 min")) v += 4;
   else if (disp.includes("1 h")) v += 2;
-  if (premiumDestaca(r)) v += 12;
+  if (premiumDestaca(r, umbrales)) v += 12;
   return Math.round(v * 100) / 100;
 }
 export const MODALIDAD_LABEL: Record<string, string> = { domicilio: "A domicilio", online: "Online", local: "En local" };

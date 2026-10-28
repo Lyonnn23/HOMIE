@@ -16,6 +16,7 @@ import { categories, groups, categoriesOfGroup, formatCLP, esPro, rankingScore, 
 import { useT } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { distanciaKm, type GeoPoint } from "@/lib/geocode";
+import { useCobrosConfig, valorCobro } from "@/lib/cobros-config";
 
 /** Pide la ubicación del navegador una sola vez (no bloquea; null si no hay permiso). */
 function useGeolocation(): GeoPoint | null {
@@ -79,8 +80,13 @@ const PRICE_MAX = 50000;
 type SortKey = "relevance" | "rating" | "price" | "distance";
 
 function useSearchProviders(params: { q: string; cat: string; min: number; max: number; rating: number; now: boolean; sort: SortKey }, origen: GeoPoint | null) {
+  const configQ = useCobrosConfig();
+  const umbrales = {
+    rating: valorCobro(configQ.data, "ranking_min_rating_premium", 4),
+    reviews: valorCobro(configQ.data, "ranking_min_resenas_premium", 3),
+  };
   return useQuery({
-    queryKey: ["search", params, origen],
+    queryKey: ["search", params, origen, umbrales],
     placeholderData: (prev) => prev,
     queryFn: async (): Promise<ResultRow[]> => {
       let query = supabase
@@ -163,10 +169,10 @@ function useSearchProviders(params: { q: string; cat: string; min: number; max: 
           lat,
           lng,
           pro: premium,
-          premiumDestacado: premiumDestaca(rep),
+          premiumDestacado: premiumDestaca(rep, umbrales),
           availability: r.disponibilidad_texto,
           score,
-          ranking: rankingScore(rep),
+          ranking: rankingScore(rep, umbrales),
         };
       }).filter(Boolean) as (ResultRow & { score: number; ranking: number })[];
 

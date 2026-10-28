@@ -90,6 +90,7 @@ test("Premium ranking bonus requires a 4.0 rating and three reviews", () => {
 test("configuration is publicly readable but all writes require administrator status", () => {
   expect(state.rls).toBe(true);
   expect(state.anonSelect).toBe(true);
+  expect(state.anonUpdate).toBe(false);
   expect(state.authUpdate).toBe(true);
   expect(state.policies.filter((p) => p.cmd === "ALL")).toEqual([{ cmd: "ALL", qual: "is_admin()", with_check: "is_admin()" }]);
   expect(state.policies.filter((p) => p.cmd !== "SELECT" && p.cmd !== "ALL")).toHaveLength(0);
