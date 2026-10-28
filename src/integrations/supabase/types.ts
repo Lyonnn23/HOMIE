@@ -487,6 +487,44 @@ export type Database = {
         }
         Relationships: []
       }
+      moderacion_eventos: {
+        Row: {
+          created_at: string
+          id: string
+          motivo: string
+          origen: string
+          puntaje: number | null
+          texto: string | null
+          usuario_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          motivo: string
+          origen: string
+          puntaje?: number | null
+          texto?: string | null
+          usuario_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          motivo?: string
+          origen?: string
+          puntaje?: number | null
+          texto?: string | null
+          usuario_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "moderacion_eventos_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notificaciones: {
         Row: {
           created_at: string
@@ -1583,6 +1621,7 @@ export type Database = {
       usuarios: {
         Row: {
           bono_referido_pagado: boolean
+          bono_referido_pro_pagado: boolean
           calificacion_cliente: number | null
           calificaciones_cliente_count: number
           codigo_referido: string | null
@@ -1590,6 +1629,7 @@ export type Database = {
           email: string | null
           foto_url: string | null
           id: string
+          idioma: string
           nombre: string
           notif_config: Json
           onesignal_player_id: string | null
@@ -1599,6 +1639,7 @@ export type Database = {
         }
         Insert: {
           bono_referido_pagado?: boolean
+          bono_referido_pro_pagado?: boolean
           calificacion_cliente?: number | null
           calificaciones_cliente_count?: number
           codigo_referido?: string | null
@@ -1606,6 +1647,7 @@ export type Database = {
           email?: string | null
           foto_url?: string | null
           id?: string
+          idioma?: string
           nombre: string
           notif_config?: Json
           onesignal_player_id?: string | null
@@ -1615,6 +1657,7 @@ export type Database = {
         }
         Update: {
           bono_referido_pagado?: boolean
+          bono_referido_pro_pagado?: boolean
           calificacion_cliente?: number | null
           calificaciones_cliente_count?: number
           codigo_referido?: string | null
@@ -1622,6 +1665,7 @@ export type Database = {
           email?: string | null
           foto_url?: string | null
           id?: string
+          idioma?: string
           nombre?: string
           notif_config?: Json
           onesignal_player_id?: string | null
@@ -1696,6 +1740,26 @@ export type Database = {
             columns: ["categoria_id"]
             isOneToOne: false
             referencedRelation: "categorias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      moderacion_resumen: {
+        Row: {
+          email: string | null
+          eventos: number | null
+          motivos: string[] | null
+          nombre: string | null
+          tipo: Database["public"]["Enums"]["user_type"] | null
+          ultimo: string | null
+          usuario_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "moderacion_eventos_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
         ]
@@ -1800,6 +1864,7 @@ export type Database = {
           whatsapp: string
         }[]
       }
+      contiene_contacto: { Args: { _t: string }; Returns: boolean }
       contiene_lenguaje_ofensivo: { Args: { _texto: string }; Returns: boolean }
       current_usuario_id: { Args: never; Returns: string }
       distancia_km: {
