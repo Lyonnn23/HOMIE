@@ -44,10 +44,11 @@ function usePrestadorPro() {
     queryKey: ["prestador-pro", usuario?.id],
     enabled: !!usuario?.id,
     queryFn: async () => {
+      if (!usuario?.id) return null;
       const { data, error } = await supabase
         .from("prestadores")
-        .select("id, verificado, pro_hasta, pro_trial_usado, nombre, comision_gratis_hasta")
-        .eq("usuario_id", usuario!.id)
+        .select("id, verificado, pro_hasta, pro_trial_usado, nombre")
+        .eq("usuario_id", usuario.id)
         .maybeSingle();
       if (error) throw error;
       return data;
