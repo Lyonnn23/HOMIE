@@ -1,5 +1,6 @@
 # Migraciones solicitadas
 
+- [ ] Aplicar y verificar 20261026010000_homie_gratis_3_meses_y_premium.sql: tres meses gratis, Premium y configuración de cobros con permisos seguros.
 - [x] Recuperar las correcciones de vista previa del respaldo sin retirar las nuevas funciones de cámara: compilación correcta, 16 pruebas aprobadas e inicio, idioma persistente y administración comprobados con sesión activa.
 - [ ] Habilitar edición de cobros e historial administrativo de moderación: requieren sus migraciones pendientes; mientras tanto mantener estados de indisponibilidad con acceso administrativo.
 - [ ] Aplicar las cinco plantillas de autenticación y sus asuntos en español: requiere configurar un dominio de envío propio.
