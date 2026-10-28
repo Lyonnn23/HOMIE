@@ -1,5 +1,8 @@
 # Migraciones solicitadas
 
+- [x] Recuperar las correcciones de vista previa del respaldo sin retirar las nuevas funciones de cámara: compilación correcta, 16 pruebas aprobadas e inicio, idioma persistente y administración comprobados con sesión activa.
+- [ ] Habilitar edición de cobros e historial administrativo de moderación: requieren sus migraciones pendientes; mientras tanto mantener estados de indisponibilidad con acceso administrativo.
+- [ ] Aplicar las cinco plantillas de autenticación y sus asuntos en español: requiere configurar un dominio de envío propio.
 - [x] Aplicar y verificar 20261022020000_homie_crecimiento.sql: permisos y límites comprobados, cupón HOMIE20 creado, recordatorios cada 15 minutos, chat privado; 45 pruebas pasan y lectura de invitaciones, cupones, métricas y soporte comprobada con sesión activa.
 - [ ] Activar y comprobar notificaciones al dispositivo: faltan el identificador de la aplicación y la clave de OneSignal.
 - [ ] Comprobar canje y pago de cupones, bono por servicio completado y fotos del chat desde la app: requiere cuentas participantes y una reserva verificable; no hay profesionales verificados ni reservas de la cuenta disponible.

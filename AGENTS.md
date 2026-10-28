@@ -10,3 +10,6 @@
 - Verify schema defaults and constraint boundaries with read-only database-backed tests so migration checks cannot modify customer records.
 - Keep growth rewards and client ratings writable only by validated database routines; bind ratings to both booking participants, serialize coupon claims, and require a paid completion for referral rewards to prevent forged benefits.
 - Keep chat photos private and bind upload and download access to the booking participants; support clients may update only the read flag to prevent impersonating staff.
+- Compile application queries against the deployed schema; do not invent generated types or apply pending migrations to hide errors, because deployment and source can advance independently.
+- Admin screens whose schema is pending use the shared role-checked unavailable state, because missing configuration or history must not loosen access or change active rates.
+- Keep moderation rules in a browser-safe shared module; missing event history must not disable blocking, and optional classifier secrets are read only inside the server handler.
